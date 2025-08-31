@@ -33,10 +33,10 @@ export default function HomePage() {
       setLoading(true)
       const response = await fetch('/api/stages')
       if (!response.ok) throw new Error('Erreur de chargement')
-      
+
       const data = await response.json()
       const stagesData = data.stages || []
-      
+
       setStages(stagesData)
       setFilteredStages(stagesData)
     } catch (error) {
@@ -86,16 +86,16 @@ export default function HomePage() {
       </header>
 
       <div className="flex h-[calc(100vh-80px)]">
-        <div className="w-80 bg-white border-r border-gray-200 overflow-hidden flex flex-col">
-          <StageSelector 
-            stages={stages}
-            filteredStages={filteredStages}
-            selectedStage={selectedStage}
-            onStageSelect={handleStageClick}
-            onFilterChange={setFilteredStages}
-          />
-        </div>
-        
+        {/* Panneau latéral avec rétractation */}
+        <StageSelector 
+          stages={stages}
+          filteredStages={filteredStages}
+          selectedStage={selectedStage}
+          onStageSelect={handleStageClick}
+          onFilterChange={setFilteredStages}
+        />
+
+        {/* Zone de la carte */}
         <div className="flex-1">
           <StageMap 
             stages={filteredStages}
