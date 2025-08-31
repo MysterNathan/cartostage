@@ -3,10 +3,10 @@ export interface User {
   isAuthenticated: boolean
 }
 
-export const AUTH_CONFIG = {
-  username: 'admin',
-  password: 'lycee2024'
-}
+  export const AUTH_CONFIG = {
+    username:  process.env.ADMIN_USERNAME,
+    password:  process.env.ADMIN_PASSWORD
+  } 
 
 export function validateCredentials(username: string, password: string): boolean {
   return username === AUTH_CONFIG.username && password === AUTH_CONFIG.password
