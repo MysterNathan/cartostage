@@ -7,6 +7,7 @@ import LoginForm from '@/components/LoginForm'
 import StageModal from '@/components/StageModal'
 import StatisticsModal from '@/components/StatisticsModal'
 import type { Stage } from '@/types/stage'
+import FilieresManager from '@/components/admin/FilieresManager'
 
 export default function AdminPage() {
   const router = useRouter()
@@ -18,6 +19,7 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [authenticated, setAuthenticated] = useState(false)
+    const [isFilieresOpen, setIsFilieresOpen] = useState(false)
 
   useEffect(() => {
     const checkAuth = () => {
@@ -140,7 +142,6 @@ export default function AdminPage() {
     setIsModalOpen(false)
     setEditingStage(null)
   }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -174,6 +175,15 @@ export default function AdminPage() {
                 </svg>
                 Statistiques
               </button>
+                <button
+                    onClick={() => setIsFilieresOpen(true)}
+                    className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors"
+                >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 7h18M3 12h18M3 17h18" />
+                    </svg>
+                    Gérer les filières
+                </button>
               <button
                 onClick={addNewStage}
                 className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
@@ -311,7 +321,7 @@ export default function AdminPage() {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                        stage.filiere === 'CCST' ? 'bg-blue-100 text-blue-800' :
+                        stage.filiere === 'CCST' ? `${stage.filiere.color} text-blue-800` :
                         stage.filiere === 'SN' ? 'bg-green-100 text-green-800' :
                         'bg-purple-100 text-purple-800'
                       }`}>
@@ -365,6 +375,10 @@ export default function AdminPage() {
         onSave={saveStage}
         isNew={isNewStage}
       />
+        <FilieresManager
+            isOpen={isFilieresOpen}
+            onClose={() => setIsFilieresOpen(false)}
+        />
 
       <StatisticsModal
         stages={stages}

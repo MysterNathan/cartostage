@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "code": "CCST",
+    "label": "CCST - Cybersécurité, Informatique et réseaux, Électronique",
+    "color": "#3B82F6"
+  },
+  {
+    "id": 2,
+    "code": "ASSP",
+    "label": "ASSP - Accompagnement, Soins et Services à la Personne",
+    "color": "#10B981"
+  },
+  {
+    "id": 3,
+    "code": "SN",
+    "label": "SN - Systèmes Numériques",
+    "color": "#06B6D4"
+  },
+  {
+    "id": 4,
+    "code": "SLAM",
+    "label": "SLAM - Solutions Logicielles et Applications Métiers",
+    "color": "#8B5CF6"
+  },
+  {
+    "id": 5,
+    "code": "TEST",
+    "label": "test",
+    "color": "#a10c0c"
+  }
+]

@@ -4,8 +4,8 @@ export interface User {
 }
 
   export const AUTH_CONFIG = {
-    username:  process.env.ADMIN_USERNAME,
-    password:  process.env.ADMIN_PASSWORD
+    username:  "admin",
+    password:  "lycee2024"
   } 
 
 export function validateCredentials(username: string, password: string): boolean {

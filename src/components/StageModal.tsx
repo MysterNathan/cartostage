@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import type { Stage } from '@/types/stage'
+import FiliereSelect from '@/components/admin/FiliereSelect'
 
 interface StageModalProps {
   stage: Stage | null
@@ -135,21 +136,14 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
               </div>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Filière *
-              </label>
-              <select
-                value={editingStage.filiere}
-                onChange={(e) => setEditingStage({ ...editingStage, filiere: e.target.value as 'CCST' | 'SN' | 'SLAM' })}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                required
-              >
-                <option value="CCST">CCST - Cybersécurité, Informatique et réseaux, Électronique</option>
-                <option value="SN">SN - Systèmes Numériques</option>
-                <option value="SLAM">SLAM - Solutions Logicielles et Applications Métiers</option>
-              </select>
-            </div>
+              <div>
+                  <FiliereSelect
+                      value={editingStage.filiere}
+                      onChange={(code) => setEditingStage({ ...editingStage, filiere: code })}
+                      required
+                      allowCreate={false}
+                  />
+              </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>

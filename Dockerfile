@@ -59,11 +59,11 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 # Variables d'environnement de production
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
+ENV PORT=80
 ENV HOSTNAME="0.0.0.0"
 
 # Exposer le port
-EXPOSE 3000
+EXPOSE 80
 
 # Changer vers l'utilisateur non-root
 USER nextjs
