@@ -13,3 +13,7 @@ export interface Stage {
   capacity_filled: number
   period?: string
 }
+
+export interface StagesData {
+  stages: Stage[]
+}

@@ -164,6 +164,11 @@ export default function AdminPage() {
             <p className="text-gray-600">{stages.length} stage(s) enregistré(s)</p>
           </div>
           <div className="flex gap-3">
+            <a
+            href="/"
+            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-purple-600 transition-colors">
+            Retour à la carte
+            </a>
             <button
               onClick={handleAdd}
               className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
