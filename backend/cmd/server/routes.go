@@ -7,10 +7,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
-func setupRoutes(stageHandler *handlers.StageHandler) *mux.Router {
+func setupRoutes(stageHandler *handlers.StageHandler, filiereHandler *handlers.FiliereHandler) *mux.Router {
 	r := mux.NewRouter()
 
-	// Équivalent des routes NextJS
+	// Middleware CORS appliqué en premier
+	r.Use(corsMiddleware)
+
 	api := r.PathPrefix("/api").Subrouter()
 
 	// Route principale des stages - GET et POST
@@ -18,29 +20,53 @@ func setupRoutes(stageHandler *handlers.StageHandler) *mux.Router {
 	stages.HandleFunc("", stageHandler.GetAllStages).Methods("GET")
 	stages.HandleFunc("", stageHandler.SaveAllStages).Methods("POST")
 
+	// Support explicite des requêtes OPTIONS pour toutes les routes stages
+	stages.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+
 	// Route pour un stage spécifique
 	stages.HandleFunc("/{id:[0-9]+}", stageHandler.GetStageByID).Methods("GET")
+	stages.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
 
 	// Route pour les filtres
 	stages.HandleFunc("/filters", stageHandler.GetFilterOptions).Methods("GET")
+	stages.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
 
-	// Middleware CORS si nécessaire
-	r.Use(corsMiddleware)
+	// Routes des filières
+	filieres := api.PathPrefix("/filieres").Subrouter()
+	filieres.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
+	filieres.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 
 	return r
 }
 
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Access-Control-Allow-Origin", "*")
-		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
-		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
+		// Configuration CORS plus spécifique pour le développement
+		origin := r.Header.Get("Origin")
+		if origin == "http://localhost:3000" || origin == "http://127.0.0.1:3000" {
+			w.Header().Set("Access-Control-Allow-Origin", origin)
+		} else {
+			// En développement, on peut autoriser tous les origins
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+		}
 
+		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
+		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
+		w.Header().Set("Access-Control-Allow-Credentials", "true")
+		w.Header().Set("Access-Control-Max-Age", "3600")
+
+		// Gestion des requêtes preflight OPTIONS
 		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
+			w.WriteHeader(http.StatusNoContent)
 			return
 		}
 
 		next.ServeHTTP(w, r)
 	})
+}
+
+// Handler spécifique pour les requêtes OPTIONS (preflight)
+func corsPreflightHandler(w http.ResponseWriter, r *http.Request) {
+	// Les headers CORS sont déjà définis par le middleware
+	w.WriteHeader(http.StatusNoContent)
 }

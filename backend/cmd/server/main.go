@@ -21,14 +21,16 @@ func main() {
 	}
 	defer db.Close()
 
-	// Créer un repository
+	// Créer les repositories
 	stageRepo := repository.NewStageRepository(db)
+	filiereRepo := repository.NewFiliereRepository(db)
 
-	// Créer un handler en lui passant le repo
+	// Créer les handlers en leur passant les repos
 	stageHandler := handlers.NewStageHandler(stageRepo)
+	filiereHandler := handlers.NewFiliereHandler(filiereRepo)
 
-	// Setup des routes
-	r := setupRoutes(stageHandler)
+	// Setup des routes avec les deux handlers
+	r := setupRoutes(stageHandler, filiereHandler)
 
 	fmt.Println("🚀 Server running on :8080")
 	log.Fatal(http.ListenAndServe(":8080", r))
