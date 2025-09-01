@@ -10,35 +10,33 @@ import (
 func setupRoutes(stageHandler *handlers.StageHandler) *mux.Router {
 	r := mux.NewRouter()
 
-	// Middleware CORS global
-	r.Use(corsMiddleware)
-
 	// Équivalent des routes NextJS
 	api := r.PathPrefix("/api").Subrouter()
 
 	// Route principale des stages - GET et POST
-	api.HandleFunc("/stages", stageHandler.GetAllStages).Methods("GET", "OPTIONS")
-	api.HandleFunc("/stages", stageHandler.SaveAllStages).Methods("POST", "OPTIONS")
+	stages := api.PathPrefix("/stages").Subrouter()
+	stages.HandleFunc("", stageHandler.GetAllStages).Methods("GET")
+	stages.HandleFunc("", stageHandler.SaveAllStages).Methods("POST")
 
 	// Route pour un stage spécifique
-	api.HandleFunc("/stages/{id:[0-9]+}", stageHandler.GetStageByID).Methods("GET", "OPTIONS")
+	stages.HandleFunc("/{id:[0-9]+}", stageHandler.GetStageByID).Methods("GET")
 
 	// Route pour les filtres
-	api.HandleFunc("/stages/filters", stageHandler.GetFilterOptions).Methods("GET", "OPTIONS")
+	stages.HandleFunc("/filters", stageHandler.GetFilterOptions).Methods("GET")
+
+	// Middleware CORS si nécessaire
+	r.Use(corsMiddleware)
 
 	return r
 }
 
-// Middleware CORS
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Autoriser uniquement le frontend
-		w.Header().Set("Access-Control-Allow-Origin", "http://localhost:3000")
+		w.Header().Set("Access-Control-Allow-Origin", "*")
 		w.Header().Set("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS")
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization")
 
-		// OPTIONS preflight
-		if r.Method == http.MethodOptions {
+		if r.Method == "OPTIONS" {
 			w.WriteHeader(http.StatusOK)
 			return
 		}

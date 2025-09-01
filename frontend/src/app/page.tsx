@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import StageSelector from '@/components/StageSelector'
 import type { Stage } from '@/types/stage'
-import {StageProvider} from "@/contexts/StageContext";
 
 // Import dynamique pour éviter les erreurs SSR avec Leaflet
 const StageMap = dynamic(() => import('@/components/StageMap'), {
@@ -85,7 +84,7 @@ export default function HomePage() {
           </div>
         </div>
       </header>
-      <StageProvider>
+
       <div className="flex h-[calc(100vh-80px)]">
         {/* Panneau latéral avec rétractation */}
         <StageSelector 
@@ -95,6 +94,7 @@ export default function HomePage() {
           onStageSelect={handleStageClick}
           onFilterChange={setFilteredStages}
         />
+
         {/* Zone de la carte */}
         <div className="flex-1">
           <StageMap 
@@ -104,7 +104,6 @@ export default function HomePage() {
           />
         </div>
       </div>
-      </StageProvider>
     </div>
   )
 }
