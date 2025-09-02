@@ -68,7 +68,7 @@ export default function FiliereSelect({
             setIsCreating(true)
             setError('')
 
-            const newFiliere = await addFiliere({ // ✅ Utilise la lib
+            const newFiliere = await addFiliere({
                 code: form.code.trim().toUpperCase(),
                 label: form.label.trim(),
                 color: form.color

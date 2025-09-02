@@ -1,8 +1,8 @@
 'use client'
 import { useState, useEffect } from 'react'
 import type { Stage } from '@/types/stage'
-import type { Filiere } from '@/types/stage'
-import { getFilieres } from '@/lib/stageApi'
+import type { Filiere } from '@/types/filiere'
+import { getFilieres } from '@/lib/filiereApi'
 
 interface StageFiltersProps {
   stages: Stage[]
