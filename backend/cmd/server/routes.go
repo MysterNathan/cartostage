@@ -18,7 +18,9 @@ func setupRoutes(stageHandler *handlers.StageHandler, filiereHandler *handlers.F
 	// Route principale des stages - GET et POST
 	stages := api.PathPrefix("/stages").Subrouter()
 	stages.HandleFunc("", stageHandler.GetAllStages).Methods("GET")
-	stages.HandleFunc("", stageHandler.SaveAllStages).Methods("POST")
+	stages.HandleFunc("", stageHandler.SaveStage).Methods("POST")
+	stages.HandleFunc("/{id}", stageHandler.DeleteStage).Methods("DELETE")
+	stages.HandleFunc("/{id}", stageHandler.UpdateStage).Methods("PUT")
 
 	// Support explicite des requêtes OPTIONS pour toutes les routes stages
 	stages.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
@@ -34,6 +36,12 @@ func setupRoutes(stageHandler *handlers.StageHandler, filiereHandler *handlers.F
 	// Routes des filières
 	filieres := api.PathPrefix("/filieres").Subrouter()
 	filieres.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
+	filieres.HandleFunc("", filiereHandler.CreateFiliere).Methods("POST")
+	filieres.HandleFunc("/{id}", filiereHandler.UpdateFiliere).Methods("PUT")
+	filieres.HandleFunc("/{id}", filiereHandler.DeleteFiliere).Methods("DELETE")
+
+	filieres.HandleFunc("/{id}", corsPreflightHandler).Methods("OPTIONS")
+
 	filieres.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 
 	return r

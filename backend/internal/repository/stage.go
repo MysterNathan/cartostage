@@ -65,67 +65,37 @@ func (r *StageRepository) GetAllStages() (*models.StagesData, error) {
 	return &models.StagesData{Stages: stages}, nil
 }
 
-// SaveAllStages - Équivalent du POST NextJS (mise à jour complète)
-func (r *StageRepository) SaveAllStages(stagesData *models.StagesData) error {
-	// Démarrer une transaction
-	tx, err := r.db.Begin()
-	if err != nil {
-		return fmt.Errorf("erreur lors du démarrage de la transaction: %v", err)
-	}
-	defer tx.Rollback()
-
-	// Vider la table existante
-	_, err = tx.Exec("DELETE FROM stages")
-	if err != nil {
-		return fmt.Errorf("erreur lors de la suppression: %v", err)
-	}
-
-	// Insérer les nouveaux stages
+// SaveStage - Sauvegarde un seul stage
+func (r *StageRepository) SaveStage(stage *models.Stage) error {
 	query := `
         INSERT INTO stages (
-            id, poste, adresse, lat, lng, places_disponibles,
+            poste, adresse, lat, lng, places_disponibles,
             entreprise, filiere, sector, commune, capacity_total,
-            capacity_filled, period
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+            capacity_filled, period, created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+        RETURNING id
     `
 
-	for _, stage := range stagesData.Stages {
-		_, err = tx.Exec(query,
-			stage.ID,
-			stage.Poste,
-			stage.Adresse,
-			stage.Lat,
-			stage.Lng,
-			stage.PlacesDisponibles,
-			stage.Entreprise,
-			stage.Filiere,
-			stage.Sector,
-			stage.Commune,
-			stage.CapacityTotal,
-			stage.CapacityFilled,
-			stage.Period,
-		)
-		if err != nil {
-			return fmt.Errorf("erreur lors de l'insertion du stage %d: %v", stage.ID, err)
-		}
+	err := r.db.QueryRow(query,
+		stage.Poste,
+		stage.Adresse,
+		stage.Lat,
+		stage.Lng,
+		stage.PlacesDisponibles,
+		stage.Entreprise,
+		stage.Filiere,
+		stage.Sector,
+		stage.Commune,
+		stage.CapacityTotal,
+		stage.CapacityFilled,
+		stage.Period,
+	).Scan(&stage.ID)
+
+	if err != nil {
+		return fmt.Errorf("erreur lors de l'insertion du stage: %v", err)
 	}
 
-	// Réinitialiser la séquence pour les prochains ID
-	if len(stagesData.Stages) > 0 {
-		maxID := 0
-		for _, stage := range stagesData.Stages {
-			if stage.ID > maxID {
-				maxID = stage.ID
-			}
-		}
-		_, err = tx.Exec("SELECT setval('stages_id_seq', $1)", maxID)
-		if err != nil {
-			return fmt.Errorf("erreur lors de la réinitialisation de la séquence: %v", err)
-		}
-	}
-
-	// Valider la transaction
-	return tx.Commit()
+	return nil
 }
 
 // Méthodes additionnelles pour des opérations plus granulaires
@@ -236,4 +206,75 @@ func (r *StageRepository) GetStagesWithFilters(filiere, commune string, availabl
 	}
 
 	return &models.StagesData{Stages: stages}, nil
+}
+
+// DeleteStage - Supprime un stage par son ID
+func (r *StageRepository) DeleteStage(id int) error {
+	query := `DELETE FROM stages WHERE id = $1`
+
+	result, err := r.db.Exec(query, id)
+	if err != nil {
+		return fmt.Errorf("erreur lors de la suppression du stage: %v", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("erreur lors de la vérification de la suppression: %v", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("aucun stage trouvé avec l'ID %d", id)
+	}
+
+	return nil
+}
+
+// DeleteAllStages - Supprime tous les stages
+func (r *StageRepository) DeleteAllStages() error {
+	query := `DELETE FROM stages`
+
+	_, err := r.db.Exec(query)
+	if err != nil {
+		return fmt.Errorf("erreur lors de la suppression de tous les stages: %v", err)
+	}
+
+	return nil
+}
+
+// UpdateStage - Met à jour un stage existant
+func (r *StageRepository) UpdateStage(stage *models.Stage) error {
+	query := `
+        UPDATE stages 
+        SET poste = $2, adresse = $3, lat = $4, lng = $5, 
+            places_disponibles = $6, entreprise = $7, filiere = $8, 
+            sector = $9, commune = $10, capacity_total = $11, 
+            capacity_filled = $12, period = $13, updated_at = CURRENT_TIMESTAMP
+        WHERE id = $1
+        RETURNING id, created_at, updated_at`
+
+	err := r.db.QueryRow(
+		query,
+		stage.ID,
+		stage.Poste,
+		stage.Adresse,
+		stage.Lat,
+		stage.Lng,
+		stage.PlacesDisponibles,
+		stage.Entreprise,
+		stage.Filiere,
+		stage.Sector,
+		stage.Commune,
+		stage.CapacityTotal,
+		stage.CapacityFilled,
+		stage.Period,
+	).Scan(&stage.ID, &stage.CreatedAt, &stage.UpdatedAt)
+
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return fmt.Errorf("aucun stage trouvé avec l'ID %d", stage.ID)
+		}
+		return fmt.Errorf("erreur lors de la mise à jour du stage: %v", err)
+	}
+
+	return nil
 }

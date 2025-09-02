@@ -78,49 +78,61 @@ func (r *FiliereRepository) GetFiliereByCode(code string) (*models.Filiere, erro
 }
 
 // CreateFiliere crée une nouvelle filière
-func (r *FiliereRepository) CreateFiliere(filiere *models.Filiere) error {
+func (r *FiliereRepository) CreateFiliere(filiere models.Filiere) (*models.Filiere, error) {
 	query := `
         INSERT INTO filieres (code, label, color)
         VALUES ($1, $2, $3)
         RETURNING id, created_at, updated_at
     `
 
+	var createdFiliere models.Filiere
+	// Copier les données d'entrée
+	createdFiliere.Code = filiere.Code
+	createdFiliere.Label = filiere.Label
+	createdFiliere.Color = filiere.Color
+
 	err := r.db.QueryRow(query, filiere.Code, filiere.Label, filiere.Color).Scan(
-		&filiere.ID,
-		&filiere.CreatedAt,
-		&filiere.UpdatedAt,
+		&createdFiliere.ID,
+		&createdFiliere.CreatedAt,
+		&createdFiliere.UpdatedAt,
 	)
 	if err != nil {
-		return fmt.Errorf("erreur lors de la création de la filière: %v", err)
+		return nil, fmt.Errorf("erreur lors de la création de la filière: %v", err)
 	}
 
-	return nil
+	return &createdFiliere, nil
 }
 
 // UpdateFiliere met à jour une filière existante
-func (r *FiliereRepository) UpdateFiliere(filiere *models.Filiere) error {
+func (r *FiliereRepository) UpdateFiliere(filiere models.Filiere) (*models.Filiere, error) {
 	query := `
         UPDATE filieres 
-        SET label = $2, color = $3
-        WHERE code = $1
-        RETURNING updated_at
+        SET code = $1, label = $2, color = $3, updated_at = NOW()
+        WHERE id = $4
+        RETURNING id, code, label, color, created_at, updated_at
     `
 
-	err := r.db.QueryRow(query, filiere.Code, filiere.Label, filiere.Color).Scan(
-		&filiere.UpdatedAt,
+	var updatedFiliere models.Filiere
+	err := r.db.QueryRow(query, filiere.Code, filiere.Label, filiere.Color, filiere.ID).Scan(
+		&updatedFiliere.ID,
+		&updatedFiliere.Code,
+		&updatedFiliere.Label,
+		&updatedFiliere.Color,
+		&updatedFiliere.CreatedAt,
+		&updatedFiliere.UpdatedAt,
 	)
 	if err != nil {
-		return fmt.Errorf("erreur lors de la mise à jour de la filière: %v", err)
+		return nil, fmt.Errorf("erreur lors de la mise à jour de la filière: %v", err)
 	}
 
-	return nil
+	return &updatedFiliere, nil
 }
 
 // DeleteFiliere supprime une filière
-func (r *FiliereRepository) DeleteFiliere(code string) error {
-	query := `DELETE FROM filieres WHERE code = $1`
+func (r *FiliereRepository) DeleteFiliere(id int) error {
+	query := `DELETE FROM filieres WHERE id = $1`
 
-	result, err := r.db.Exec(query, code)
+	result, err := r.db.Exec(query, id)
 	if err != nil {
 		return fmt.Errorf("erreur lors de la suppression de la filière: %v", err)
 	}
@@ -131,7 +143,7 @@ func (r *FiliereRepository) DeleteFiliere(code string) error {
 	}
 
 	if rowsAffected == 0 {
-		return fmt.Errorf("filière non trouvée pour suppression")
+		return fmt.Errorf("aucune filière trouvée avec l'ID %d", id)
 	}
 
 	return nil

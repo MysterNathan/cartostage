@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 type StageHandler struct {
@@ -50,35 +51,39 @@ func (h *StageHandler) GetAllStages(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// SaveAllStages - Équivalent du POST NextJS
-func (h *StageHandler) SaveAllStages(w http.ResponseWriter, r *http.Request) {
+// SaveStage - Pour sauvegarder un seul stage
+func (h *StageHandler) SaveStage(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
 		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
 		return
 	}
 
-	var stagesData models.StagesData
-	if err := json.NewDecoder(r.Body).Decode(&stagesData); err != nil {
+	var stage models.Stage
+	if err := json.NewDecoder(r.Body).Decode(&stage); err != nil {
 		log.Printf("Erreur décodage JSON: %v", err)
 		http.Error(w, `{"error": "Format invalide"}`, http.StatusBadRequest)
 		return
 	}
 
-	// Validation basique
-	if stagesData.Stages == nil {
-		http.Error(w, `{"error": "Format invalide"}`, http.StatusBadRequest)
+	// Validation des champs obligatoires
+	if stage.Poste == "" || stage.Adresse == "" || stage.Entreprise == "" {
+		http.Error(w, `{"error": "Champs obligatoires manquants"}`, http.StatusBadRequest)
 		return
 	}
 
 	// Sauvegarde
-	if err := h.repo.SaveAllStages(&stagesData); err != nil {
+	if err := h.repo.SaveStage(&stage); err != nil {
 		log.Printf("Erreur sauvegarde: %v", err)
 		http.Error(w, `{"error": "Erreur serveur"}`, http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.Write([]byte(`{"success": true}`))
+	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(map[string]interface{}{
+		"success": true,
+		"id":      stage.ID,
+	})
 }
 
 // GetStageByID - Handler pour récupérer un stage spécifique
@@ -149,6 +154,109 @@ func (h *StageHandler) GetFilterOptions(w http.ResponseWriter, r *http.Request) 
 	}
 
 	w.Header().Set("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(response); err != nil {
+		log.Printf("Erreur encodage JSON: %v", err)
+		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+	}
+}
+
+// DeleteStage - Supprime un stage spécifique par ID
+func (h *StageHandler) DeleteStage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Récupérer l'ID depuis l'URL ou les paramètres
+	// Supposons que l'ID soit passé dans l'URL comme /api/stages/123
+	// Vous devrez adapter selon votre routeur
+	idStr := r.URL.Path[len("/api/stages/"):]
+	if idStr == "" {
+		http.Error(w, `{"error": "ID manquant"}`, http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, `{"error": "ID invalide"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Supprimer le stage
+	if err := h.repo.DeleteStage(id); err != nil {
+		if strings.Contains(err.Error(), "aucun stage trouvé") {
+			http.Error(w, `{"error": "Stage non trouvé"}`, http.StatusNotFound)
+			return
+		}
+		log.Printf("Erreur suppression: %v", err)
+		http.Error(w, `{"error": "Erreur serveur"}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"success": true, "message": "Stage supprimé avec succès"}`))
+}
+
+// UpdateStage - Met à jour un stage existant
+func (h *StageHandler) UpdateStage(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPut {
+		http.Error(w, "Méthode non autorisée", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Récupérer l'ID depuis l'URL avec mux
+	vars := mux.Vars(r)
+	idStr, ok := vars["id"]
+	if !ok {
+		http.Error(w, `{"error": "ID manquant"}`, http.StatusBadRequest)
+		return
+	}
+
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		http.Error(w, `{"error": "ID invalide"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Décoder le stage depuis le body
+	var stage models.Stage
+	if err := json.NewDecoder(r.Body).Decode(&stage); err != nil {
+		log.Printf("Erreur décodage JSON: %v", err)
+		http.Error(w, `{"error": "Format invalide"}`, http.StatusBadRequest)
+		return
+	}
+
+	// Validation des champs obligatoires
+	if stage.Poste == "" || stage.Adresse == "" || stage.Entreprise == "" {
+		http.Error(w, `{"error": "Champs obligatoires manquants"}`, http.StatusBadRequest)
+		return
+	}
+
+	// S'assurer que l'ID du stage correspond à celui de l'URL
+	stage.ID = id
+
+	// Mettre à jour le stage
+	if err := h.repo.UpdateStage(&stage); err != nil {
+		if strings.Contains(err.Error(), "aucun stage trouvé") {
+			http.Error(w, `{"error": "Stage non trouvé"}`, http.StatusNotFound)
+			return
+		}
+		log.Printf("Erreur mise à jour: %v", err)
+		http.Error(w, `{"error": "Erreur serveur"}`, http.StatusInternalServerError)
+		return
+	}
+
+	// Retourner le stage mis à jour
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	response := map[string]interface{}{
+		"success": true,
+		"message": "Stage mis à jour avec succès",
+		"stage":   stage,
+	}
+
 	if err := json.NewEncoder(w).Encode(response); err != nil {
 		log.Printf("Erreur encodage JSON: %v", err)
 		http.Error(w, "Erreur serveur", http.StatusInternalServerError)

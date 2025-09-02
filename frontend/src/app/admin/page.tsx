@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { isAuthenticated, validateCredentials, storeAuth, clearAuth } from '@/lib/auth'
-import { getStages, addStage } from '@/lib/stageApi'
+import {getStages, addStage, deleteStage} from '@/lib/stageApi'
 import LoginForm from '@/components/LoginForm'
 import StageModal from '@/components/admin/StageModal'
 import StatisticsModal from '@/components/admin/StatisticsModal'
@@ -127,12 +127,23 @@ export default function AdminPage() {
     setIsModalOpen(true)
   }
 
-  const deleteStage = (stageId: number) => {
-    if (confirm('Êtes-vous sûr de vouloir supprimer ce stage ?')) {
-      const newStages = stages.filter(stage => stage.id !== stageId)
-      saveStages(newStages)
+  const handleDeleteStage = async (stageId: number) => {
+    const stage = stages.find(stage => stage.id === stageId);
+
+    try {
+      await deleteStage(stageId);
+
+      // Mettre à jour l'état local
+      setStages(stages.filter(s => s.id !== stageId));
+
+      // Message de succès
+      console.log(`Stage "${stage?.poste || 'inconnu'}" supprimé avec succès`);
+
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+      alert(error instanceof Error ? error.message : 'Erreur lors de la suppression');
     }
-  }
+  };
 
   const saveStage = async (stage: Stage) => {
     if (isNewStage) {
@@ -355,7 +366,7 @@ export default function AdminPage() {
                           Modifier
                         </button>
                         <button
-                            onClick={() => deleteStage(stage.id)}
+                            onClick={() => handleDeleteStage(stage.id)}
                             className="text-red-600 hover:text-red-900"
                         >
                           Supprimer

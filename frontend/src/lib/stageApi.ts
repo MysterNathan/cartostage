@@ -47,3 +47,17 @@ export async function updateStage(id: number, stage: Omit<Stage, 'id'>): Promise
     return await response.json()
 }
 
+export async function deleteStage(id: number): Promise<{ success: boolean; message: string }> {
+    const response = await fetch(`${API_URL}/${id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+    })
+
+    if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        throw new Error(errorData.error || `Erreur lors de la suppression du stage: ${response.statusText}`)
+    }
+
+    return await response.json()
+}
+
