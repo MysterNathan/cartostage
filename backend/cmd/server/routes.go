@@ -51,7 +51,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Configuration CORS plus spécifique pour le développement
 		origin := r.Header.Get("Origin")
-		if origin == "http://localhost:3000" || origin == "http://127.0.0.1:3000" {
+		if origin == "http://localhost:3000" || origin == "http://127.0.0.1:3000" || origin == "crissime.freeboxos.fr" {
 			w.Header().Set("Access-Control-Allow-Origin", origin)
 		} else {
 			// En développement, on peut autoriser tous les origins

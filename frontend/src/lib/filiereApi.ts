@@ -1,6 +1,6 @@
 import type { Filiere, FilieresResponse, CreateFiliereData, UpdateFiliereData } from '@/types/filiere'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080/api/filieres'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://crissime.freeboxos.fr:8080/api/filieres'
 
 export async function getFilieres(): Promise<FilieresResponse> {
     const response = await fetch(API_URL, {

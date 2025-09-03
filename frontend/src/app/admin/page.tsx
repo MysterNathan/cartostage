@@ -81,7 +81,7 @@ export default function AdminPage() {
   const saveStages = async (newStages: Stage[]) => {
     try {
       // Cette approche nécessiterait une fonction updateAllStages dans ta librairie
-      const response = await fetch('http://localhost:8080/api/stages', {
+      const response = await fetch('http://crissime.freeboxos.fr:8080/api/stages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ stages: newStages })
