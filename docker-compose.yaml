@@ -6,7 +6,7 @@ services:
     container_name: stages-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: stages_db
+      POSTGRES_DB: postgres
       POSTGRES_USER: stages_user
       POSTGRES_PASSWORD: stages_password
       PGDATA: /var/lib/postgresql/data/pgdata
@@ -28,7 +28,11 @@ services:
     environment:
       PORT: 8080
       GIN_MODE: release
-      DATABASE_URL: postgresql://stages_user:stages_password@postgres:5432/stages_db
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: stages_user
+      POSTGRES_PASSWORD: stages_password
+      POSTGRES_DB: postgres
     ports:
       - "8080:8080"
     depends_on:
