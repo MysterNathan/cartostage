@@ -1,72 +1,71 @@
-# Utiliser l'image Node.js officielle Alpine (plus légère)
+# Multi-stage build pour optimiser la taille de l'image
 FROM node:18-alpine AS base
 
-# Installer les dépendances nécessaires pour Alpine
-RUN apk add --no-cache libc6-compat
-
-# Définir le répertoire de travail
-WORKDIR /app
-
-# Copier les fichiers de configuration des dépendances
-COPY package*.json ./
-
-# ===========================
-# Stage des dépendances
-# ===========================
+# Installer les dépendances uniquement quand nécessaire
 FROM base AS deps
-
-# Installer toutes les dépendances (dev + prod)
-RUN npm ci
-
-# ===========================
-# Stage de build
-# ===========================
-FROM base AS builder
-
+# Vérifier https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine pour comprendre pourquoi libc6-compat pourrait être nécessaire.
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Copier les dépendances depuis le stage deps
-COPY --from=deps /app/node_modules ./node_modules
+# Installer les dépendances basées sur le gestionnaire de paquets préféré
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+RUN \
+  if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
-# Copier le code source
+# Rebuild du code source uniquement quand nécessaire
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Variables d'environnement pour le build
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
+# Next.js collecte des données d'utilisation anonymes sur l'utilisation générale.
+# Apprenez-en plus ici: https://nextjs.org/telemetry
+# Décommenter la ligne suivante si vous voulez désactiver la télémétrie pendant le build.
+ENV NEXT_TELEMETRY_DISABLED 1
 
 # Build de l'application
-RUN npm run build
+RUN \
+  if [ -f yarn.lock ]; then yarn run build; \
+  elif [ -f package-lock.json ]; then npm run build; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
-# ===========================
-# Stage de production
-# ===========================
-FROM node:18-alpine AS runner
-
+# Image de production
+FROM base AS runner
 WORKDIR /app
 
-# Créer un utilisateur non-root pour la sécurité
+ENV NODE_ENV production
+# Décommenter la ligne suivante si vous voulez désactiver la télémétrie pendant l'exécution.
+ENV NEXT_TELEMETRY_DISABLED 1
+
+# Créer un utilisateur non-root pour exécuter l'application
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
 # Copier les fichiers nécessaires depuis le builder
 COPY --from=builder /app/public ./public
 
-# Copier les fichiers de build Next.js
+# Set the correct permission for prerender cache
+RUN mkdir .next
+RUN chown nextjs:nodejs .next
+
+# Copier automatiquement les fichiers de sortie en utilisant les permissions appropriées
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
-# Variables d'environnement de production
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=80
-ENV HOSTNAME="0.0.0.0"
-
-# Exposer le port
-EXPOSE 80
-
-# Changer vers l'utilisateur non-root
 USER nextjs
 
-# Commande de démarrage
+# Exposer le port 80
+EXPOSE 80
+
+ENV PORT 80
+ENV HOSTNAME "0.0.0.0"
+
+# Démarrer l'application
 CMD ["node", "server.js"]

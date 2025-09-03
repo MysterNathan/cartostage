@@ -4,7 +4,7 @@ import { getFilieres, addFiliere } from '@/lib/filiereApi'
 import type { Filiere } from '@/types/filiere'
 
 interface Props {
-    value?: string // code sélectionné
+    value?: string
     onChange: (code: string) => void
     allowCreate?: boolean
     label?: string

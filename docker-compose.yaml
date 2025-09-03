@@ -18,58 +18,44 @@ services:
       - ./backend/internal/database/init-filieres.sql:/docker-entrypoint-initdb.d/02-init-filieres.sql:ro
     networks:
       - stages-network
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U stages_user -d stages_db"]
-      interval: 10s
-      timeout: 3s
-      retries: 5
 
-  app:
+  backend:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
-      target: runner
-    container_name: stages-app
+    container_name: stages-backend
     restart: unless-stopped
     environment:
-      NODE_ENV: production
-      NEXT_TELEMETRY_DISABLED: 1
-      # Variables pour la base de données (si tu décides de l'utiliser)
+      PORT: 8080
+      GIN_MODE: release
       DATABASE_URL: postgresql://stages_user:stages_password@postgres:5432/stages_db
-      # Variables pour ton système d'auth custom
-      ADMIN_USERNAME: admin
-      ADMIN_PASSWORD: admin123
     ports:
-      - "3000:80"
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - stages-network
-    volumes:
-      - ./data:/app/data
-
-  pgadmin:
-    image: dpage/pgadmin4:latest
-    container_name: stages-pgadmin
-    restart: unless-stopped
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@stages.com
-      PGADMIN_DEFAULT_PASSWORD: admin123
-      PGADMIN_CONFIG_SERVER_MODE: 'False'
-    ports:
-      - "8080:80"
+      - "8080:8080"
     depends_on:
       - postgres
     networks:
       - stages-network
-    volumes:
-      - pgadmin_data:/var/lib/pgadmin
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: runner
+    container_name: stages-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      NEXT_TELEMETRY_DISABLED: 1
+      NEXT_PUBLIC_API_URL: http://backend:8080/api
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    networks:
+      - stages-network
 
 volumes:
   postgres_data:
-    driver: local
-  pgadmin_data:
     driver: local
 
 networks:
