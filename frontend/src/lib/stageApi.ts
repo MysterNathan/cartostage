@@ -1,7 +1,9 @@
 // lib/stageApi.ts
 import { Stage, StagesData } from "@/types/stage";
 
-const API_URL = 'http://crissime.freeboxos.fr:8080/api/stages'
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://crissime.freeboxos.fr:8080';
+const API_URL = `${API_BASE_URL}/api/stages`;
+
 
 export async function getStages(): Promise<StagesData> {
     const response = await fetch(API_URL, {

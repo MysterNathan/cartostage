@@ -33,6 +33,7 @@ services:
       POSTGRES_USER: stages_user
       POSTGRES_PASSWORD: stages_password
       POSTGRES_DB: postgres
+      NEXT_PUBLIC_API_URL: http://localhost:8080/api
     ports:
       - "8080:8080"
     depends_on:
@@ -50,9 +51,9 @@ services:
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: 1
-      NEXT_PUBLIC_API_URL: http://backend:8080/api
+      NEXT_PUBLIC_API_URL: http://backend:8080
     ports:
-      - "80:80"
+      - "3000:80"
     depends_on:
       - backend
     networks:

@@ -10,6 +10,9 @@ const nextConfig: NextConfig = {
       'c.tile.openstreetmap.org'
     ],
   },
+  env: {
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL
+  },
   eslint: {
     // Ignore ESLint errors during build
     ignoreDuringBuilds: true,
