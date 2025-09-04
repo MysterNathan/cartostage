@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"backend/internal/models"
-	"backend/internal/repository"
+	"backend/internal/repositories"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
@@ -11,10 +11,10 @@ import (
 )
 
 type FiliereHandler struct {
-	repo *repository.FiliereRepository
+	repo *repositories.FiliereRepository
 }
 
-func NewFiliereHandler(repo *repository.FiliereRepository) *FiliereHandler {
+func NewFiliereHandler(repo *repositories.FiliereRepository) *FiliereHandler {
 	return &FiliereHandler{repo: repo}
 }
 
@@ -63,7 +63,7 @@ func (h *FiliereHandler) CreateFiliere(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Appeler le repository pour créer la filière
+	// Appeler le repositories pour créer la filière
 	createdFiliere, err := h.repo.CreateFiliere(filiere)
 	if err != nil {
 		log.Printf("Erreur création filière: %v", err)
@@ -110,7 +110,7 @@ func (h *FiliereHandler) UpdateFiliere(w http.ResponseWriter, r *http.Request) {
 	// Assigner l'ID
 	filiere.ID = id
 
-	// Appeler le repository pour mettre à jour la filière
+	// Appeler le repositories pour mettre à jour la filière
 	updatedFiliere, err := h.repo.UpdateFiliere(filiere)
 	if err != nil {
 		log.Printf("Erreur mise à jour filière: %v", err)
@@ -140,7 +140,7 @@ func (h *FiliereHandler) DeleteFiliere(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Appeler le repository pour supprimer la filière
+	// Appeler le repositories pour supprimer la filière
 	err = h.repo.DeleteFiliere(id)
 	if err != nil {
 		log.Printf("Erreur suppression filière: %v", err)

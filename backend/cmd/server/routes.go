@@ -1,13 +1,19 @@
 package main
 
 import (
+	"backend/internal/middleware"
 	"net/http"
 
 	"backend/internal/handlers"
 	"github.com/gorilla/mux"
 )
 
-func setupRoutes(stageHandler *handlers.StageHandler, filiereHandler *handlers.FiliereHandler) *mux.Router {
+func setupRoutes(
+	stageHandler *handlers.StageHandler,
+	filiereHandler *handlers.FiliereHandler,
+	authHandler *handlers.AuthHandler,
+	authMiddleware *middleware.AuthMiddleware,
+) *mux.Router {
 	r := mux.NewRouter()
 
 	// Middleware CORS appliqué en premier
@@ -15,34 +21,43 @@ func setupRoutes(stageHandler *handlers.StageHandler, filiereHandler *handlers.F
 
 	api := r.PathPrefix("/api").Subrouter()
 
-	// Route principale des stages - GET et POST
-	stages := api.PathPrefix("/stages").Subrouter()
-	stages.HandleFunc("", stageHandler.GetAllStages).Methods("GET")
-	stages.HandleFunc("", stageHandler.SaveStage).Methods("POST")
-	stages.HandleFunc("/{id}", stageHandler.DeleteStage).Methods("DELETE")
-	stages.HandleFunc("/{id}", stageHandler.UpdateStage).Methods("PUT")
+	// Route de login (non protégée)
+	api.HandleFunc("/login", authHandler.Login).Methods("POST")
+	api.HandleFunc("/login", corsPreflightHandler).Methods("OPTIONS")
 
-	// Support explicite des requêtes OPTIONS pour toutes les routes stages
-	stages.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	// Routes publiques des stages (lecture seule)
+	stagesPublic := api.PathPrefix("/stages").Subrouter()
+	stagesPublic.HandleFunc("", stageHandler.GetAllStages).Methods("GET")
+	stagesPublic.HandleFunc("/{id:[0-9]+}", stageHandler.GetStageByID).Methods("GET")
+	stagesPublic.HandleFunc("/filters", stageHandler.GetFilterOptions).Methods("GET")
 
-	// Route pour un stage spécifique
-	stages.HandleFunc("/{id:[0-9]+}", stageHandler.GetStageByID).Methods("GET")
-	stages.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
+	// Routes admin protégées (CRUD complet)
+	adminRoutes := api.PathPrefix("/admin").Subrouter()
+	adminRoutes.Use(authMiddleware.RequireAuth)
 
-	// Route pour les filtres
-	stages.HandleFunc("/filters", stageHandler.GetFilterOptions).Methods("GET")
-	stages.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
+	// Routes stages admin
+	adminStages := adminRoutes.PathPrefix("/stages").Subrouter()
+	adminStages.HandleFunc("", stageHandler.SaveStage).Methods("POST")
+	adminStages.HandleFunc("/{id}", stageHandler.DeleteStage).Methods("DELETE")
+	adminStages.HandleFunc("/{id}", stageHandler.UpdateStage).Methods("PUT")
 
-	// Routes des filières
-	filieres := api.PathPrefix("/filieres").Subrouter()
-	filieres.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
-	filieres.HandleFunc("", filiereHandler.CreateFiliere).Methods("POST")
-	filieres.HandleFunc("/{id}", filiereHandler.UpdateFiliere).Methods("PUT")
-	filieres.HandleFunc("/{id}", filiereHandler.DeleteFiliere).Methods("DELETE")
+	// Routes filieres admin
+	adminFilieres := adminRoutes.PathPrefix("/filieres").Subrouter()
+	adminFilieres.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
+	adminFilieres.HandleFunc("", filiereHandler.CreateFiliere).Methods("POST")
+	adminFilieres.HandleFunc("/{id}", filiereHandler.UpdateFiliere).Methods("PUT")
+	adminFilieres.HandleFunc("/{id}", filiereHandler.DeleteFiliere).Methods("DELETE")
 
-	filieres.HandleFunc("/{id}", corsPreflightHandler).Methods("OPTIONS")
+	// Options pour les routes publiques
+	stagesPublic.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	stagesPublic.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
+	stagesPublic.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
 
-	filieres.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	// Options pour les routes admin
+	adminStages.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	adminStages.HandleFunc("/{id}", corsPreflightHandler).Methods("OPTIONS")
+	adminFilieres.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	adminFilieres.HandleFunc("/{id}", corsPreflightHandler).Methods("OPTIONS")
 
 	return r
 }

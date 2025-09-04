@@ -2,7 +2,7 @@ package handlers
 
 import (
 	"backend/internal/models"
-	"backend/internal/repository"
+	"backend/internal/repositories"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
@@ -12,10 +12,10 @@ import (
 )
 
 type StageHandler struct {
-	repo *repository.StageRepository
+	repo *repositories.StageRepository
 }
 
-func NewStageHandler(repo *repository.StageRepository) *StageHandler {
+func NewStageHandler(repo *repositories.StageRepository) *StageHandler {
 	return &StageHandler{repo: repo}
 }
 
@@ -119,7 +119,7 @@ func (h *StageHandler) GetStageByID(w http.ResponseWriter, r *http.Request) {
 
 // GetFilterOptions - Handler pour récupérer les options de filtres
 func (h *StageHandler) GetFilterOptions(w http.ResponseWriter, r *http.Request) {
-	// Cette méthode pourrait être ajoutée au repository si nécessaire
+	// Cette méthode pourrait être ajoutée au repositories si nécessaire
 	stagesData, err := h.repo.GetAllStages()
 	if err != nil {
 		log.Printf("Erreur récupération stages: %v", err)
