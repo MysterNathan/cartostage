@@ -1,38 +1,60 @@
-'use client'
-import { useState, useEffect } from 'react'
-import { getStoredAuth, storeAuth, clearAuth, validateCredentials } from '@/lib/auth'
-import type { User } from '@/lib/auth'
+'use client';
 
-export function useAuth() {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
+import { useState, useEffect, createContext, useContext } from 'react';
+import { authApi, LoginRequest } from '@/lib/authApi';
 
-  useEffect(() => {
-    const storedAuth = getStoredAuth()
-    setUser(storedAuth)
-    setLoading(false)
-  }, [])
+interface AuthContextType {
+  isAuthenticated: boolean;
+  isLoading: boolean;
+  login: (credentials: LoginRequest) => Promise<void>;
+  logout: () => void;
+  checkAuth: () => void;
+}
 
-  const login = (username: string, password: string): boolean => {
-    if (validateCredentials(username, password)) {
-      const user: User = { username, isAuthenticated: true }
-      setUser(user)
-      storeAuth(user)
-      return true
-    }
-    return false
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
   }
+  return context;
+};
+
+export const useAuthState = () => {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const checkAuth = () => {
+    const authenticated = authApi.isAuthenticated();
+    setIsAuthenticated(authenticated);
+    setIsLoading(false);
+  };
+
+  const login = async (credentials: LoginRequest) => {
+    try {
+      await authApi.login(credentials);
+      setIsAuthenticated(true);
+    } catch (error) {
+      setIsAuthenticated(false);
+      throw error;
+    }
+  };
 
   const logout = () => {
-    setUser(null)
-    clearAuth()
-  }
+    authApi.logout();
+    setIsAuthenticated(false);
+  };
+
+  useEffect(() => {
+    checkAuth();
+  }, []);
 
   return {
-    user,
-    loading,
-    isAuthenticated: user?.isAuthenticated || false,
+    isAuthenticated,
+    isLoading,
     login,
-    logout
-  }
-}
+    logout,
+    checkAuth,
+  };
+};

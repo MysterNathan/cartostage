@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { isAuthenticated, validateCredentials, storeAuth, clearAuth } from '@/lib/auth'
-import {getStages, addStage, deleteStage} from '@/lib/stageApi'
-import LoginForm from '@/components/LoginForm'
+import { authApi } from '@/lib/authApi'
+import { getStages, addStage, deleteStage } from '@/lib/stageApi'
 import StageModal from '@/components/admin/StageModal'
 import StatisticsModal from '@/components/admin/StatisticsModal'
 import type { Stage } from '@/types/stage'
@@ -19,41 +18,21 @@ export default function AdminPage() {
   const [isNewStage, setIsNewStage] = useState(false)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [authenticated, setAuthenticated] = useState(false)
   const [isFilieresOpen, setIsFilieresOpen] = useState(false)
 
   useEffect(() => {
-    const checkAuth = () => {
-      if (isAuthenticated()) {
-        setAuthenticated(true)
-        loadStages()
-      } else {
-        setAuthenticated(false)
-        setLoading(false)
-      }
+    // Vérifier l'authentification au chargement
+    if (!authApi.isAuthenticated()) {
+      router.push('/login')
+      return
     }
 
-    checkAuth()
-  }, [])
-
-  const handleLogin = (username: string, password: string): boolean => {
-    if (validateCredentials(username, password)) {
-      storeAuth({
-        username: username,
-        isAuthenticated: true
-      })
-      setAuthenticated(true)
-      loadStages()
-      return true
-    }
-    return false
-  }
+    loadStages()
+  }, [router])
 
   const handleLogout = () => {
-    clearAuth()
-    setAuthenticated(false)
-    setStages([])
-    router.push('/')
+    authApi.logout()
+    router.push('/login')
   }
 
   const loadStages = async () => {
@@ -67,30 +46,58 @@ export default function AdminPage() {
       const errorMessage = err instanceof Error ? err.message : 'Impossible de charger les stages'
       setError(errorMessage)
       console.error('Erreur:', err)
+
+      // Si l'erreur est liée à l'authentification, rediriger vers la page de login
+      if (err instanceof Error && err.message.includes('401')) {
+        authApi.logout()
+        router.push('/login')
+      }
     } finally {
       setLoading(false)
     }
   }
 
-  if (!authenticated) {
-    return <LoginForm onLogin={handleLogin} />
+  // Affichage du loader pendant la vérification d'authentification/chargement
+  if (loading) {
+    return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Chargement...</p>
+          </div>
+        </div>
+    )
   }
 
-  // Tu devrais ajouter une fonction updateStage et deleteStage dans ta librairie stageApi
-  // Pour l'instant, je garde la logique POST avec tous les stages
   const saveStages = async (newStages: Stage[]) => {
     try {
-      // Cette approche nécessiterait une fonction updateAllStages dans ta librairie
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://crissime.freeboxos.fr:8080';
-      const API_URL = `${API_BASE_URL}/api/stages`;
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://crissime.freeboxos.fr:8080'
+      const API_URL = `${API_BASE_URL}/api/stages`
+
+      // Ajouter le token JWT à la requête
+      const token = authApi.getToken()
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json',
+      }
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`
+      }
 
       const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify({ stages: newStages })
       })
 
-      if (!response.ok) throw new Error('Erreur de sauvegarde')
+      if (!response.ok) {
+        if (response.status === 401) {
+          authApi.logout()
+          router.push('/login')
+          return
+        }
+        throw new Error('Erreur de sauvegarde')
+      }
 
       setStages(newStages)
       setError('')
@@ -131,22 +138,25 @@ export default function AdminPage() {
   }
 
   const handleDeleteStage = async (stageId: number) => {
-    const stage = stages.find(stage => stage.id === stageId);
+    const stage = stages.find(stage => stage.id === stageId)
 
     try {
-      await deleteStage(stageId);
-
-      // Mettre à jour l'état local
-      setStages(stages.filter(s => s.id !== stageId));
-
-      // Message de succès
-      console.log(`Stage "${stage?.poste || 'inconnu'}" supprimé avec succès`);
-
+      await deleteStage(stageId)
+      setStages(stages.filter(s => s.id !== stageId))
+      console.log(`Stage "${stage?.poste || 'inconnu'}" supprimé avec succès`)
     } catch (error) {
-      console.error('Erreur suppression:', error);
-      alert(error instanceof Error ? error.message : 'Erreur lors de la suppression');
+      console.error('Erreur suppression:', error)
+
+      // Vérifier si c'est une erreur d'authentification
+      if (error instanceof Error && error.message.includes('401')) {
+        authApi.logout()
+        router.push('/login')
+        return
+      }
+
+      alert(error instanceof Error ? error.message : 'Erreur lors de la suppression')
     }
-  };
+  }
 
   const saveStage = async (stage: Stage) => {
     if (isNewStage) {
@@ -160,17 +170,10 @@ export default function AdminPage() {
     setError('')
   }
 
-
-  if (loading) {
-    return (
-        <div className="min-h-screen flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-            <p className="text-gray-600">Chargement...</p>
-          </div>
-        </div>
-    )
-  }
+  const totalStages = stages.length
+  const totalCapacity = stages.reduce((sum, stage) => sum + stage.capacity_total, 0)
+  const occupiedPlaces = stages.reduce((sum, stage) => sum + stage.capacity_filled, 0)
+  const availablePlaces = totalCapacity - occupiedPlaces
 
   return (
       <div className="min-h-screen bg-gray-100">
@@ -182,7 +185,8 @@ export default function AdminPage() {
               <div className="flex items-center gap-4">
                 <a
                     href="/"
-                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors">
+                    className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
                   Retour à la carte
                 </a>
                 <button
@@ -242,7 +246,7 @@ export default function AdminPage() {
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Total stages</p>
-                  <p className="text-2xl font-semibold text-gray-900">{stages.length}</p>
+                  <p className="text-2xl font-semibold text-gray-900">{totalStages}</p>
                 </div>
               </div>
             </div>
@@ -255,10 +259,8 @@ export default function AdminPage() {
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Places totales</p>
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {stages.reduce((sum, stage) => sum + stage.capacity_total, 0)}
-                  </p>
+                  <p className="text-sm font-medium text-gray-500">Capacité totale</p>
+                  <p className="text-2xl font-semibold text-gray-900">{totalCapacity}</p>
                 </div>
               </div>
             </div>
@@ -267,14 +269,12 @@ export default function AdminPage() {
               <div className="flex items-center">
                 <div className="p-2 bg-orange-100 rounded-lg">
                   <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
                   </svg>
                 </div>
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-500">Places occupées</p>
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {stages.reduce((sum, stage) => sum + stage.capacity_filled, 0)}
-                  </p>
+                  <p className="text-2xl font-semibold text-gray-900">{occupiedPlaces}</p>
                 </div>
               </div>
             </div>
@@ -283,14 +283,12 @@ export default function AdminPage() {
               <div className="flex items-center">
                 <div className="p-2 bg-purple-100 rounded-lg">
                   <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 5.636l-3.536 3.536m0 5.656l3.536 3.536M9.172 9.172L5.636 5.636m3.536 9.192L5.636 18.364M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-5 0a4 4 0 11-8 0 4 4 0 018 0z" />
                   </svg>
                 </div>
                 <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-500">Places libres</p>
-                  <p className="text-2xl font-semibold text-gray-900">
-                    {stages.reduce((sum, stage) => sum + (stage.placesDisponibles || 0), 0)}
-                  </p>
+                  <p className="text-sm font-medium text-gray-500">Places disponibles</p>
+                  <p className="text-2xl font-semibold text-gray-900">{availablePlaces}</p>
                 </div>
               </div>
             </div>
@@ -299,7 +297,9 @@ export default function AdminPage() {
           {/* Liste des stages */}
           <div className="bg-white shadow-sm rounded-lg border">
             <div className="px-6 py-4 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">Liste des stages ({stages.length})</h2>
+              <h3 className="text-lg font-medium text-gray-900">
+                Liste des stages ({stages.length})
+              </h3>
             </div>
 
             <div className="overflow-x-auto">
