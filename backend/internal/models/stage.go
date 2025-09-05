@@ -16,6 +16,9 @@ type Stage struct {
 	CapacityTotal     int       `json:"capacity_total" db:"capacity_total"`
 	CapacityFilled    int       `json:"capacity_filled" db:"capacity_filled"`
 	Period            string    `json:"period" db:"period"`
+	Parcours          string    `json:"parcours" db:"parcours"` // scolaire | apprentissage | mixte
+	FamilleMetiers    string    `json:"famille_metiers" db:"famille_metiers"`
+	NiveauScolaire    string    `json:"niveau_scolaire" db:"niveau_scolaire"` // 2de | 1re | Tle
 	CreatedAt         time.Time `json:"created_at" db:"created_at"`
 	UpdatedAt         time.Time `json:"updated_at" db:"updated_at"`
 }
