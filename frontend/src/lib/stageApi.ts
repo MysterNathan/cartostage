@@ -1,16 +1,25 @@
 // lib/stageApi.ts
 import { Stage, StagesData } from "@/types/stage";
+import { authApi } from "@/lib/authApi";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://crissime.freeboxos.fr:8080';
 const API_URL = `${API_BASE_URL}/api/stages`;
 
+// Utilitaire pour récupérer les headers avec authentification
+const getAuthHeaders = (): HeadersInit => {
+    const token = authApi.getToken();
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+};
 
 export async function getStages(): Promise<StagesData> {
     const response = await fetch(API_URL, {
         method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
     })
-    console.log(`response: ${response}`)
+
     if (!response.ok) {
         throw new Error(`Erreur lors de la récupération des stages: ${response.statusText}`)
     }
@@ -22,7 +31,7 @@ export async function getStages(): Promise<StagesData> {
 export async function addStage(stage: Omit<Stage, 'id'>): Promise<Stage> {
     const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(stage),
     })
 
@@ -34,11 +43,10 @@ export async function addStage(stage: Omit<Stage, 'id'>): Promise<Stage> {
     return data
 }
 
-// lib/stageApi.ts
 export async function updateStage(id: number, stage: Omit<Stage, 'id'>): Promise<Stage> {
     const response = await fetch(`${API_URL}/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(stage),
     })
 
@@ -52,7 +60,7 @@ export async function updateStage(id: number, stage: Omit<Stage, 'id'>): Promise
 export async function deleteStage(id: number): Promise<{ success: boolean; message: string }> {
     const response = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
     })
 
     if (!response.ok) {
@@ -62,4 +70,3 @@ export async function deleteStage(id: number): Promise<{ success: boolean; messa
 
     return await response.json()
 }
-

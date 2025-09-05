@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/authApi'
-import { getStages, addStage, deleteStage } from '@/lib/stageApi'
+import { getStages, addStage, updateStage, deleteStage } from '@/lib/stageApi'
 import StageModal from '@/components/admin/StageModal'
 import StatisticsModal from '@/components/admin/StatisticsModal'
 import type { Stage } from '@/types/stage'
@@ -69,47 +69,6 @@ export default function AdminPage() {
     )
   }
 
-  const saveStages = async (newStages: Stage[]) => {
-    try {
-      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://crissime.freeboxos.fr:8080'
-      const API_URL = `${API_BASE_URL}/api/stages`
-
-      // Ajouter le token JWT à la requête
-      const token = authApi.getToken()
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      }
-
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`
-      }
-
-      const response = await fetch(API_URL, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ stages: newStages })
-      })
-
-      if (!response.ok) {
-        if (response.status === 401) {
-          authApi.logout()
-          router.push('/login')
-          return
-        }
-        throw new Error('Erreur de sauvegarde')
-      }
-
-      setStages(newStages)
-      setError('')
-      alert('Stage sauvegardé avec succès!')
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la sauvegarde'
-      setError(errorMessage)
-      console.error('Erreur:', err)
-      alert('Erreur lors de la sauvegarde!')
-    }
-  }
-
   const editStage = (stage: Stage) => {
     setEditingStage(stage)
     setIsNewStage(false)
@@ -140,6 +99,10 @@ export default function AdminPage() {
   const handleDeleteStage = async (stageId: number) => {
     const stage = stages.find(stage => stage.id === stageId)
 
+    if (!confirm(`Êtes-vous sûr de vouloir supprimer le stage "${stage?.poste || 'inconnu'}" ?`)) {
+      return
+    }
+
     try {
       await deleteStage(stageId)
       setStages(stages.filter(s => s.id !== stageId))
@@ -159,23 +122,47 @@ export default function AdminPage() {
   }
 
   const saveStage = async (stage: Stage) => {
-    if (isNewStage) {
-      setStages(prev => [...prev, stage])
-    } else {
-      setStages(prev => prev.map(s => s.id === stage.id ? stage : s))
-    }
+    try {
+      setError('')
 
-    setIsModalOpen(false)
-    setEditingStage(null)
-    setError('')
+      if (isNewStage) {
+        // Créer un nouveau stage (sans l'id car il sera généré par le serveur)
+        const { id, ...stageWithoutId } = stage
+        const newStage = await addStage(stageWithoutId)
+        setStages(prev => [...prev, newStage])
+        console.log('Stage créé avec succès')
+      } else {
+        // Mettre à jour un stage existant
+        const { id, ...stageWithoutId } = stage
+        const updatedStage = await updateStage(id, stageWithoutId)
+        setStages(prev => prev.map(s => s.id === stage.id ? updatedStage : s))
+        console.log('Stage mis à jour avec succès')
+      }
+
+      setIsModalOpen(false)
+      setEditingStage(null)
+    } catch (error) {
+      console.error('Erreur sauvegarde:', error)
+
+      // Vérifier si c'est une erreur d'authentification
+      if (error instanceof Error && error.message.includes('401')) {
+        authApi.logout()
+        router.push('/login')
+        return
+      }
+
+      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la sauvegarde'
+      setError(errorMessage)
+      alert(errorMessage)
+    }
   }
 
   const totalStages = stages.length
   const totalCapacity = stages.reduce((sum, stage) => sum + stage.capacity_total, 0)
   const occupiedPlaces = stages.reduce((sum, stage) => sum + stage.capacity_filled, 0)
   const availablePlaces = totalCapacity - occupiedPlaces
-
-  return (
+  
+return (
       <div className="min-h-screen bg-gray-100">
         {/* Header */}
         <div className="bg-white shadow-sm border-b">
