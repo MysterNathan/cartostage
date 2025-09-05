@@ -34,6 +34,7 @@ services:
       POSTGRES_PASSWORD: stages_password
       POSTGRES_DB: postgres
       NEXT_PUBLIC_API_URL: http://localhost:8080/api
+      JWT_SECRET: 'Er3vsrwb3y35GN6kQH9fFs6HdQnqMh+WV0uJiQHUkvuFZMSczD/jf/wMCA31Jx2a WvZZaRkylQ9iCqcToLNpOQ=='
     ports:
       - "8080:8080"
     depends_on:
