@@ -12,6 +12,9 @@ export interface Stage {
   capacity_total: number
   capacity_filled: number
   period?: string
+  parcours: "scolaire" | "apprentissage" | "mixte"
+  familleMetiers: string
+  niveauScolaire: "2de" | "1re" | "Tle"
 }
 
 export interface StagesData {

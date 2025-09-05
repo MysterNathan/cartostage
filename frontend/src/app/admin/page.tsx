@@ -292,6 +292,15 @@ return (
                     Filière
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Parcours
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Niveau
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Famille Métiers
+                  </th>
+                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Capacité
                   </th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -302,51 +311,98 @@ return (
                 <tbody className="bg-white divide-y divide-gray-200">
                 {stages.map((stage) => (
                     <tr key={stage.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <div className="text-sm font-medium text-gray-900">{stage.entreprise}</div>
+                        <div className="text-xs text-gray-500">{stage.sector || 'Secteur non renseigné'}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{stage.poste}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">{stage.commune || 'Non renseigné'}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                          stage.filiere === 'CCST' ? 'bg-blue-100 text-blue-800' :
-                              stage.filiere === 'SN' ? 'bg-green-100 text-green-800' :
-                                  'bg-purple-100 text-purple-800'
-                      }`}>
-                        {stage.filiere}
-                      </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-900">
-                        <span className={`font-medium ${
-                            stage.capacity_filled >= stage.capacity_total ? 'text-red-600' :
-                                stage.placesDisponibles <= 1 ? 'text-orange-600' :
-                                    'text-green-600'
-                        }`}>
-                          {stage.capacity_filled}/{stage.capacity_total}
-                        </span>
-                          <span className="text-gray-500 ml-1">
-                          ({stage.placesDisponibles || 0} libres)
-                        </span>
+                      <td className="px-4 py-4">
+                        <div className="text-sm text-gray-900 max-w-xs truncate" title={stage.poste}>
+                          {stage.poste}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                        <button
-                            onClick={() => editStage(stage)}
-                            className="text-blue-600 hover:text-blue-900 mr-3"
-                        >
-                          Modifier
-                        </button>
-                        <button
-                            onClick={() => handleDeleteStage(stage.id)}
-                            className="text-red-600 hover:text-red-900"
-                        >
-                          Supprimer
-                        </button>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">{stage.commune || 'Non renseigné'}</div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                  stage.filiere === 'CCST' ? 'bg-blue-100 text-blue-800' :
+                      stage.filiere === 'SN' ? 'bg-green-100 text-green-800' :
+                          stage.filiere === 'MELEC' ? 'bg-yellow-100 text-yellow-800' :
+                              stage.filiere === 'TMA' ? 'bg-red-100 text-red-800' :
+                                  'bg-purple-100 text-purple-800'
+              }`}>
+                {stage.filiere}
+              </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+              <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full ${
+                  stage.parcours === 'scolaire' ? 'bg-blue-50 text-blue-700 border border-blue-200' :
+                      stage.parcours === 'apprentissage' ? 'bg-orange-50 text-orange-700 border border-orange-200' :
+                          stage.parcours === 'mixte' ? 'bg-purple-50 text-purple-700 border border-purple-200' :
+                              'bg-gray-50 text-gray-700 border border-gray-200'
+              }`}>
+                {stage.parcours || 'Non défini'}
+              </span>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${
+                  stage.niveauScolaire === '2de' ? 'bg-green-100 text-green-800' :
+                      stage.niveauScolaire === '1re' ? 'bg-yellow-100 text-yellow-800' :
+                          stage.niveauScolaire === 'Tle' ? 'bg-red-100 text-red-800' :
+                              'bg-gray-100 text-gray-800'
+              }`}>
+                {stage.niveauScolaire || 'Non défini'}
+              </span>
+                      </td>
+                      <td className="px-4 py-4">
+                        <div className="text-sm text-gray-900 max-w-xs truncate" title={stage.familleMetiers}>
+                          {stage.familleMetiers || 'Non renseigné'}
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-900">
+                <span className={`font-medium ${
+                    stage.capacity_filled >= stage.capacity_total ? 'text-red-600' :
+                        stage.placesDisponibles <= 1 ? 'text-orange-600' :
+                            'text-green-600'
+                }`}>
+                  {stage.capacity_filled}/{stage.capacity_total}
+                </span>
+                          <span className="text-gray-500 ml-1 text-xs block">
+                  ({stage.placesDisponibles || 0} libres)
+                </span>
+                        </div>
+                        {/* Barre de progression */}
+                        <div className="mt-1 w-full bg-gray-200 rounded-full h-1.5">
+                          <div
+                              className={`h-1.5 rounded-full ${
+                                  stage.capacity_filled >= stage.capacity_total ? 'bg-red-500' :
+                                      stage.placesDisponibles <= 1 ? 'bg-orange-500' :
+                                          'bg-green-500'
+                              }`}
+                              style={{
+                                width: `${stage.capacity_total > 0 ? (stage.capacity_filled / stage.capacity_total) * 100 : 0}%`
+                              }}
+                          ></div>
+                        </div>
+                      </td>
+                      <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-2">
+                          <button
+                              onClick={() => editStage(stage)}
+                              className="text-blue-600 hover:text-blue-900 text-sm"
+                              title="Modifier le stage"
+                          >
+                            Modifier
+                          </button>
+                          <button
+                              onClick={() => handleDeleteStage(stage.id)}
+                              className="text-red-600 hover:text-red-900 text-sm"
+                              title="Supprimer le stage"
+                          >
+                            Supprimer
+                          </button>
+                        </div>
                       </td>
                     </tr>
                 ))}
