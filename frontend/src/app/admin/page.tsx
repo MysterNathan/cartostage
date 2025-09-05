@@ -121,39 +121,24 @@ export default function AdminPage() {
     }
   }
 
-  const saveStage = async (stage: Stage) => {
+  const handleStageSuccess = (stage: Stage) => {
     try {
       setError('')
 
       if (isNewStage) {
-        // Créer un nouveau stage (sans l'id car il sera généré par le serveur)
-        const { id, ...stageWithoutId } = stage
-        const newStage = await addStage(stageWithoutId)
-        setStages(prev => [...prev, newStage])
-        console.log('Stage créé avec succès')
+        setStages(prev => [...prev, stage])
+        console.log('Nouveau stage ajouté à la liste')
       } else {
-        // Mettre à jour un stage existant
-        const { id, ...stageWithoutId } = stage
-        const updatedStage = await updateStage(id, stageWithoutId)
-        setStages(prev => prev.map(s => s.id === stage.id ? updatedStage : s))
-        console.log('Stage mis à jour avec succès')
+        setStages(prev => prev.map(s => s.id === stage.id ? stage : s))
+        console.log('Stage mis à jour dans la liste')
       }
 
       setIsModalOpen(false)
       setEditingStage(null)
+
     } catch (error) {
-      console.error('Erreur sauvegarde:', error)
-
-      // Vérifier si c'est une erreur d'authentification
-      if (error instanceof Error && error.message.includes('401')) {
-        authApi.logout()
-        router.push('/login')
-        return
-      }
-
-      const errorMessage = error instanceof Error ? error.message : 'Erreur lors de la sauvegarde'
-      setError(errorMessage)
-      alert(errorMessage)
+      console.error('Erreur mise à jour état:', error)
+      setError('Erreur lors de la mise à jour de l\'affichage')
     }
   }
 
@@ -162,6 +147,7 @@ export default function AdminPage() {
   const occupiedPlaces = stages.reduce((sum, stage) => sum + stage.capacity_filled, 0)
   const availablePlaces = totalCapacity - occupiedPlaces
   
+
 return (
       <div className="min-h-screen bg-gray-100">
         {/* Header */}
@@ -378,7 +364,7 @@ return (
               setIsModalOpen(false)
               setEditingStage(null)
             }}
-            onSave={saveStage}
+            onSuccess={handleStageSuccess}
             isNew={isNewStage}
         />
         <FilieresManager

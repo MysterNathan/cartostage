@@ -1,97 +1,115 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import type { Stage } from '@/types/stage'
-import { addStage, updateStage } from '@/lib/stageApi'
-import FiliereSelect from '@/components/admin/FiliereSelect'
+import { useState, useEffect } from 'react';
+import { Stage } from '@/types/stage';
+import { addStage, updateStage } from '@/lib/stageApi';
+import FiliereSelect from '@/components/admin/FiliereSelect';
+
 
 interface StageModalProps {
-  stage: Stage | null
-  isOpen: boolean
-  onClose: () => void
-  onSave: (stage: Stage) => void
-  isNew?: boolean
+  stage: Stage | null;
+  isOpen: boolean;
+  onClose: () => void;
+  onSuccess: (stage: Stage) => void;
+  isNew?: boolean;
 }
 
-export default function StageModal({ stage, isOpen, onClose, onSave, isNew = false }: StageModalProps) {
-  const [editingStage, setEditingStage] = useState<Stage | null>(null)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+export default function StageModal({
+                                     stage,
+                                     isOpen,
+                                     onClose,
+                                     onSuccess,
+                                     isNew = false
+                                   }: StageModalProps) {
+  const [editingStage, setEditingStage] = useState<Partial<Stage>>({});
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
+  // Calculer les places disponibles
+  const calculateAvailablePlaces = (total: number, filled: number): number => {
+    return Math.max(0, total - filled);
+  };
+
+  // Initialiser les données du stage
   useEffect(() => {
     if (stage) {
-      setEditingStage({ ...stage })
+      setEditingStage({ ...stage });
+    } else if (isNew) {
+      setEditingStage({
+        entreprise: '',
+        poste: '',
+        adresse: '',
+        commune: '',
+        sector: '',
+        filiere: '',
+        lat: 0,
+        lng: 0,
+        capacity_total: 1,
+        capacity_filled: 0,
+        placesDisponibles: 1,
+        period: ''
+      });
     }
-  }, [stage])
+    setError('');
+  }, [stage, isNew]);
+
+  const handleSave = async () => {
+    if (!editingStage || isLoading) return;
+
+    // Nettoyer et valider les données
+    const cleanedStage = sanitizeStage(editingStage);
+
+    // Validation
+    if (!cleanedStage.entreprise || !cleanedStage.poste || !cleanedStage.adresse) {
+      setError('Veuillez remplir tous les champs obligatoires');
+      return;
+    }
+
+    if ((cleanedStage.capacity_total || 0) < (cleanedStage.capacity_filled || 0)) {
+      setError('Le nombre de places occupées ne peut pas dépasser la capacité totale');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      let savedStage: Stage;
+
+      if (isNew) {
+        const { id, ...stageWithoutId } = cleanedStage;
+        savedStage = await addStage(stageWithoutId);
+      } else {
+        const { id, ...stageWithoutId } = cleanedStage;
+        savedStage = await updateStage(cleanedStage.id!, stageWithoutId);
+      }
+
+      onSuccess(savedStage);
+      handleClose();
+
+    } catch (err) {
+      console.error('Erreur sauvegarde:', err);
+      handleApiError(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
 
   // Fermer la modal en cliquant sur l'overlay
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
-      onClose()
+      onClose();
     }
-  }
+  };
 
-  if (!isOpen || !editingStage) return null
+  const handleClose = () => {
+    setEditingStage({});
+    setError('');
+    onClose();
+  };
 
-  const handleSave = async () => {
-    if (!editingStage) return
-
-    try {
-      setIsLoading(true)
-      setError('')
-
-      // Calculer les places disponibles
-      editingStage.placesDisponibles = Math.max(0, editingStage.capacity_total - editingStage.capacity_filled)
-
-      let savedStage: Stage
-
-      if (isNew) {
-        // Création d'un nouveau stage
-        const stageData = {
-          entreprise: editingStage.entreprise,
-          poste: editingStage.poste,
-          adresse: editingStage.adresse,
-          commune: editingStage.commune,
-          sector: editingStage.sector,
-          filiere: editingStage.filiere,
-          lat: editingStage.lat,
-          lng: editingStage.lng,
-          capacity_total: editingStage.capacity_total,
-          capacity_filled: editingStage.capacity_filled,
-          placesDisponibles: editingStage.placesDisponibles,
-          period: editingStage.period
-        }
-        savedStage = await addStage(stageData)
-      } else {
-        // Modification d'un stage existant
-        const stageData = {
-          entreprise: editingStage.entreprise,
-          poste: editingStage.poste,
-          adresse: editingStage.adresse,
-          commune: editingStage.commune,
-          sector: editingStage.sector,
-          filiere: editingStage.filiere,
-          lat: editingStage.lat,
-          lng: editingStage.lng,
-          capacity_total: editingStage.capacity_total,
-          capacity_filled: editingStage.capacity_filled,
-          placesDisponibles: editingStage.placesDisponibles,
-          period: editingStage.period
-        }
-        savedStage = await updateStage(editingStage.id, stageData)
-      }
-
-      // Notifier le composant parent du succès
-      onSave(savedStage)
-
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la sauvegarde'
-      setError(errorMessage)
-      console.error('Erreur:', err)
-    } finally {
-      setIsLoading(false)
-    }
-  }
+  if (!isOpen || !editingStage) return null;
 
   return (
       <div
@@ -109,7 +127,7 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
               {isNew ? 'Ajouter un stage' : 'Modifier le stage'}
             </h2>
             <button
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isLoading}
                 className="p-1 hover:bg-gray-100 rounded-full transition-colors disabled:opacity-50"
                 aria-label="Fermer"
@@ -137,10 +155,10 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
                   </label>
                   <input
                       type="text"
-                      value={editingStage.entreprise}
+                      value={editingStage.entreprise || ''}
                       onChange={(e) => setEditingStage({ ...editingStage, entreprise: e.target.value })}
                       disabled={isLoading}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
                       required
                   />
                 </div>
@@ -151,10 +169,10 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
                   </label>
                   <input
                       type="text"
-                      value={editingStage.poste}
+                      value={editingStage.poste || ''}
                       onChange={(e) => setEditingStage({ ...editingStage, poste: e.target.value })}
                       disabled={isLoading}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
                       required
                   />
                 </div>
@@ -166,11 +184,11 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
                 </label>
                 <input
                     type="text"
-                    value={editingStage.adresse}
+                    value={editingStage.adresse || ''}
                     onChange={(e) => setEditingStage({ ...editingStage, adresse: e.target.value })}
                     placeholder="123 Rue de la République, Saint-Denis, La Réunion"
                     disabled={isLoading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
                     required
                 />
               </div>
@@ -185,7 +203,7 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
                       value={editingStage.commune || ''}
                       onChange={(e) => setEditingStage({ ...editingStage, commune: e.target.value })}
                       disabled={isLoading}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
                   />
                 </div>
 
@@ -198,15 +216,15 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
                       value={editingStage.sector || ''}
                       onChange={(e) => setEditingStage({ ...editingStage, sector: e.target.value })}
                       disabled={isLoading}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
                   />
                 </div>
               </div>
 
-              {/* Composant FiliereSelect - utilise maintenant l'API des filières */}
+              {/* Composant FiliereSelect */}
               <div>
                 <FiliereSelect
-                    value={editingStage.filiere}
+                    value={editingStage.filiere || ''}
                     onChange={(code) => setEditingStage({ ...editingStage, filiere: code })}
                     required
                     allowCreate={false}
@@ -222,10 +240,10 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
                   <input
                       type="number"
                       step="0.000001"
-                      value={editingStage.lat}
+                      value={editingStage.lat || ''}
                       onChange={(e) => setEditingStage({ ...editingStage, lat: parseFloat(e.target.value) || 0 })}
                       disabled={isLoading}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
                   />
                 </div>
 
@@ -236,10 +254,10 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
                   <input
                       type="number"
                       step="0.000001"
-                      value={editingStage.lng}
+                      value={editingStage.lng || ''}
                       onChange={(e) => setEditingStage({ ...editingStage, lng: parseFloat(e.target.value) || 0 })}
                       disabled={isLoading}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
                   />
                 </div>
               </div>
@@ -252,18 +270,19 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
                   <input
                       type="number"
                       min="0"
-                      value={editingStage.capacity_total}
+                      value={editingStage.capacity_total || 1}
                       onChange={(e) => {
-                        const total = parseInt(e.target.value) || 0
+                        const total = parseInt(e.target.value) || 0;
+                        const filled = Math.min(editingStage.capacity_filled || 0, total);
                         setEditingStage({
                           ...editingStage,
                           capacity_total: total,
-                          capacity_filled: Math.min(editingStage.capacity_filled, total),
-                          placesDisponibles: total - Math.min(editingStage.capacity_filled, total)
-                        })
+                          capacity_filled: filled,
+                          placesDisponibles: calculateAvailablePlaces(total, filled)
+                        });
                       }}
                       disabled={isLoading}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
                       required
                   />
                 </div>
@@ -275,18 +294,21 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
                   <input
                       type="number"
                       min="0"
-                      max={editingStage.capacity_total}
-                      value={editingStage.capacity_filled}
+                      max={editingStage.capacity_total || 1}
+                      value={editingStage.capacity_filled || 0}
                       onChange={(e) => {
-                        const filled = Math.min(parseInt(e.target.value) || 0, editingStage.capacity_total)
+                        const filled = Math.min(
+                            parseInt(e.target.value) || 0,
+                            editingStage.capacity_total || 1
+                        );
                         setEditingStage({
                           ...editingStage,
                           capacity_filled: filled,
-                          placesDisponibles: editingStage.capacity_total - filled
-                        })
+                          placesDisponibles: calculateAvailablePlaces(editingStage.capacity_total || 1, filled)
+                        });
                       }}
                       disabled={isLoading}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
                   />
                 </div>
               </div>
@@ -301,13 +323,13 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
                     onChange={(e) => setEditingStage({ ...editingStage, period: e.target.value })}
                     placeholder="Ex: Oct–Nov; Mar–Avr"
                     disabled={isLoading}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black disabled:bg-gray-100"
                 />
               </div>
 
               <div className="bg-gray-50 p-3 rounded-md">
                 <div className="text-sm text-gray-600">
-                  <strong>Places libres calculées:</strong> {editingStage.placesDisponibles}
+                  <strong>Places libres calculées:</strong> {editingStage.placesDisponibles || 0}
                 </div>
               </div>
             </div>
@@ -316,7 +338,7 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
           {/* Footer avec boutons */}
           <div className="sticky bottom-0 bg-white p-6 border-t border-gray-200 flex justify-end gap-3">
             <button
-                onClick={onClose}
+                onClick={handleClose}
                 disabled={isLoading}
                 className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
             >
@@ -338,5 +360,5 @@ export default function StageModal({ stage, isOpen, onClose, onSave, isNew = fal
           </div>
         </div>
       </div>
-  )
+  );
 }

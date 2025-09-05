@@ -2,7 +2,7 @@
 import { Stage, StagesData } from "@/types/stage";
 import { authApi } from "@/lib/authApi";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://crissime.freeboxos.fr:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
 const API_URL = `${API_BASE_URL}/api/stages`;
 
 // Utilitaire pour récupérer les headers avec authentification
