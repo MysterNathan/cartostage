@@ -3,7 +3,6 @@ FROM node:18-alpine AS base
 
 # Installer les dépendances uniquement quand nécessaire
 FROM base AS deps
-# Vérifier https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine pour comprendre pourquoi libc6-compat pourrait être nécessaire.
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
@@ -22,11 +21,14 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
+
 # Variables d'environnement pour le build
-# Next.js collecte des données d'utilisation anonymes sur l'utilisation générale.
-# Apprenez-en plus ici: https://nextjs.org/telemetry
-# Décommenter la ligne suivante si vous voulez désactiver la télémétrie pendant le build.
 ENV NEXT_TELEMETRY_DISABLED 1
+
+RUN echo "Variables d'environnement au build:"
+RUN echo "NEXT_PUBLIC_API_URL: $NEXT_PUBLIC_API_URL"
 
 # Build de l'application
 RUN \
@@ -41,8 +43,10 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
-# Décommenter la ligne suivante si vous voulez désactiver la télémétrie pendant l'exécution.
 ENV NEXT_TELEMETRY_DISABLED 1
+
+ARG NEXT_PUBLIC_API_URL
+ENV NEXT_PUBLIC_API_URL=$NEXT_PUBLIC_API_URL
 
 # Créer un utilisateur non-root pour exécuter l'application
 RUN addgroup --system --gid 1001 nodejs
