@@ -1,8 +1,17 @@
 import type { Filiere, FilieresResponse, CreateFiliereData, UpdateFiliereData } from '@/types/filiere'
+import authApi from "@/lib/authApi";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://crissime.freeboxos.fr:8080';
 const API_URL = `${API_BASE_URL}/api/filieres`;
 
+// Utilitaire pour récupérer les headers avec authentification
+const getAuthHeaders = (): HeadersInit => {
+    const token = authApi.getToken();
+    return {
+        'Content-Type': 'application/json',
+        ...(token && { 'Authorization': `Bearer ${token}` }),
+    };
+};
 
 export async function getFilieres(): Promise<FilieresResponse> {
     const response = await fetch(API_URL, {
@@ -34,7 +43,7 @@ export async function getFiliere(id: number): Promise<Filiere> {
 export async function addFiliere(filiere: CreateFiliereData): Promise<Filiere> {
     const response = await fetch(API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(filiere),
     })
 
@@ -48,7 +57,7 @@ export async function addFiliere(filiere: CreateFiliereData): Promise<Filiere> {
 export async function updateFiliere(id: number, filiere: UpdateFiliereData): Promise<Filiere> {
     const response = await fetch(`${API_URL}/${id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAuthHeaders(),
         body: JSON.stringify(filiere),
     })
 
@@ -62,6 +71,7 @@ export async function updateFiliere(id: number, filiere: UpdateFiliereData): Pro
 export async function deleteFiliere(id: number): Promise<void> {
     const response = await fetch(`${API_URL}/${id}`, {
         method: 'DELETE',
+        headers: getAuthHeaders(),
     })
 
     if (!response.ok) {

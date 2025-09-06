@@ -346,17 +346,17 @@ return (
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">
               <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${
-                  stage.niveauScolaire === '2de' ? 'bg-green-100 text-green-800' :
-                      stage.niveauScolaire === '1re' ? 'bg-yellow-100 text-yellow-800' :
-                          stage.niveauScolaire === 'Tle' ? 'bg-red-100 text-red-800' :
+                  stage.niveau_scolaire === '2de' ? 'bg-green-100 text-green-800' :
+                      stage.niveau_scolaire === '1re' ? 'bg-yellow-100 text-yellow-800' :
+                          stage.niveau_scolaire === 'Tle' ? 'bg-red-100 text-red-800' :
                               'bg-gray-100 text-gray-800'
               }`}>
-                {stage.niveauScolaire || 'Non défini'}
+                {stage.niveau_scolaire || 'Non défini'}
               </span>
                       </td>
                       <td className="px-4 py-4">
-                        <div className="text-sm text-gray-900 max-w-xs truncate" title={stage.familleMetiers}>
-                          {stage.familleMetiers || 'Non renseigné'}
+                        <div className="text-sm text-gray-900 max-w-xs truncate" title={stage.famille_metiers}>
+                          {stage.famille_metiers || 'Non renseigné'}
                         </div>
                       </td>
                       <td className="px-4 py-4 whitespace-nowrap">

@@ -21,7 +21,8 @@ func (r *StageRepository) GetAllStages() (*models.StagesData, error) {
 	query := `
         SELECT id, poste, adresse, lat, lng, places_disponibles, 
                entreprise, filiere, sector, commune, capacity_total, 
-               capacity_filled, period, created_at, updated_at
+               capacity_filled, period, parcours, famille_metiers, niveau_scolaire,
+               created_at, updated_at
         FROM stages 
         ORDER BY commune, entreprise
     `
@@ -49,6 +50,9 @@ func (r *StageRepository) GetAllStages() (*models.StagesData, error) {
 			&stage.CapacityTotal,
 			&stage.CapacityFilled,
 			&stage.Period,
+			&stage.Parcours,
+			&stage.FamilleMetiers,
+			&stage.NiveauScolaire,
 			&stage.CreatedAt,
 			&stage.UpdatedAt,
 		)
@@ -71,8 +75,9 @@ func (r *StageRepository) SaveStage(stage *models.Stage) error {
         INSERT INTO stages (
             poste, adresse, lat, lng, places_disponibles,
             entreprise, filiere, sector, commune, capacity_total,
-            capacity_filled, period, created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, NOW(), NOW())
+            capacity_filled, period, parcours, famille_metiers, niveau_scolaire,
+            created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, NOW(), NOW())
         RETURNING id
     `
 
@@ -89,6 +94,9 @@ func (r *StageRepository) SaveStage(stage *models.Stage) error {
 		stage.CapacityTotal,
 		stage.CapacityFilled,
 		stage.Period,
+		stage.Parcours,
+		stage.FamilleMetiers,
+		stage.NiveauScolaire,
 	).Scan(&stage.ID)
 
 	if err != nil {
@@ -98,12 +106,13 @@ func (r *StageRepository) SaveStage(stage *models.Stage) error {
 	return nil
 }
 
-// Méthodes additionnelles pour des opérations plus granulaires
+// GetStageByID - Récupère un stage par ID
 func (r *StageRepository) GetStageByID(id int) (*models.Stage, error) {
 	query := `
         SELECT id, poste, adresse, lat, lng, places_disponibles, 
                entreprise, filiere, sector, commune, capacity_total, 
-               capacity_filled, period, created_at, updated_at
+               capacity_filled, period, parcours, famille_metiers, niveau_scolaire,
+               created_at, updated_at
         FROM stages 
         WHERE id = $1
     `
@@ -123,6 +132,9 @@ func (r *StageRepository) GetStageByID(id int) (*models.Stage, error) {
 		&stage.CapacityTotal,
 		&stage.CapacityFilled,
 		&stage.Period,
+		&stage.Parcours,
+		&stage.FamilleMetiers,
+		&stage.NiveauScolaire,
 		&stage.CreatedAt,
 		&stage.UpdatedAt,
 	)
@@ -137,6 +149,7 @@ func (r *StageRepository) GetStageByID(id int) (*models.Stage, error) {
 	return &stage, nil
 }
 
+// GetStagesWithFilters - Filtres simples (filiere, commune, places dispo)
 func (r *StageRepository) GetStagesWithFilters(filiere, commune string, availableOnly bool) (*models.StagesData, error) {
 	var conditions []string
 	var args []interface{}
@@ -145,7 +158,8 @@ func (r *StageRepository) GetStagesWithFilters(filiere, commune string, availabl
 	baseQuery := `
         SELECT id, poste, adresse, lat, lng, places_disponibles, 
                entreprise, filiere, sector, commune, capacity_total, 
-               capacity_filled, period, created_at, updated_at
+               capacity_filled, period, parcours, famille_metiers, niveau_scolaire,
+               created_at, updated_at
         FROM stages
     `
 
@@ -196,6 +210,9 @@ func (r *StageRepository) GetStagesWithFilters(filiere, commune string, availabl
 			&stage.CapacityTotal,
 			&stage.CapacityFilled,
 			&stage.Period,
+			&stage.Parcours,
+			&stage.FamilleMetiers,
+			&stage.NiveauScolaire,
 			&stage.CreatedAt,
 			&stage.UpdatedAt,
 		)
@@ -248,9 +265,12 @@ func (r *StageRepository) UpdateStage(stage *models.Stage) error {
         SET poste = $2, adresse = $3, lat = $4, lng = $5, 
             places_disponibles = $6, entreprise = $7, filiere = $8, 
             sector = $9, commune = $10, capacity_total = $11, 
-            capacity_filled = $12, period = $13, updated_at = CURRENT_TIMESTAMP
+            capacity_filled = $12, period = $13,
+            parcours = $14, famille_metiers = $15, niveau_scolaire = $16,
+            updated_at = CURRENT_TIMESTAMP
         WHERE id = $1
-        RETURNING id, created_at, updated_at`
+        RETURNING id, created_at, updated_at
+    `
 
 	err := r.db.QueryRow(
 		query,
@@ -267,6 +287,9 @@ func (r *StageRepository) UpdateStage(stage *models.Stage) error {
 		stage.CapacityTotal,
 		stage.CapacityFilled,
 		stage.Period,
+		stage.Parcours,
+		stage.FamilleMetiers,
+		stage.NiveauScolaire,
 	).Scan(&stage.ID, &stage.CreatedAt, &stage.UpdatedAt)
 
 	if err != nil {
