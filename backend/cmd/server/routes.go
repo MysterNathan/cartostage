@@ -40,10 +40,13 @@ func setupRoutes(
 	protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.UpdateStage).Methods("PUT")
 	protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.DeleteStage).Methods("DELETE")
 
+	// Routes filières public
+	filiereRouterPublic := api.PathPrefix("/filieres").Subrouter()
+	filiereRouterPublic.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
+
 	// Routes filieres (toutes protégées)
 	filieresRouter := api.PathPrefix("/filieres").Subrouter()
 	filieresRouter.Use(authMiddleware.RequireAuth)
-	filieresRouter.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
 	filieresRouter.HandleFunc("", filiereHandler.CreateFiliere).Methods("POST")
 	filieresRouter.HandleFunc("/{id:[0-9]+}", filiereHandler.UpdateFiliere).Methods("PUT")
 	filieresRouter.HandleFunc("/{id:[0-9]+}", filiereHandler.DeleteFiliere).Methods("DELETE")
