@@ -14,8 +14,6 @@ services:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
-#      - ./backend/internal/database/init-stages.sql:/docker-entrypoint-initdb.d/01-init-stages.sql:ro
-#      - ./backend/internal/database/init-filieres.sql:/docker-entrypoint-initdb.d/02-init-filieres.sql:ro
     networks:
       - stages-network
 
@@ -34,8 +32,8 @@ services:
       POSTGRES_PASSWORD: stages_password
       POSTGRES_DB: postgres
       JWT_SECRET: 'Er3vsrwb3y35GN6kQH9fFs6HdQnqMh+WV0uJiQHUkvuFZMSczD/jf/wMCA31Jx2a WvZZaRkylQ9iCqcToLNpOQ=='
-    ports:
-      - "8080:8080"
+    expose:
+      - "8080"
     depends_on:
       - postgres
     networks:
@@ -47,17 +45,31 @@ services:
       dockerfile: Dockerfile
       target: runner
       args:
-        - NEXT_PUBLIC_API_URL=http://crissime.freeboxos.fr:8080
+        - NEXT_PUBLIC_API_URL=http://localhost
     container_name: stages-frontend
     restart: unless-stopped
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: 1
-      NEXT_PUBLIC_API_URL: http://crissime.freeboxos.fr:8080
+      NEXT_PUBLIC_API_URL: http://localhost
+    expose:
+      - "80"
+    depends_on:
+      - backend
+    networks:
+      - stages-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: stages-nginx
+    restart: unless-stopped
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
     ports:
       - "80:80"
     depends_on:
       - backend
+      - frontend
     networks:
       - stages-network
 
