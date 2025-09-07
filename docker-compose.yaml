@@ -45,13 +45,13 @@ services:
       dockerfile: Dockerfile
       target: runner
       args:
-        - NEXT_PUBLIC_API_URL=http://localhost
+        - NEXT_PUBLIC_API_URL= http://crissime.freeboxos.fr
     container_name: stages-frontend
     restart: unless-stopped
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: 1
-      NEXT_PUBLIC_API_URL: http://localhost
+      NEXT_PUBLIC_API_URL: http://crissime.freeboxos.fr
     expose:
       - "80"
     depends_on:
