@@ -2,7 +2,6 @@ package main
 
 import (
 	"backend/internal/middleware"
-	"fmt"
 	"net/http"
 
 	"backend/internal/handlers"
@@ -44,7 +43,7 @@ func setupRoutes(
 	filiereRouterPublic := api.PathPrefix("/filieres").Subrouter()
 	filiereRouterPublic.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
 
-	// Routes filieres (toutes protégées)
+	// Routes filieres (avec middleware auth)
 	filieresRouter := api.PathPrefix("/filieres").Subrouter()
 	filieresRouter.Use(authMiddleware.RequireAuth)
 	filieresRouter.HandleFunc("", filiereHandler.CreateFiliere).Methods("POST")
@@ -89,9 +88,6 @@ func corsMiddleware(next http.Handler) http.Handler {
 		w.Header().Set("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With, Accept, Origin")
 		w.Header().Set("Access-Control-Allow-Credentials", "true")
 		w.Header().Set("Access-Control-Max-Age", "3600")
-
-		// Log pour debug (optionnel)
-		fmt.Printf("CORS: %s %s from %s\n", r.Method, r.URL.Path, origin)
 
 		// Gestion des requêtes preflight OPTIONS
 		if r.Method == "OPTIONS" {

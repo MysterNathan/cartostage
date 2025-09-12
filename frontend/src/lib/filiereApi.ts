@@ -1,7 +1,7 @@
 import type { Filiere, FilieresResponse, CreateFiliereData, UpdateFiliereData } from '@/types/filiere'
 import authApi from "@/lib/authApi";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://crissime.freeboxos.fr:8080';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_URL = `${API_BASE_URL}/api/filieres`;
 
 // Utilitaire pour récupérer les headers avec authentification
