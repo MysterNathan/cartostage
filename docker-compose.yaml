@@ -45,13 +45,13 @@ services:
       dockerfile: Dockerfile
       target: runner
       args:
-        - NEXT_PUBLIC_API_URL= http://crissime.freeboxos.fr
+        - NEXT_PUBLIC_API_URL=https://crissime.freeboxos.fr
     container_name: stages-frontend
     restart: unless-stopped
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: 1
-      NEXT_PUBLIC_API_URL: http://crissime.freeboxos.fr
+      NEXT_PUBLIC_API_URL: https://crissime.freeboxos.fr
     expose:
       - "443"
     depends_on:
@@ -67,7 +67,8 @@ services:
       - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
       - /etc/letsencrypt:/etc/ssl:ro
     ports:
-      - "443:443"
+      - "80:80"   # Pour la redirection HTTP vers HTTPS
+      - "443:443" # Pour HTTPS
     depends_on:
       - backend
       - frontend
