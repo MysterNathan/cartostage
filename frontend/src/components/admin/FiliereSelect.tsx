@@ -36,7 +36,7 @@ export default function FiliereSelect({
                 setLoading(true)
                 setError('')
                 const data = await getFilieres()
-                setFilieres(data.filieres) 
+                setFilieres(data.filieres ?? [""])
             } catch (err) {
                 const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des filières'
                 setError(errorMessage)

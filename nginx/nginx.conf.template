@@ -1,0 +1,120 @@
+# Redirection HTTP vers HTTPS
+server {
+    listen 80;
+    server_name crissime.freeboxos.fr;
+    return 301 https://$server_name$request_uri;
+}
+
+# Configuration HTTPS
+server {
+    listen 443 ssl http2;
+    server_name crissime.freeboxos.fr;
+
+    # Configuration SSL
+    ssl_certificate /etc/ssl/live/crissime.freeboxos.fr/fullchain.pem;
+    ssl_certificate_key /etc/ssl/live/crissime.freeboxos.fr/privkey.pem;
+
+    # Configuration SSL moderne et sécurisée
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384;
+    ssl_prefer_server_ciphers off;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    # Headers de sécurité
+    add_header Strict-Transport-Security "max-age=31536000; includeSubDomains" always;
+    add_header X-Frame-Options DENY always;
+    add_header X-Content-Type-Options nosniff always;
+
+    # Microservice Auth - Routes d'authentification
+    location ~* ^/api/(login|register|auth)(/.*)?$ {
+        proxy_pass http://stages-auth:8001;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $server_name;
+        proxy_set_header X-Forwarded-Port 443;
+
+        # Headers CORS si nécessaire
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept" always;
+
+        # Gérer les requêtes OPTIONS (preflight CORS)
+        if ($request_method = OPTIONS) {
+            return 204;
+        }
+    }
+
+    # Microservice Stage-Map - Routes stages et filières
+    location ~* ^/api/(stages|filieres)(/.*)?$ {
+        proxy_pass http://stages-map:8002;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $server_name;
+        proxy_set_header X-Forwarded-Port 443;
+
+        # Headers CORS si nécessaire
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept" always;
+
+        # Gérer les requêtes OPTIONS (preflight CORS)
+        if ($request_method = OPTIONS) {
+            return 204;
+        }
+    }
+
+    # Microservice Enterprise - Routes entreprises
+    location ~* ^/api/enterprise(/.*)?$ {
+        proxy_pass http://stages-enterprise:8003;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $server_name;
+        proxy_set_header X-Forwarded-Port 443;
+
+        # Headers CORS si nécessaire
+        add_header Access-Control-Allow-Origin * always;
+        add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+        add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept" always;
+
+        # Gérer les requêtes OPTIONS (preflight CORS)
+        if ($request_method = OPTIONS) {
+            return 204;
+        }
+    }
+
+    # Route de fallback pour les autres routes API (si nécessaire)
+    location /api/ {
+        return 404;
+    }
+
+    # Health check endpoints (optionnel, pour monitoring)
+    location = /health {
+        access_log off;
+        return 200 "healthy\n";
+        add_header Content-Type text/plain;
+    }
+
+    # Proxy pour le frontend Next.js
+    location / {
+        proxy_pass http://stages-frontend:3000;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto https;
+        proxy_set_header X-Forwarded-Host $server_name;
+        proxy_set_header X-Forwarded-Port 443;
+
+        # Pour Next.js hot reload en dev (optionnel)
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_cache_bypass $http_upgrade;
+    }
+}
