@@ -1,8 +1,8 @@
 package services
 
 import (
-	"backend/services/enterprise/internal/repositories"
-	"backend/shared/models"
+	"enterprise/internal/repositories"
+	"shared/models"
 )
 
 type EnterpriseService struct {

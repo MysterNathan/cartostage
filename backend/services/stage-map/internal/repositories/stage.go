@@ -1,10 +1,10 @@
 package repositories
 
 import (
-	"backend/shared/models"
 	"database/sql"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"shared/models"
 	"strings"
 )
 

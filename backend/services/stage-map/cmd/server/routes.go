@@ -1,11 +1,11 @@
 package main
 
 import (
-	"backend/shared/middleware"
 	"net/http"
+	"shared/middleware"
 
-	"backend/services/stage-map/internal/handlers"
 	"github.com/gorilla/mux"
+	"stage-map/internal/handlers"
 )
 
 func setupRoutes(
@@ -63,6 +63,8 @@ func corsMiddleware(next http.Handler) http.Handler {
 		allowedOrigins := []string{
 			"http://localhost:3000",
 			"http://127.0.0.1:3000",
+			"http://localhost",
+			"http://127.0.0.1",
 			"crissime.freeboxos.fr",
 		}
 

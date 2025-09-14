@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"backend/shared/models"
 	"fmt"
+	"shared/models"
 
 	"github.com/jmoiron/sqlx"
 )

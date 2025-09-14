@@ -1,16 +1,16 @@
 package main
 
 import (
-	"backend/shared/middleware"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 
-	"backend/services/stage-map/internal/handlers"
-	"backend/services/stage-map/internal/repositories"
-	"backend/shared/config"
-	"backend/shared/services"
+	"shared/config"
+	"shared/middleware"
+	"shared/services"
+	"stage-map/internal/handlers"
+	"stage-map/internal/repositories"
 )
 
 func main() {
@@ -43,7 +43,7 @@ func main() {
 	// Setup des routes avec les deux handlers
 	r := setupRoutes(stageHandler, filiereHandler, authMiddleware)
 
-	fmt.Println("🚀 Server running on :8080")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	fmt.Println("🚀 Server running on :80")
+	log.Fatal(http.ListenAndServe(":80", r))
 
 }

@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"backend/shared/services"
+	"shared/services"
 )
 
 type AuthMiddleware struct {

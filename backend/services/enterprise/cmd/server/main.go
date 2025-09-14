@@ -1,13 +1,13 @@
 package main
 
 import (
-	"backend/services/enterprise/internal/handlers"
-	"backend/services/enterprise/internal/repositories"
-	"backend/services/enterprise/internal/services"
-	"backend/shared/config"
+	"enterprise/internal/handlers"
+	"enterprise/internal/repositories"
+	"enterprise/internal/services"
 	"fmt"
 	"log"
 	"net/http"
+	"shared/config"
 )
 
 func main() {
@@ -37,5 +37,5 @@ func main() {
 	r := setupRoutes(enterpriseHandler, tutorHandler)
 
 	fmt.Println("🚀 Enterprise microservice running")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":80", r))
 }

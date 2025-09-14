@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"backend/services/stage-map/internal/repositories"
-	"backend/shared/models"
 	"encoding/json"
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"shared/models"
+	"stage-map/internal/repositories"
 	"strconv"
 	"strings"
 )

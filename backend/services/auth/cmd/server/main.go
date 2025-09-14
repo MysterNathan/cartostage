@@ -1,14 +1,14 @@
 package main
 
 import (
-	"backend/services/auth/internal/handlers"
-	"backend/services/auth/internal/repositories"
-	"backend/services/auth/internal/services"
-	"backend/shared/config"
+	"auth/internal/handlers"
+	"auth/internal/repositories"
+	"auth/internal/services"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
+	"shared/config"
 )
 
 func main() {
@@ -36,5 +36,5 @@ func main() {
 	r := setupRoutes(authHandler)
 
 	fmt.Println("🚀 Auth micro services running")
-	log.Fatal(http.ListenAndServe(":8080", r))
+	log.Fatal(http.ListenAndServe(":80", r))
 }

@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
-	"backend/services/auth/internal/repositories"
-	"backend/shared/models"
+	"auth/internal/repositories"
+	"shared/models"
 
 	"github.com/golang-jwt/jwt/v5"
 	"golang.org/x/crypto/bcrypt"

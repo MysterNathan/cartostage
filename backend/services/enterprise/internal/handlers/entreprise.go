@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"backend/services/enterprise/internal/services"
-	"backend/shared/models"
 	"encoding/json"
+	"enterprise/internal/services"
 	"net/http"
+	"shared/models"
 	"strconv"
 
 	"github.com/gorilla/mux"

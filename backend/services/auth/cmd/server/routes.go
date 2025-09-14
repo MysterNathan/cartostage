@@ -1,7 +1,7 @@
 package main
 
 import (
-	"backend/services/auth/internal/handlers"
+	"auth/internal/handlers"
 	"github.com/gorilla/mux"
 )
 

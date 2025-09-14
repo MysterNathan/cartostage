@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"backend/services/auth/internal/services"
-	"backend/shared/models"
+	"auth/internal/services"
+	"shared/models"
 )
 
 type AuthHandler struct {

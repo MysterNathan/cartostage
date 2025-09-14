@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"backend/shared/models"
 	"github.com/jmoiron/sqlx"
+	"shared/models"
 )
 
 type UserRepository struct {

@@ -1,5 +1,5 @@
 // lib/filieres.ts
-import type { Filiere } from "@/types"  // adapte l'import selon où est ton type
+import type { Filiere } from "@/types/filiere"  // adapte l'import selon où est ton type
 
 /**
  * Charge les filières depuis ton backend / API.
