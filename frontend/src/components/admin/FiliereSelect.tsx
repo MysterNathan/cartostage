@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
-import { getFilieres, addFiliere } from '@/lib/filiereApi'
+import { useFilieres } from '@/hooks/useFilieres'
 import type { Filiere } from '@/types/filiere'
 
 interface Props {
@@ -22,63 +22,49 @@ export default function FiliereSelect({
                                           className,
                                           disabled = false
                                       }: Props) {
-    const [filieres, setFilieres] = useState<Filiere[]>([])
-    const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
+    // Utilisation du hook personnalisé
+    const { filieres, loading, error: hookError, loadFilieres, create } = useFilieres()
+
+    // États locaux pour le formulaire d'ajout
+    const [localError, setLocalError] = useState('')
     const [showAdd, setShowAdd] = useState(false)
     const [form, setForm] = useState({ code: '', label: '', color: '#3B82F6' })
     const [isCreating, setIsCreating] = useState(false)
 
-    // Charger les filières
+    // Charger les filières au montage
     useEffect(() => {
-        const loadFilieres = async () => {
-            try {
-                setLoading(true)
-                setError('')
-                const data = await getFilieres()
-                setFilieres(data.filieres) 
-            } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : 'Erreur lors du chargement des filières'
-                setError(errorMessage)
-                console.error('Erreur filières:', err)
-            } finally {
-                setLoading(false)
-            }
-        }
-
         loadFilieres()
     }, [])
 
-    const options = useMemo(() => filieres, [filieres])
+    const options = useMemo(() => {
+        return Array.isArray(filieres) && filieres.length > 0 ? filieres : []
+    }, [filieres])
 
     // Créer une nouvelle filière
     const handleCreate = async () => {
         if (!form.code.trim() || !form.label.trim()) {
-            setError('Le code et le libellé sont obligatoires')
+            setLocalError('Le code et le libellé sont obligatoires')
             return
         }
 
         // Vérifier si le code existe déjà
         if (filieres.some(f => f.code === form.code.trim().toUpperCase())) {
-            setError('Ce code existe déjà')
+            setLocalError('Ce code existe déjà')
             return
         }
 
         try {
             setIsCreating(true)
-            setError('')
+            setLocalError('')
 
-            const newFiliere = await addFiliere({
+            await create({
                 code: form.code.trim().toUpperCase(),
                 label: form.label.trim(),
                 color: form.color
             })
 
-            // Mettre à jour la liste locale
-            setFilieres(prev => [...prev, newFiliere])
-
             // Sélectionner la nouvelle filière
-            onChange(newFiliere.code)
+            onChange(form.code.trim().toUpperCase())
 
             // Réinitialiser le formulaire
             setShowAdd(false)
@@ -86,7 +72,7 @@ export default function FiliereSelect({
 
         } catch (err) {
             const errorMessage = err instanceof Error ? err.message : 'Erreur lors de la création'
-            setError(errorMessage)
+            setLocalError(errorMessage)
             console.error('Erreur création filière:', err)
         } finally {
             setIsCreating(false)
@@ -95,12 +81,13 @@ export default function FiliereSelect({
 
     // Réinitialiser l'erreur quand on change le formulaire
     useEffect(() => {
-        if (error && (form.code || form.label)) {
-            setError('')
+        if (localError && (form.code || form.label)) {
+            setLocalError('')
         }
-    }, [form.code, form.label, error])
+    }, [form.code, form.label, localError])
 
     const selectedFiliere = filieres.find(f => f.code === value)
+    const displayError = localError || hookError
 
     return (
         <div className={className}>
@@ -113,14 +100,14 @@ export default function FiliereSelect({
                     <select
                         value={value ?? ''}
                         onChange={(e) => onChange(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:bg-gray-100 appearance-none pr-10"
+                        disabled={disabled || loading}
                         required={required}
-                        disabled={loading || disabled}
+                        className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed appearance-none bg-white"
                     >
-                        <option value="" disabled>
-                            {loading ? 'Chargement...' : 'Choisir une filière'}
+                        <option value="">
+                            {loading ? 'Chargement...' : 'Sélectionner une filière'}
                         </option>
-                        {options.map((f: Filiere) => (
+                        {options.map((f) => (
                             <option key={f.id} value={f.code}>
                                 {f.label} ({f.code})
                             </option>
@@ -158,12 +145,12 @@ export default function FiliereSelect({
             </div>
 
             {/* Affichage des erreurs */}
-            {error && (
+            {displayError && (
                 <p className="text-xs text-red-600 mt-1 flex items-center gap-1">
                     <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                         <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
                     </svg>
-                    {error}
+                    {displayError}
                 </p>
             )}
 
@@ -236,7 +223,7 @@ export default function FiliereSelect({
                             onClick={() => {
                                 setShowAdd(false)
                                 setForm({ code: '', label: '', color: '#3B82F6' })
-                                setError('')
+                                setLocalError('')
                             }}
                             disabled={isCreating}
                             className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 text-sm transition-colors disabled:opacity-50"

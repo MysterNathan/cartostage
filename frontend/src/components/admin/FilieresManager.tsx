@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect } from 'react'
-import { getFilieres, addFiliere, updateFiliere, deleteFiliere } from '@/lib/filiereApi'
+import { useFilieres } from '@/hooks/useFilieres'
 import type { Filiere } from '@/types/filiere'
 
 interface Props {
@@ -9,77 +9,16 @@ interface Props {
 }
 
 export default function FilieresManager({ isOpen, onClose }: Props) {
-    const [filieres, setFilieres] = useState<Filiere[]>([])
-    const [loading, setLoading] = useState(false)
-    const [error, setError] = useState<string | null>(null)
+    const { filieres, loading, error, loadFilieres, create, update, remove } = useFilieres()
     const [draft, setDraft] = useState<Partial<Filiere> | null>(null)
     const [createForm, setCreateForm] = useState({ code: '', label: '', color: '#3B82F6' })
-
-    // Charger les filières
-    const loadFilieres = async () => {
-        try {
-            setLoading(true)
-            setError(null)
-            const response = await getFilieres()
-            setFilieres(response.filieres)
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur lors du chargement')
-        } finally {
-            setLoading(false)
-        }
-    }
 
     // Charger au montage et quand la modal s'ouvre
     useEffect(() => {
         if (isOpen) {
             loadFilieres()
         }
-    }, [isOpen])
-
-    // Créer une filière
-    const create = async (data: { code: string; label: string; color: string }) => {
-        try {
-            setLoading(true)
-            setError(null)
-            const newFiliere = await addFiliere(data)
-            setFilieres(prev => [...prev, newFiliere])
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur lors de la création')
-            throw err
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    // Modifier une filière
-    const update = async (data: { id: number; code?: string; label?: string; color?: string }) => {
-        try {
-            setLoading(true)
-            setError(null)
-            const updatedFiliere = await updateFiliere(data.id, data)
-            setFilieres(prev => prev.map(f => f.id === data.id ? updatedFiliere : f))
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur lors de la modification')
-            throw err
-        } finally {
-            setLoading(false)
-        }
-    }
-
-    // Supprimer une filière
-    const remove = async (id: number) => {
-        try {
-            setLoading(true)
-            setError(null)
-            await deleteFiliere(id)
-            setFilieres(prev => prev.filter(f => f.id !== id))
-        } catch (err) {
-            setError(err instanceof Error ? err.message : 'Erreur lors de la suppression')
-            throw err
-        } finally {
-            setLoading(false)
-        }
-    }
+    }, [isOpen, loadFilieres])
 
     if (!isOpen) return null
 
@@ -101,34 +40,34 @@ export default function FilieresManager({ isOpen, onClose }: Props) {
                     </button>
                 </div>
 
-                <div className="p-6 space-y-6 max-h-[calc(90vh-140px)] overflow-y-auto">
-
-                    {/* Message d'erreur */}
-                    {error && (
-                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-                            <div className="text-sm text-red-800 font-medium">{error}</div>
-                        </div>
-                    )}
-
-                    {/* Formulaire d'ajout */}
-                    <div className="p-5 border border-gray-200 rounded-xl bg-blue-50">
-                        <h3 className="font-semibold text-gray-900 mb-4 flex items-center">
-                            <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                {/* Affichage des erreurs */}
+                {error && (
+                    <div className="bg-red-50 border border-red-200 text-red-800 px-6 py-4">
+                        <div className="flex items-center gap-2">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
-                            Ajouter une nouvelle filière
-                        </h3>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                            <span className="font-medium">{error}</span>
+                        </div>
+                    </div>
+                )}
+
+                <div className="p-6 overflow-y-auto max-h-[calc(90vh-140px)]">
+                    {/* Formulaire de création */}
+                    <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-6">
+                        <h3 className="font-semibold text-blue-900 mb-4">Ajouter une nouvelle filière</h3>
+
+                        <div className="grid grid-cols-2 gap-4 mb-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Code</label>
                                 <input
-                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
+                                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 font-mono"
                                     placeholder="Ex: INFO"
                                     value={createForm.code}
                                     onChange={(e) => setCreateForm({ ...createForm, code: e.target.value.toUpperCase() })}
                                 />
                             </div>
-                            <div className="md:col-span-2">
+                            <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Libellé</label>
                                 <input
                                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900"
@@ -138,6 +77,7 @@ export default function FilieresManager({ isOpen, onClose }: Props) {
                                 />
                             </div>
                         </div>
+
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-3">
                                 <label className="text-sm font-medium text-gray-700">Couleur :</label>
@@ -208,8 +148,8 @@ export default function FilieresManager({ isOpen, onClose }: Props) {
                                                     />
                                                 ) : (
                                                     <span className="font-mono font-medium text-gray-900 bg-gray-100 px-2 py-1 rounded text-sm">
-                                                            {f.code}
-                                                        </span>
+                                                        {f.code}
+                                                    </span>
                                                 )}
                                             </td>
                                             <td className="p-4">
@@ -241,8 +181,8 @@ export default function FilieresManager({ isOpen, onClose }: Props) {
                                                             style={{ backgroundColor: f.color }}
                                                         />
                                                         <span className="text-sm font-mono text-gray-600 bg-gray-50 px-2 py-1 rounded">
-                                                                {f.color}
-                                                            </span>
+                                                            {f.color}
+                                                        </span>
                                                     </div>
                                                 )}
                                             </td>

@@ -86,7 +86,7 @@ export default function StageModal({
 
   const handleSave = async () => {
     if (!formData.entreprise.trim() || !formData.poste.trim()) {
-      setError('L\'entreprise et le poste sont obligatoires');
+      setError('L\'enterprise et le poste sont obligatoires');
       return;
     }
 

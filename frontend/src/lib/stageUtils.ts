@@ -40,7 +40,7 @@ export const calculateAvailablePlaces = (total: number, filled: number): number 
  */
 export const validateStage = (stage: Partial<Stage>): string | null => {
     if (!stage.entreprise?.trim()) {
-        return 'Le nom de l\'entreprise est requis';
+        return 'Le nom de l\'enterprise est requis';
     }
 
     if (!stage.poste?.trim()) {

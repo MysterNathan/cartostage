@@ -17,15 +17,15 @@ services:
     networks:
       - stages-network
 
-  backend:
+    # Service d'authentification
+  auth-service:
     build:
       context: ./backend
-      dockerfile: Dockerfile
-    container_name: stages-backend
+      dockerfile: services/auth/Dockerfile
+    container_name: stages-auth
     restart: unless-stopped
     environment:
-      PORT: 8080
-      GIN_MODE: release
+      PORT: 8001
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: stages_user
@@ -33,11 +33,56 @@ services:
       POSTGRES_DB: postgres
       JWT_SECRET: 'Er3vsrwb3y35GN6kQH9fFs6HdQnqMh+WV0uJiQHUkvuFZMSczD/jf/wMCA31Jx2a WvZZaRkylQ9iCqcToLNpOQ=='
     expose:
-      - "8080"
+      - "80"
     depends_on:
       - postgres
     networks:
       - stages-network
+
+  # Service de gestion des stages/carte
+  stage-map-service:
+    build:
+      context: ./backend
+      dockerfile: services/stage-map/Dockerfile
+    container_name: stages-map
+    restart: unless-stopped
+    environment:
+      PORT: 8002
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: stages_user
+      POSTGRES_PASSWORD: stages_password
+      POSTGRES_DB: postgres
+      JWT_SECRET: 'Er3vsrwb3y35GN6kQH9fFs6HdQnqMh+WV0uJiQHUkvuFZMSczD/jf/wMCA31Jx2a WvZZaRkylQ9iCqcToLNpOQ=='
+    expose:
+      - "80"
+    depends_on:
+      - postgres
+    networks:
+      - stages-network
+
+  # Service de gestion des entreprises
+  enterprise-service:
+    build:
+      context: ./backend
+      dockerfile: services/enterprise/Dockerfile
+    container_name: stages-enterprise
+    restart: unless-stopped
+    environment:
+      PORT: 8003
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: stages_user
+      POSTGRES_PASSWORD: stages_password
+      POSTGRES_DB: postgres
+      JWT_SECRET: 'Er3vsrwb3y35GN6kQH9fFs6HdQnqMh+WV0uJiQHUkvuFZMSczD/jf/wMCA31Jx2a WvZZaRkylQ9iCqcToLNpOQ=='
+    expose:
+      - "80"
+    depends_on:
+      - postgres
+    networks:
+      - stages-network
+
 
   frontend:
     build:
@@ -45,17 +90,19 @@ services:
       dockerfile: Dockerfile
       target: runner
       args:
-        - NEXT_PUBLIC_API_URL=https://crissime.freeboxos.fr
+        - NEXT_PUBLIC_API_URL=http://localhost
     container_name: stages-frontend
     restart: unless-stopped
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: 1
-      NEXT_PUBLIC_API_URL: https://crissime.freeboxos.fr
+      NEXT_PUBLIC_API_URL: http://localhost
     expose:
       - "443"
     depends_on:
-      - backend
+      - auth-service
+      - stage-map-service
+      - enterprise-service
     networks:
       - stages-network
 
@@ -64,16 +111,24 @@ services:
     container_name: stages-nginx
     restart: unless-stopped
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf:ro
-      - /etc/letsencrypt:/etc/ssl:ro
+      # Pour dev local (HTTP uniquement)
+      - ./nginx/nginx-dev.conf:/etc/nginx/conf.d/default.conf:ro
+
+      # Pour production (HTTPS)
+      # - ./nginx/nginx-prod.conf:/etc/nginx/conf.d/default.conf:ro
+      # - /etc/letsencrypt:/etc/ssl:ro
     ports:
-      - "80:80"   # Pour la redirection HTTP vers HTTPS
-      - "443:443" # Pour HTTPS
+      - "80:80"
+      # - "443:443"  # Commenté pour dev local
     depends_on:
-      - backend
+      - auth-service
+      - stage-map-service
+      - enterprise-service
       - frontend
     networks:
       - stages-network
+
+
 
 volumes:
   postgres_data:
