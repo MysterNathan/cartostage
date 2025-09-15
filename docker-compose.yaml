@@ -25,7 +25,7 @@ services:
     container_name: stages-auth
     restart: unless-stopped
     environment:
-      PORT: 8001
+      PORT: 80
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: stages_user
@@ -47,7 +47,7 @@ services:
     container_name: stages-map
     restart: unless-stopped
     environment:
-      PORT: 8002
+      PORT: 80
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: stages_user
@@ -69,7 +69,7 @@ services:
     container_name: stages-enterprise
     restart: unless-stopped
     environment:
-      PORT: 8003
+      PORT: 80
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
       POSTGRES_USER: stages_user

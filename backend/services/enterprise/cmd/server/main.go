@@ -7,10 +7,24 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"shared/config"
+	"shared/middleware"
+	sharedServices "shared/services"
 )
 
 func main() {
+
+	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
+
+	issuer := os.Getenv("JWT_ISSUER")
+	if issuer == "" {
+		issuer = "auth-service" // valeur par défaut
+	}
+
 	// Charger la config
 	cfg := config.LoadConfig()
 
@@ -33,9 +47,13 @@ func main() {
 	enterpriseHandler := handlers.NewEnterpriseHandler(enterpriseService)
 	tutorHandler := handlers.NewTutorHandler(tutorService)
 
-	// Setup des routes
-	r := setupRoutes(enterpriseHandler, tutorHandler)
+	jwtService := sharedServices.NewJWTService(jwtSecret, issuer)
 
-	fmt.Println("🚀 Enterprise microservice running")
+	authMiddleware := middleware.NewAuthMiddleware(jwtService)
+
+	// Setup des routes
+	r := setupRoutes(enterpriseHandler, tutorHandler, authMiddleware)
+
+	fmt.Println("Enterprise microservice running")
 	log.Fatal(http.ListenAndServe(":80", r))
 }

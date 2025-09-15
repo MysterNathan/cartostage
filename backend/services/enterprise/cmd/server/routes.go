@@ -2,12 +2,12 @@ package main
 
 import (
 	"enterprise/internal/handlers"
-	"net/http"
-
 	"github.com/gorilla/mux"
+	"net/http"
+	"shared/middleware"
 )
 
-func setupRoutes(enterpriseHandler *handlers.EnterpriseHandler, tutorHandler *handlers.TutorHandler) *mux.Router {
+func setupRoutes(enterpriseHandler *handlers.EnterpriseHandler, tutorHandler *handlers.TutorHandler, authMiddleware *middleware.AuthMiddleware) *mux.Router {
 	r := mux.NewRouter()
 	r.Use(corsMiddleware)
 
@@ -15,14 +15,15 @@ func setupRoutes(enterpriseHandler *handlers.EnterpriseHandler, tutorHandler *ha
 
 	// Routes pour les entreprises
 	enterprisesRouter := api.PathPrefix("/enterprises").Subrouter()
+	enterprisesRouter.Use(authMiddleware.RequireAuth)
 
 	enterprisesRouter.HandleFunc("", enterpriseHandler.GetAll).Methods("GET")
+	enterprisesRouter.HandleFunc("/me", enterpriseHandler.GetMe).Methods("GET")
 	enterprisesRouter.HandleFunc("/{id}", enterpriseHandler.GetByID).Methods("GET")
 	enterprisesRouter.HandleFunc("/", enterpriseHandler.Create).Methods("POST")
 	enterprisesRouter.HandleFunc("/{id}", enterpriseHandler.Update).Methods("PUT")
 	enterprisesRouter.HandleFunc("/{id}", enterpriseHandler.Delete).Methods("DELETE")
 	enterprisesRouter.HandleFunc("/{id}/stats", enterpriseHandler.GetWithStats).Methods("GET")
-	enterprisesRouter.HandleFunc("/me", enterpriseHandler.GetMe).Methods("GET")
 
 	// Gestion OPTIONS pour toutes les routes
 	enterprisesRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")

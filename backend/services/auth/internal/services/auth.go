@@ -1,95 +1,227 @@
 package services
 
 import (
-	"errors"
-	"time"
-
 	"auth/internal/repositories"
-	"shared/models"
-
-	"github.com/golang-jwt/jwt/v5"
+	"errors"
 	"golang.org/x/crypto/bcrypt"
+	"shared/models"
+	"shared/services"
 )
 
 type AuthService struct {
-	jwtSecret      []byte
-	userRepository *repositories.UserRepository
+	userRepo   *repositories.UserRepository
+	jwtService *services.JWTService
 }
 
-func NewAuthService(jwtSecret string, userRepository *repositories.UserRepository) *AuthService {
+func NewAuthService(userRepo *repositories.UserRepository, jwtService *services.JWTService) *AuthService {
 	return &AuthService{
-		jwtSecret:      []byte(jwtSecret),
-		userRepository: userRepository,
+		userRepo:   userRepo,
+		jwtService: jwtService,
 	}
 }
 
-func (s *AuthService) ValidateCredentials(username, password string) (*models.User, error) {
-	user, err := s.userRepository.GetUserByUsername(username)
+func (s *AuthService) Login(username, password string) (*models.LoginResponse, error) {
+	// Récupérer l'utilisateur complet (avec hash)
+	user, err := s.userRepo.GetByUsername(username)
 	if err != nil {
-		return nil, err
+		return nil, errors.New("invalid credentials")
 	}
-
 	if user == nil {
 		return nil, errors.New("invalid credentials")
 	}
 
+	// Vérifier le mot de passe
 	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(password))
 	if err != nil {
 		return nil, errors.New("invalid credentials")
 	}
 
-	return user, nil
-}
+	// Mettre à jour last login
+	s.userRepo.UpdateLastLogin(user.ID)
 
-func (s *AuthService) GenerateToken(username string) (string, time.Time, error) {
-	expirationTime := time.Now().Add(24 * time.Hour)
-
-	claims := &jwt.RegisteredClaims{
-		Subject:   username,
-		ExpiresAt: jwt.NewNumericDate(expirationTime),
-		IssuedAt:  jwt.NewNumericDate(time.Now()),
-	}
-
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(s.jwtSecret)
-
-	return tokenString, expirationTime, err
-}
-
-// Utilitaire pour hasher un mot de passe
-func (s *AuthService) HashPassword(password string) (string, error) {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	return string(bytes), err
-}
-
-// Créer un nouvel utilisateur
-func (s *AuthService) CreateUser(username, password, role string) (*models.User, error) {
-	// Vérifier si l'utilisateur existe déjà
-	existingUser, err := s.userRepository.GetUserByUsername(username)
+	// Générer le token
+	scopes := s.getScopesForRole(user.Role)
+	token, expiresAt, err := s.jwtService.GenerateToken(
+		user.ID,
+		user.Username,
+		user.Role,
+		user.EntityID,
+		scopes,
+	)
 	if err != nil {
 		return nil, err
 	}
-	if existingUser != nil {
+
+	return &models.LoginResponse{
+		Token:     token,
+		ExpiresAt: expiresAt,
+		User:      user.ToUserInfo(), // Conversion sans hash
+	}, nil
+}
+
+func (s *AuthService) GetUserProfile(userID int) (*models.UserProfile, error) {
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil {
+		return nil, err
+	}
+	if user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	return user.ToProfile(), nil // Conversion sans hash
+}
+
+func (s *AuthService) CreateUser(req models.CreateUserRequest) (*models.UserProfile, error) {
+	// Vérifier si l'utilisateur existe déjà
+	exists, err := s.userRepo.UserExists(req.Username)
+	if err != nil {
+		return nil, err
+	}
+	if exists {
 		return nil, errors.New("username already exists")
 	}
 
 	// Hasher le mot de passe
-	hashedPassword, err := s.HashPassword(password)
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(req.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
 
-	// Créer l'utilisateur
+	// Créer l'utilisateur (modèle User avec hash)
 	user := &models.User{
-		Username:     username,
-		PasswordHash: hashedPassword,
-		Role:         role,
+		Username:     req.Username,
+		Email:        req.Email,
+		PasswordHash: string(hashedPassword),
+		Role:         req.Role,
+		EntityID:     req.EntityID,
 	}
 
-	err = s.userRepository.CreateUser(user)
+	err = s.userRepo.CreateUser(user)
 	if err != nil {
 		return nil, err
 	}
 
-	return user, nil
+	return user.ToProfile(), nil // Retourner UserProfile sans hash
+}
+
+func (s *AuthService) UpdateUser(userID int, req models.UpdateUserRequest) (*models.UserProfile, error) {
+	user, err := s.userRepo.GetByID(userID)
+	if err != nil || user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	// Mettre à jour les champs fournis
+	if req.Username != nil {
+		user.Username = *req.Username
+	}
+	if req.Email != nil {
+		user.Email = req.Email
+	}
+	if req.Role != nil {
+		user.Role = *req.Role
+	}
+	if req.EntityID != nil {
+		user.EntityID = req.EntityID
+	}
+	if req.Password != nil {
+		hashedPassword, err := bcrypt.GenerateFromPassword([]byte(*req.Password), bcrypt.DefaultCost)
+		if err != nil {
+			return nil, err
+		}
+		user.PasswordHash = string(hashedPassword)
+	}
+
+	err = s.userRepo.UpdateUser(user)
+	if err != nil {
+		return nil, err
+	}
+
+	return user.ToProfile(), nil // Retourner UserProfile sans hash
+}
+func (s *AuthService) RefreshToken(oldToken string) (*models.LoginResponse, error) {
+	claims, err := s.jwtService.ValidateAndParseToken(oldToken)
+	if err != nil {
+		return nil, errors.New("invalid token")
+	}
+
+	user, err := s.userRepo.GetByID(claims.UserID)
+	if err != nil || user == nil {
+		return nil, errors.New("user not found")
+	}
+
+	// Nouveau token avec mêmes permissions
+	newToken, expiresAt, err := s.jwtService.GenerateToken(
+		user.ID,
+		user.Username,
+		user.Role,
+		user.EntityID,
+		claims.Scope,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return &models.LoginResponse{
+		Token:     newToken,
+		ExpiresAt: expiresAt,
+		User: models.UserInfo{
+			ID:       user.ID,
+			Username: user.Username,
+			Email:    user.Email,
+			Role:     user.Role,
+			EntityID: user.EntityID,
+		},
+	}, nil
+}
+
+func (s *AuthService) Logout(sessionID string) error {
+	// TODO: Ajouter à une blacklist de tokens si nécessaire
+	return nil
+}
+
+func (s *AuthService) DeleteUser(userID int) error {
+	return s.userRepo.DeleteUser(userID)
+}
+
+func (s *AuthService) GetUsers(page, limit int, roleFilter, entityIDFilter string) ([]*models.UserProfile, int, error) {
+	return s.userRepo.GetUsers(page, limit, roleFilter, entityIDFilter)
+}
+
+func (s *AuthService) getScopesForRole(role string) []string {
+	switch role {
+	case "student":
+		return []string{
+			"read:profile",
+			"write:profile",
+			"read:stages",
+			"write:applications",
+			"read:applications",
+		}
+	case "teacher":
+		return []string{
+			"read:profile",
+			"write:profile",
+			"read:stages",
+			"write:stages",
+			"read:students",
+			"read:applications",
+		}
+	case "enterprise":
+		return []string{
+			"read:profile",
+			"write:profile",
+			"read:stages",
+			"write:stages",
+			"read:applications",
+			"write:applications",
+		}
+	case "admin":
+		return []string{
+			"read:*",
+			"write:*",
+			"delete:*",
+		}
+	default:
+		return []string{"read:profile"}
+	}
 }

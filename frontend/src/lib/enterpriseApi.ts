@@ -5,27 +5,57 @@ import type { Tutor } from '@/types/tutor'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080'
 
-export async function getMyEnterpriseData(): Promise<EnterpriseData> {
+// Helper pour gérer les erreurs d'API
+async function handleApiResponse<T>(response: Response): Promise<T> {
+    if (!response.ok) {
+        const errorText = await response.text()
+
+        if (response.status === 401) {
+            localStorage.removeItem('authToken')
+            throw new Error('Session expirée - Veuillez vous reconnecter')
+        }
+
+        if (response.status === 403) {
+            throw new Error('Accès non autorisé pour cette action')
+        }
+
+        if (response.status === 404) {
+            throw new Error('Ressource non trouvée')
+        }
+
+        let errorMessage = 'Erreur serveur'
+        try {
+            const errorData = JSON.parse(errorText)
+            errorMessage = errorData.message || errorMessage
+        } catch {
+            errorMessage = errorText || errorMessage
+        }
+
+        throw new Error(errorMessage)
+    }
+
+    return response.json()
+}
+
+// Helper pour les headers d'authentification
+function getAuthHeaders(): HeadersInit {
     const token = localStorage.getItem('authToken')
     if (!token) {
         throw new Error('Token d\'authentification manquant')
     }
 
+    return {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json',
+    }
+}
+
+export async function getMyEnterpriseData(): Promise<EnterpriseData> {
     const response = await fetch(`${API_URL}/api/enterprises/me`, {
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
     })
 
-    if (!response.ok) {
-        if (response.status === 401) {
-            throw new Error('Non autorisé - Token invalide')
-        }
-        throw new Error(`Erreur API: ${response.status}`)
-    }
-
-    const data = await response.json()
+    const data = await handleApiResponse<any>(response)
 
     return {
         enterprise: data.enterprise || null,
@@ -35,64 +65,47 @@ export async function getMyEnterpriseData(): Promise<EnterpriseData> {
 }
 
 export async function addTutor(tutorData: Omit<Tutor, 'id' | 'enterprise_id' | 'created_at' | 'updated_at'>): Promise<Tutor> {
-    const token = localStorage.getItem('authToken')
-    if (!token) {
-        throw new Error('Token d\'authentification manquant')
-    }
-
     const response = await fetch(`${API_URL}/api/enterprise/tutors`, {
         method: 'POST',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(tutorData)
     })
 
-    if (!response.ok) {
-        throw new Error(`Erreur lors de l'ajout du tuteur: ${response.status}`)
-    }
-
-    return response.json()
+    return handleApiResponse<Tutor>(response)
 }
 
 export async function updateTutor(id: number, tutorData: Partial<Tutor>): Promise<Tutor> {
-    const token = localStorage.getItem('authToken')
-    if (!token) {
-        throw new Error('Token d\'authentification manquant')
-    }
-
     const response = await fetch(`${API_URL}/api/enterprise/tutors/${id}`, {
         method: 'PUT',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
         body: JSON.stringify(tutorData)
     })
 
-    if (!response.ok) {
-        throw new Error(`Erreur lors de la modification du tuteur: ${response.status}`)
-    }
-
-    return response.json()
+    return handleApiResponse<Tutor>(response)
 }
 
 export async function deleteTutor(id: number): Promise<void> {
-    const token = localStorage.getItem('authToken')
-    if (!token) {
-        throw new Error('Token d\'authentification manquant')
-    }
-
     const response = await fetch(`${API_URL}/api/enterprise/tutors/${id}`, {
         method: 'DELETE',
-        headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json',
-        },
+        headers: getAuthHeaders(),
     })
 
-    if (!response.ok) {
-        throw new Error(`Erreur lors de la suppression du tuteur: ${response.status}`)
-    }
+    await handleApiResponse<void>(response)
+}
+
+// Nouvelles fonctions utilitaires
+export async function getTutorById(id: number): Promise<Tutor> {
+    const response = await fetch(`${API_URL}/api/enterprise/tutors/${id}`, {
+        headers: getAuthHeaders(),
+    })
+
+    return handleApiResponse<Tutor>(response)
+}
+
+export async function getTutors(): Promise<Tutor[]> {
+    const response = await fetch(`${API_URL}/api/enterprise/tutors`, {
+        headers: getAuthHeaders(),
+    })
+
+    return handleApiResponse<Tutor[]>(response)
 }

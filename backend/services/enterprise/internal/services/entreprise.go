@@ -3,6 +3,7 @@ package services
 import (
 	"enterprise/internal/repositories"
 	"shared/models"
+	"strconv"
 )
 
 type EnterpriseService struct {
@@ -10,34 +11,50 @@ type EnterpriseService struct {
 }
 
 func NewEnterpriseService(repo *repositories.EnterpriseRepository) *EnterpriseService {
-	return &EnterpriseService{repo: repo}
+	return &EnterpriseService{
+		repo: repo,
+	}
 }
 
-func (s *EnterpriseService) GetAll() ([]models.Enterprise, error) {
+// GetAll - Récupère toutes les entreprises (pour admin)
+func (s *EnterpriseService) GetAll() ([]*models.Enterprise, error) {
 	return s.repo.GetAll()
 }
 
-// GetMe retourne les données de l'entreprise connectée avec ses statistiques
-func (s *EnterpriseService) GetMe(enterpriseID int) (*models.EnterpriseWithStats, error) {
-	return s.repo.GetWithStats(enterpriseID)
-}
-
+// GetByID - Récupère une entreprise par ID (pour admin)
 func (s *EnterpriseService) GetByID(id int) (*models.Enterprise, error) {
 	return s.repo.GetByID(id)
 }
 
-func (s *EnterpriseService) Create(enterprise *models.Enterprise) error {
+// GetMe - Récupère les infos de l'entreprise connectée
+func (s *EnterpriseService) GetMe(enterpriseID int) (*models.Enterprise, error) {
+	println("enterprise get me: " + strconv.Itoa(enterpriseID))
+	return s.repo.GetByID(enterpriseID)
+}
+
+// Create - Crée une nouvelle entreprise (pour admin)
+func (s *EnterpriseService) Create(enterprise *models.Enterprise) (*models.Enterprise, error) {
 	return s.repo.Create(enterprise)
 }
 
-func (s *EnterpriseService) Update(enterprise *models.Enterprise) error {
-	return s.repo.Update(enterprise)
+// Update - Met à jour une entreprise (pour admin ou l'entreprise elle-même)
+func (s *EnterpriseService) Update(id int, enterprise *models.Enterprise) (*models.Enterprise, error) {
+	return s.repo.Update(id, enterprise)
 }
 
+// Delete - Supprime une entreprise (pour admin)
 func (s *EnterpriseService) Delete(id int) error {
 	return s.repo.Delete(id)
 }
 
+// GetWithStats - Récupère une entreprise avec ses statistiques
 func (s *EnterpriseService) GetWithStats(id int) (*models.EnterpriseWithStats, error) {
 	return s.repo.GetWithStats(id)
 }
+
+// GetStages - Récupère les stages de l'entreprise connectée
+func (s *EnterpriseService) GetStages(enterpriseID int) ([]*models.Stage, error) {
+	return s.repo.GetStagesByEnterpriseID(enterpriseID)
+}
+
+// Méthodes stages commentées pour plus tard...

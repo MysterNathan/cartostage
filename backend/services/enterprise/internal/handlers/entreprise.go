@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"enterprise/internal/services"
+	"log"
 	"net/http"
 	"shared/middleware"
 	"shared/models"
@@ -49,6 +50,9 @@ func (h *EnterpriseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *EnterpriseHandler) GetMe(w http.ResponseWriter, r *http.Request) {
+	log.Println("Entrer dans le Handler getMe") //todo supprimer les logs
+	print("Entrer dans le Handlser getMe")
+
 	// Utiliser la fonction utilitaire pour récupérer l'ID de l'entreprise
 	enterpriseID, ok := middleware.GetEnterpriseIDFromContext(r.Context())
 	if !ok {
@@ -74,14 +78,16 @@ func (h *EnterpriseHandler) Create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.service.Create(&enterprise); err != nil {
+	// Le service Create retourne (*models.Enterprise, error)
+	createdEnterprise, err := h.service.Create(&enterprise)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
-	json.NewEncoder(w).Encode(enterprise)
+	json.NewEncoder(w).Encode(createdEnterprise)
 }
 
 func (h *EnterpriseHandler) Update(w http.ResponseWriter, r *http.Request) {
@@ -97,15 +103,16 @@ func (h *EnterpriseHandler) Update(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	enterprise.ID = id
 
-	if err := h.service.Update(&enterprise); err != nil {
+	// Le service Update prend (id int, enterprise *models.Enterprise) et retourne (*models.Enterprise, error)
+	updatedEnterprise, err := h.service.Update(id, &enterprise)
+	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(enterprise)
+	json.NewEncoder(w).Encode(updatedEnterprise)
 }
 
 func (h *EnterpriseHandler) Delete(w http.ResponseWriter, r *http.Request) {
@@ -141,3 +148,23 @@ func (h *EnterpriseHandler) GetWithStats(w http.ResponseWriter, r *http.Request)
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(enterprise)
 }
+
+// Handlers pour les stages (à décommenter quand tu implémenteras)
+/*
+func (h *EnterpriseHandler) GetMyStages(w http.ResponseWriter, r *http.Request) {
+    enterpriseID, ok := middleware.GetEnterpriseIDFromContext(r.Context())
+    if !ok {
+        http.Error(w, "Enterprise ID not found in context", http.StatusInternalServerError)
+        return
+    }
+
+    stages, err := h.service.GetStages(enterpriseID)
+    if err != nil {
+        http.Error(w, err.Error(), http.StatusInternalServerError)
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(stages)
+}
+*/
