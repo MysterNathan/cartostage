@@ -17,6 +17,11 @@ func (s *EnterpriseService) GetAll() ([]models.Enterprise, error) {
 	return s.repo.GetAll()
 }
 
+// GetMe retourne les données de l'entreprise connectée avec ses statistiques
+func (s *EnterpriseService) GetMe(enterpriseID int) (*models.EnterpriseWithStats, error) {
+	return s.repo.GetWithStats(enterpriseID)
+}
+
 func (s *EnterpriseService) GetByID(id int) (*models.Enterprise, error) {
 	return s.repo.GetByID(id)
 }

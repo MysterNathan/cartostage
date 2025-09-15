@@ -118,3 +118,8 @@ func (r *EnterpriseRepository) GetWithStats(id int) (*models.EnterpriseWithStats
 	}
 	return &ews, nil
 }
+
+// GetMe - Alias pour GetWithStats pour l'entreprise connectée
+func (r *EnterpriseRepository) GetMe(enterpriseID int) (*models.EnterpriseWithStats, error) {
+	return r.GetWithStats(enterpriseID)
+}

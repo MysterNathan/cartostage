@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"enterprise/internal/services"
 	"net/http"
+	"shared/middleware"
 	"shared/models"
 	"strconv"
 
@@ -38,6 +39,25 @@ func (h *EnterpriseHandler) GetByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	enterprise, err := h.service.GetByID(id)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(enterprise)
+}
+
+func (h *EnterpriseHandler) GetMe(w http.ResponseWriter, r *http.Request) {
+	// Utiliser la fonction utilitaire pour récupérer l'ID de l'entreprise
+	enterpriseID, ok := middleware.GetEnterpriseIDFromContext(r.Context())
+	if !ok {
+		http.Error(w, "Enterprise ID not found in context", http.StatusInternalServerError)
+		return
+	}
+
+	// Récupérer les données de l'entreprise
+	enterprise, err := h.service.GetMe(enterpriseID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
