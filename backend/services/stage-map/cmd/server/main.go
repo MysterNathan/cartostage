@@ -16,6 +16,11 @@ import (
 func main() {
 	jwtSecret := os.Getenv("JWT_SECRET")
 
+	issuer := os.Getenv("JWT_ISSUER")
+	if issuer == "" {
+		issuer = "stage-map-service" // valeur par défaut
+	}
+
 	// Charger la config
 	cfg := config.LoadConfig()
 
@@ -31,7 +36,7 @@ func main() {
 	filiereRepo := repositories.NewFiliereRepository(db)
 
 	// Créer les services
-	authService := services.NewAuthService(jwtSecret)
+	authService := services.NewJWTService(jwtSecret, issuer)
 
 	// Créer les handlers en leur passant les repos
 	stageHandler := handlers.NewStageHandler(stageRepo)

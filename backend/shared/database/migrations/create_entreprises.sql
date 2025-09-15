@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS enterprises (
                                            secteur VARCHAR(255) NOT NULL,
                                            taille VARCHAR(50),
                                            siret VARCHAR(14) UNIQUE,
-                                           email_contact VARCHAR(255),
+                                           email VARCHAR(255),
                                            telephone VARCHAR(20),
                                            site_web VARCHAR(255),
                                            description TEXT,
