@@ -34,8 +34,24 @@ async function handleApiResponse<T>(response: Response): Promise<T> {
         throw new Error(errorMessage)
     }
 
-    return response.json()
+    // Vérifier s'il y a du contenu à parser
+    const contentType = response.headers.get('content-type')
+    const contentLength = response.headers.get('content-length')
+
+    // Si pas de contenu ou contenu vide, retourner undefined
+    if (response.status === 204 || contentLength === '0' || !contentType?.includes('application/json')) {
+        return undefined as T
+    }
+
+    try {
+        return await response.json()
+    } catch (error) {
+        // Si erreur de parsing, probablement une réponse vide
+        console.warn('Réponse vide ou invalide, retour de undefined')
+        return undefined as T
+    }
 }
+
 
 // Helper pour les headers d'authentification
 function getAuthHeaders(): HeadersInit {
@@ -65,7 +81,7 @@ export async function getMyEnterpriseData(): Promise<EnterpriseData> {
 }
 
 export async function addTutor(tutorData: Omit<Tutor, 'id' | 'enterprise_id' | 'created_at' | 'updated_at'>): Promise<Tutor> {
-    const response = await fetch(`${API_URL}/api/enterprise/tutors`, {
+    const response = await fetch(`${API_URL}/api/tutors`, {
         method: 'POST',
         headers: getAuthHeaders(),
         body: JSON.stringify(tutorData)
@@ -75,7 +91,7 @@ export async function addTutor(tutorData: Omit<Tutor, 'id' | 'enterprise_id' | '
 }
 
 export async function updateTutor(id: number, tutorData: Partial<Tutor>): Promise<Tutor> {
-    const response = await fetch(`${API_URL}/api/enterprise/tutors/${id}`, {
+    const response = await fetch(`${API_URL}/api/tutors/${id}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
         body: JSON.stringify(tutorData)
@@ -85,7 +101,7 @@ export async function updateTutor(id: number, tutorData: Partial<Tutor>): Promis
 }
 
 export async function deleteTutor(id: number): Promise<void> {
-    const response = await fetch(`${API_URL}/api/enterprise/tutors/${id}`, {
+    const response = await fetch(`${API_URL}/api/tutors/${id}`, {
         method: 'DELETE',
         headers: getAuthHeaders(),
     })
@@ -95,7 +111,7 @@ export async function deleteTutor(id: number): Promise<void> {
 
 // Nouvelles fonctions utilitaires
 export async function getTutorById(id: number): Promise<Tutor> {
-    const response = await fetch(`${API_URL}/api/enterprise/tutors/${id}`, {
+    const response = await fetch(`${API_URL}/api/tutors/${id}`, {
         headers: getAuthHeaders(),
     })
 
@@ -103,7 +119,7 @@ export async function getTutorById(id: number): Promise<Tutor> {
 }
 
 export async function getTutors(): Promise<Tutor[]> {
-    const response = await fetch(`${API_URL}/api/enterprise/tutors`, {
+    const response = await fetch(`${API_URL}/api/tutors`, {
         headers: getAuthHeaders(),
     })
 

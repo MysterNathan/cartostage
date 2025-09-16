@@ -4,18 +4,19 @@ import (
 	"enterprise/internal/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
+	sharedHandler "shared/handlers"
 	"shared/middleware"
 )
 
-func setupRoutes(enterpriseHandler *handlers.EnterpriseHandler, tutorHandler *handlers.TutorHandler, authMiddleware *middleware.AuthMiddleware) *mux.Router {
+func setupRoutes(enterpriseHandler *handlers.EnterpriseHandler, userHandler *sharedHandler.UserHandler, authMiddleware *middleware.AuthMiddleware) *mux.Router {
 	r := mux.NewRouter()
 	r.Use(corsMiddleware)
+	r.Use(authMiddleware.RequireAuth)
 
 	api := r.PathPrefix("/api").Subrouter()
 
 	// Routes pour les entreprises
 	enterprisesRouter := api.PathPrefix("/enterprises").Subrouter()
-	enterprisesRouter.Use(authMiddleware.RequireAuth)
 
 	enterprisesRouter.HandleFunc("", enterpriseHandler.GetAll).Methods("GET")
 	enterprisesRouter.HandleFunc("/me", enterpriseHandler.GetMe).Methods("GET")
@@ -25,7 +26,7 @@ func setupRoutes(enterpriseHandler *handlers.EnterpriseHandler, tutorHandler *ha
 	enterprisesRouter.HandleFunc("/{id}", enterpriseHandler.Delete).Methods("DELETE")
 	enterprisesRouter.HandleFunc("/{id}/stats", enterpriseHandler.GetWithStats).Methods("GET")
 
-	// Gestion OPTIONS pour toutes les routes
+	// Gestion OPTIONS pour toutes les routes entreprise
 	enterprisesRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 	enterprisesRouter.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
 	enterprisesRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
@@ -36,13 +37,19 @@ func setupRoutes(enterpriseHandler *handlers.EnterpriseHandler, tutorHandler *ha
 	tutorsRouter := api.PathPrefix("/tutors").Subrouter()
 
 	// Routes pour les tuteurs
-	tutorsRouter.HandleFunc("/tutors", tutorHandler.GetAll).Methods("GET")
-	tutorsRouter.HandleFunc("/tutors/{id}", tutorHandler.GetByID).Methods("GET")
-	tutorsRouter.HandleFunc("/tutors", tutorHandler.Create).Methods("POST")
-	tutorsRouter.HandleFunc("/tutors/{id}", tutorHandler.Update).Methods("PUT")
-	tutorsRouter.HandleFunc("/tutors/{id}", tutorHandler.Delete).Methods("DELETE")
-	tutorsRouter.HandleFunc("/tutors/enterprise/{enterprise_id}", tutorHandler.GetByEnterprise).Methods("GET")
-	api.HandleFunc("/tutors/{id}/stats", tutorHandler.GetWithStats).Methods("GET")
+	tutorsRouter.HandleFunc("", userHandler.GetAll).Methods("GET")
+	tutorsRouter.HandleFunc("/{id}", userHandler.GetByID).Methods("GET")
+	tutorsRouter.HandleFunc("", userHandler.Create).Methods("POST")
+	tutorsRouter.HandleFunc("/{id}", userHandler.Update).Methods("PUT")
+	tutorsRouter.HandleFunc("/{id}", userHandler.Delete).Methods("DELETE")
+
+	// Gestion OPTIONS pour toutes les routes tutors
+	tutorsRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	tutorsRouter.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
+	tutorsRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
+	tutorsRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	tutorsRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
+	tutorsRouter.HandleFunc("/me", corsPreflightHandler).Methods("OPTIONS")
 
 	return r
 }

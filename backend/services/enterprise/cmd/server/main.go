@@ -9,7 +9,9 @@ import (
 	"net/http"
 	"os"
 	"shared/config"
+	sharedHandlers "shared/handlers"
 	"shared/middleware"
+	sharedRepositories "shared/repositories"
 	sharedServices "shared/services"
 )
 
@@ -37,22 +39,22 @@ func main() {
 
 	// Créer les repositories
 	enterpriseRepo := repositories.NewEnterpriseRepository(db)
-	tutorRepo := repositories.NewTutorRepository(db)
+	userRepo := sharedRepositories.NewUserRepository(db)
 
 	// Créer les services
 	enterpriseService := services.NewEnterpriseService(enterpriseRepo)
-	tutorService := services.NewTutorService(tutorRepo)
+	userService := sharedServices.NewUserService(userRepo)
 
 	// Créer les handlers
 	enterpriseHandler := handlers.NewEnterpriseHandler(enterpriseService)
-	tutorHandler := handlers.NewTutorHandler(tutorService)
+	userHandler := sharedHandlers.NewUserHandler(userService)
 
 	jwtService := sharedServices.NewJWTService(jwtSecret, issuer)
 
 	authMiddleware := middleware.NewAuthMiddleware(jwtService)
 
 	// Setup des routes
-	r := setupRoutes(enterpriseHandler, tutorHandler, authMiddleware)
+	r := setupRoutes(enterpriseHandler, userHandler, authMiddleware)
 
 	fmt.Println("Enterprise microservice running")
 	log.Fatal(http.ListenAndServe(":80", r))

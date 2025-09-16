@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/authApi'
 import { getMyEnterpriseData } from '@/lib/enterpriseApi'
 import type { EnterpriseWithStats } from '@/types/enterprise'
+import type { EnterpriseData } from '@/types/enterprise'
 import type { Tutor } from '@/types/tutor'
 import EnterpriseStats from '@/components/enterprise/EnterpriseStats'
 import TutorsList from '@/components/enterprise/TutorsList'
@@ -13,6 +14,8 @@ import TutorModal from '@/components/enterprise/TutorModal'
 
 export default function MyEnterprisePage() {
     const router = useRouter()
+    const [data, setData] = useState<EnterpriseData | null>(null)
+
     const [enterprise, setEnterprise] = useState<EnterpriseWithStats | null>(null)
     const [tutors, setTutors] = useState<Tutor[]>([])
     const [loading, setLoading] = useState(true)
@@ -31,6 +34,37 @@ export default function MyEnterprisePage() {
 
         loadEnterpriseData()
     }, [router])
+
+    useEffect(() => {
+        loadData()
+    }, [])
+
+    const loadData = async () => {
+        try {
+            const enterpriseData = await getMyEnterpriseData()
+            setData(enterpriseData)
+        } catch (error) {
+            console.error('Erreur:', error)
+        } finally {
+            setLoading(false)
+        }
+    }
+
+    const handleTutorAdded = (newTutor: Tutor) => {
+        setData(prevData => ({
+            ...prevData!,
+            tutors: [...(prevData?.tutors || []), newTutor]
+        }))
+    }
+
+    const handleTutorUpdated = (updatedTutor: Tutor) => {
+        setData(prevData => ({
+            ...prevData!,
+            tutors: prevData!.tutors.map(tutor =>
+                tutor.id === updatedTutor.id ? updatedTutor : tutor
+            )
+        }))
+    }
 
     const handleLogout = () => {
         authApi.logout()
@@ -150,10 +184,10 @@ export default function MyEnterprisePage() {
                 />
 
                 <TutorsList
-                    tutors={safeTutors}
-                    onEdit={handleEditTutor}
-                    onAdd={handleAddTutor}
+                    tutors={data?.tutors || []}
                     loading={loading}
+                    onTutorAdded={handleTutorAdded}
+                    onTutorUpdated={handleTutorUpdated}
                 />
             </div>
 
