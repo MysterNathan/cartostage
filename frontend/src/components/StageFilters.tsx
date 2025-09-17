@@ -70,8 +70,8 @@ export default function StageFilters({
 
       const matchesFiliere = !filiere || stage.filiere === filiere
       const matchesCommune = !commune || stage.commune === commune
-      const matchesPlaces = stage.placesDisponibles >= places
-      const matchesAvailable = !available || stage.placesDisponibles > 0
+      const matchesPlaces = stage.places_disponibles >= places
+      const matchesAvailable = !available || stage.places_disponibles > 0
 
       return matchesQuery && matchesFiliere && matchesCommune && matchesPlaces && matchesAvailable
     })
@@ -126,15 +126,15 @@ export default function StageFilters({
 
     const matchesFiliere = !selectedFiliere || stage.filiere === selectedFiliere
     const matchesCommune = !selectedCommune || stage.commune === selectedCommune
-    const matchesPlaces = stage.placesDisponibles >= minPlaces
-    const matchesAvailable = !onlyAvailable || stage.placesDisponibles > 0
+    const matchesPlaces = stage.places_disponibles >= minPlaces
+    const matchesAvailable = !onlyAvailable || stage.places_disponibles > 0
 
     return matchesQuery && matchesFiliere && matchesCommune && matchesPlaces && matchesAvailable
   })
 
   const totalCapacity = filteredStages.reduce((sum, stage) => sum + stage.capacity_total, 0)
   const totalFilled = filteredStages.reduce((sum, stage) => sum + stage.capacity_filled, 0)
-  const totalAvailable = filteredStages.reduce((sum, stage) => sum + stage.placesDisponibles, 0)
+  const totalAvailable = filteredStages.reduce((sum, stage) => sum + stage.places_disponibles, 0)
 
   // Fonction helper pour obtenir le label d'une filière
   const getFiliereLabel = (code: string): string => {

@@ -147,10 +147,10 @@ export default function StageSelector({
                     </span>
                     <div className="text-right">
                       <div className={`text-sm font-medium ${
-                        stage.placesDisponibles > 0 ? 'text-green-600' : 'text-red-600'
+                        stage.places_disponibles > 0 ? 'text-green-600' : 'text-red-600'
                       }`}>
-                        {stage.placesDisponibles > 0 
-                          ? `${stage.placesDisponibles} place${stage.placesDisponibles > 1 ? 's' : ''}`
+                        {stage.places_disponibles > 0 
+                          ? `${stage.places_disponibles} place${stage.places_disponibles > 1 ? 's' : ''}`
                           : 'Complet'
                         }
                       </div>
@@ -165,7 +165,7 @@ export default function StageSelector({
                       {stage.poste}
                     </h4>
                     <p className="text-sm text-gray-700 font-medium">
-                      {stage.entreprise}
+                      {stage.enterprise}
                     </p>
                     {stage.sector && (
                       <p className="text-xs text-gray-600">{stage.sector}</p>

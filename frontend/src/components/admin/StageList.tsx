@@ -124,7 +124,7 @@ const StagesList: React.FC<StagesListProps> = ({
                         const capacityStyles = getCapacityStyles(
                             stage.capacity_filled,
                             stage.capacity_total,
-                            stage.placesDisponibles
+                            stage.places_disponibles
                         );
                         const progressPercentage = stage.capacity_total > 0
                             ? (stage.capacity_filled / stage.capacity_total) * 100
@@ -134,7 +134,7 @@ const StagesList: React.FC<StagesListProps> = ({
                             <tr key={stage.id} className="hover:bg-gray-50">
                                 <td className="px-4 py-4 whitespace-nowrap">
                                     <div className="text-sm font-medium text-gray-900">
-                                        {stage.entreprise}
+                                        {stage.enterprise}
                                     </div>
                                     <div className="text-xs text-gray-500">
                                         {stage.sector || 'Secteur non renseigné'}
@@ -151,33 +151,33 @@ const StagesList: React.FC<StagesListProps> = ({
                                     </div>
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap">
-                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getFiliereStyles(stage.filiere)}`}>
-                                        {stage.filiere}
-                                    </span>
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getFiliereStyles(stage.filiere)}`}>
+                                            {stage.filiere}
+                                        </span>
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap">
-                                    <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getParcoursStyles(stage.parcours || '')}`}>
-                                        {stage.parcours || 'Non défini'}
-                                    </span>
+                                        <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getParcoursStyles(stage.parcours || '')}`}>
+                                            {stage.parcours || 'Non défini'}
+                                        </span>
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap">
-                                    <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getNiveauStyles(stage.niveauScolaire || '')}`}>
-                                        {stage.niveauScolaire || 'Non défini'}
-                                    </span>
+                                        <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getNiveauStyles(stage.niveau_scolaire || '')}`}>
+                                            {stage.niveau_scolaire || 'Non défini'}
+                                        </span>
                                 </td>
                                 <td className="px-4 py-4">
-                                    <div className="text-sm text-gray-900 max-w-xs truncate" title={stage.familleMetiers}>
-                                        {stage.familleMetiers || 'Non renseigné'}
+                                    <div className="text-sm text-gray-900 max-w-xs truncate" title={stage.famille_metiers}>
+                                        {stage.famille_metiers || 'Non renseigné'}
                                     </div>
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-900">
-                                        <span className={`font-medium ${capacityStyles.text}`}>
-                                            {stage.capacity_filled}/{stage.capacity_total}
-                                        </span>
+                                            <span className={`font-medium ${capacityStyles.text}`}>
+                                                {stage.capacity_filled}/{stage.capacity_total}
+                                            </span>
                                         <span className="text-gray-500 ml-1 text-xs block">
-                                            ({stage.placesDisponibles || 0} libres)
-                                        </span>
+                                                ({stage.places_disponibles || 0} libres)
+                                            </span>
                                     </div>
                                     <div className="mt-1 w-full bg-gray-200 rounded-full h-1.5">
                                         <div
@@ -188,7 +188,6 @@ const StagesList: React.FC<StagesListProps> = ({
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                                     <div className="flex justify-end">
-                                        {/* Seul le bouton Modifier reste, la suppression se fait dans la modal */}
                                         <button
                                             onClick={() => onEdit(stage)}
                                             className="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors text-sm"

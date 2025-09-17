@@ -8,7 +8,7 @@ export const sanitizeStage = (stage: Partial<Stage>): Partial<Stage> => {
     return {
         ...stage,
         // Nettoyer les chaînes de caractères
-        entreprise: stage.entreprise?.trim() || '',
+        enterprise: stage.enterprise?.trim() || '',
         poste: stage.poste?.trim() || '',
         adresse: stage.adresse?.trim() || '',
         commune: stage.commune?.trim() || '',
@@ -21,7 +21,7 @@ export const sanitizeStage = (stage: Partial<Stage>): Partial<Stage> => {
         lng: typeof stage.lng === 'number' ? stage.lng : parseFloat(String(stage.lng)) || 0,
         capacity_total: Math.max(0, parseInt(String(stage.capacity_total)) || 1),
         capacity_filled: Math.max(0, parseInt(String(stage.capacity_filled)) || 0),
-        placesDisponibles: Math.max(0, parseInt(String(stage.placesDisponibles)) || 0),
+        places_disponibles: Math.max(0, parseInt(String(stage.places_disponibles)) || 0),
 
         // Garder l'ID s'il existe
         ...(stage.id && { id: stage.id })

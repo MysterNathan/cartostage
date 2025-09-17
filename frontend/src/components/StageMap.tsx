@@ -95,7 +95,7 @@ export default function StageMap({ stages, selectedStage, onStageClick }: StageM
           
           <div style="margin-bottom: 8px;">
             <div style="font-weight: 600; color: #374151; margin-bottom: 2px;">
-              ${stage.entreprise}
+              ${stage.enterprise}
             </div>
             <div style="font-size: 12px; color: #6B7280;">
               ${stage.sector}
@@ -110,8 +110,8 @@ export default function StageMap({ stages, selectedStage, onStageClick }: StageM
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
             <div style="background: #F3F4F6; padding: 6px; border-radius: 6px; text-align: center;">
               <div style="font-size: 11px; color: #6B7280;">Places libres</div>
-              <div style="font-size: 16px; font-weight: bold; color: ${stage.placesDisponibles > 0 ? '#059669' : '#DC2626'};">
-                ${stage.placesDisponibles}
+              <div style="font-size: 16px; font-weight: bold; color: ${stage.places_disponibles > 0 ? '#059669' : '#DC2626'};">
+                ${stage.places_disponibles}
               </div>
             </div>
             <div style="background: #F3F4F6; padding: 6px; border-radius: 6px; text-align: center;">

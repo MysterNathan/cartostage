@@ -4,8 +4,8 @@ export interface Stage {
   adresse: string
   lat: number
   lng: number
-  placesDisponibles: number
-  entreprise: string
+  places_disponibles: number
+  enterprise: string
   filiere: string
   sector: string
   commune: string
@@ -13,8 +13,10 @@ export interface Stage {
   capacity_filled: number
   period?: string
   parcours: "scolaire" | "apprentissage" | "mixte"
-  familleMetiers: string
-  niveauScolaire: "2de" | "1re" | "Tle"
+  famille_metiers: string
+  niveau_scolaire: "2de" | "1re" | "Tle"
+  created_at?: string // ISO datetime du backend
+  updated_at?: string // ISO datetime du backend
 }
 
 export interface StagesData {

@@ -65,7 +65,7 @@ export default function StatisticsModal({ stages, isOpen, onClose }: StatisticsM
         acc[value].count += 1
         acc[value].capacity += stage.capacity_total
         acc[value].filled += stage.capacity_filled
-        acc[value].available += stage.placesDisponibles || 0
+        acc[value].available += stage.places_disponibles || 0
         return acc
       }, {} as Record<string, any>)
     }
@@ -75,8 +75,8 @@ export default function StatisticsModal({ stages, isOpen, onClose }: StatisticsM
     const byCommune = createStats('commune')
     const bySector = createStats('sector')
     const byParcours = createStats('parcours')
-    const byFamilleMetiers = createStats('familleMetiers')
-    const byNiveauScolaire = createStats('niveauScolaire')
+    const byFamilleMetiers = createStats('famille_metiers')
+    const byNiveauScolaire = createStats('niveau_scolaire')
 
     // Filtrer les stages du Parcours Y (ici j'assume que c'est identifiable par certains critères)
     // Vous devrez adapter cette logique selon vos données
@@ -89,13 +89,13 @@ export default function StatisticsModal({ stages, isOpen, onClose }: StatisticsM
       totalStages: parcoursYStages.length,
       totalCapacity: parcoursYStages.reduce((sum, stage) => sum + stage.capacity_total, 0),
       totalFilled: parcoursYStages.reduce((sum, stage) => sum + stage.capacity_filled, 0),
-      totalAvailable: parcoursYStages.reduce((sum, stage) => sum + (stage.placesDisponibles || 0), 0),
+      totalAvailable: parcoursYStages.reduce((sum, stage) => sum + (stage.places_disponibles || 0), 0),
       fillRate: 0,
       byFiliere: createStats('filiere', parcoursYStages),
       byPeriod: createStats('period', parcoursYStages),
       byCommune: createStats('commune', parcoursYStages),
       bySector: createStats('sector', parcoursYStages),
-      byEntreprise: createStats('entreprise', parcoursYStages)
+      byEntreprise: createStats('enterprise', parcoursYStages)
     }
 
     parcoursYStats.fillRate = parcoursYStats.totalCapacity > 0

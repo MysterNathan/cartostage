@@ -31,7 +31,7 @@ export default function StageModal({
   // État initial par défaut
   const getInitialStage = (): Stage => ({
     id: Date.now(),
-    entreprise: '',
+    enterprise: '',
     poste: '',
     adresse: '',
     commune: '',
@@ -41,11 +41,11 @@ export default function StageModal({
     lng: 55.4481,
     capacity_total: 1,
     capacity_filled: 0,
-    placesDisponibles: 1,
+    places_disponibles: 1,
     period: '',
     parcours: 'scolaire',
-    familleMetiers: '',
-    niveauScolaire: '2de'
+    famille_metiers: '',
+    niveau_scolaire: '2de'
   });
 
   const [formData, setFormData] = useState<Stage>(getInitialStage());
@@ -67,8 +67,8 @@ export default function StageModal({
   // Mettre à jour les places disponibles automatiquement
   useEffect(() => {
     const disponibles = Math.max(0, formData.capacity_total - formData.capacity_filled);
-    if (disponibles !== formData.placesDisponibles) {
-      setFormData(prev => ({ ...prev, placesDisponibles: disponibles }));
+    if (disponibles !== formData.places_disponibles) {
+      setFormData(prev => ({ ...prev, places_disponibles: disponibles }));
     }
   }, [formData.capacity_total, formData.capacity_filled]);
 
@@ -85,7 +85,7 @@ export default function StageModal({
   };
 
   const handleSave = async () => {
-    if (!formData.entreprise.trim() || !formData.poste.trim()) {
+    if (!formData.enterprise.trim() || !formData.poste.trim()) {
       setError('L\'enterprise et le poste sont obligatoires');
       return;
     }
@@ -132,7 +132,7 @@ export default function StageModal({
   const handleDelete = async () => {
     if (!stage?.id || isNew) return;
 
-    const confirmMessage = `Êtes-vous sûr de vouloir supprimer le stage "${stage.poste}" chez ${stage.entreprise} ?`;
+    const confirmMessage = `Êtes-vous sûr de vouloir supprimer le stage "${stage.poste}" chez ${stage.enterprise} ?`;
     if (!confirm(confirmMessage)) return;
 
     setIsLoading(true);
@@ -185,12 +185,12 @@ export default function StageModal({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Entreprise *
+                  enterprise *
                 </label>
                 <input
                     type="text"
-                    name="entreprise"
-                    value={formData.entreprise}
+                    name="enterprise"
+                    value={formData.enterprise}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     disabled={isLoading}
@@ -325,8 +325,8 @@ export default function StageModal({
                   Niveau scolaire
                 </label>
                 <select
-                    name="niveauScolaire"
-                    value={formData.niveauScolaire}
+                    name="niveau_scolaire"
+                    value={formData.niveau_scolaire}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                     disabled={isLoading}
@@ -344,8 +344,8 @@ export default function StageModal({
               </label>
               <input
                   type="text"
-                  name="familleMetiers"
-                  value={formData.familleMetiers}
+                  name="famille_metiers"
+                  value={formData.famille_metiers}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black"
                   disabled={isLoading}
@@ -392,7 +392,7 @@ export default function StageModal({
                 </label>
                 <input
                     type="number"
-                    value={formData.placesDisponibles}
+                    value={formData.places_disponibles}
                     className="w-full px-3 py-2 border border-gray-200 rounded-md bg-gray-50 text-gray-600"
                     disabled
                     readOnly

@@ -4,7 +4,6 @@ import (
 	"auth/internal/repositories"
 	"errors"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 	"shared/models"
 	"shared/services"
 	"time"
@@ -44,7 +43,7 @@ func (s *AuthService) Login(req *LoginRequest) (*LoginResponse, error) {
 	if err != nil || user == nil {
 		return nil, errors.New("invalid credentials")
 	}
-	
+
 	// Vérifier le mot de passe
 	if bcrypt.CompareHashAndPassword([]byte(user.PasswordHash), []byte(req.Password)) != nil {
 		return nil, errors.New("invalid credentials")
