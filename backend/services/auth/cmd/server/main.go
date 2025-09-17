@@ -13,7 +13,6 @@ import (
 )
 
 func main() {
-	// Variables d'environnement
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		log.Fatal("JWT_SECRET environment variable is required")
@@ -21,7 +20,7 @@ func main() {
 
 	issuer := os.Getenv("JWT_ISSUER")
 	if issuer == "" {
-		issuer = "auth-service" // valeur par défaut
+		issuer = "auth-service"
 	}
 
 	// Charger la config
@@ -34,26 +33,20 @@ func main() {
 	}
 	defer db.Close()
 
-	// Créer le repository
-	userRepo := repositories.NewUserRepository(db)
-
-	// Créer le service JWT (shared service)
+	// === SIMPLE SETUP ===
+	authRepository := repositories.NewAuthRepository(db)
 	jwtService := sharedServices.NewJWTService(jwtSecret, issuer)
-
-	// Créer le service auth avec le JWT service
-	authService := services.NewAuthService(userRepo, jwtService)
-
-	// Créer les handlers
+	authService := services.NewAuthService(authRepository, jwtService)
 	authHandler := handlers.NewAuthHandler(authService)
 
-	// Setup des routes avec le JWT service (pas authService)
-	r := setupRoutes(authHandler, jwtService)
+	// Setup des routes
+	r := setupRoutes(authHandler)
 
 	port := os.Getenv("PORT")
 	if port == "" {
-		port = "80" // port par défaut pour auth service
+		port = "80"
 	}
 
-	fmt.Printf("🚀 Auth service running on port %s\n", port)
+	fmt.Printf("🔐 Auth service running on port %s\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, r))
 }

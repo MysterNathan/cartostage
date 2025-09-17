@@ -1,74 +1,52 @@
 package middleware
 
 import (
-	"context"
-	"log"
 	"net/http"
 	"strings"
 
+	sharedContext "shared/context"
+	"shared/models"
 	"shared/services"
 )
 
-type contextKey string
-
-const ClaimsContextKey contextKey = "claims"
-
 type AuthMiddleware struct {
-	jwtService *services.JWTService
+	authService *services.AuthService
 }
 
-func NewAuthMiddleware(jwtService *services.JWTService) *AuthMiddleware {
+func NewAuthMiddleware(authService *services.AuthService) *AuthMiddleware {
 	return &AuthMiddleware{
-		jwtService: jwtService,
+		authService: authService,
 	}
 }
 
 // Middleware de base - vérifie juste le token
 func (m *AuthMiddleware) RequireAuth(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Extraire le token
 		token := m.extractToken(r)
 		if token == "" {
 			http.Error(w, "Authorization token required", http.StatusUnauthorized)
 			return
 		}
 
-		// Valider le token
-		claims, err := m.jwtService.ValidateAndParseToken(token)
+		claims, err := m.authService.ValidateToken(token)
 		if err != nil {
 			http.Error(w, "Invalid token: "+err.Error(), http.StatusUnauthorized)
 			return
 		}
 
 		// Ajouter les claims au contexte
-		ctx := context.WithValue(r.Context(), ClaimsContextKey, claims)
+		ctx := sharedContext.SetClaimsInContext(r.Context(), claims)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }
 
-// Middleware avec vérification de scope
-func (m *AuthMiddleware) RequireScope(scope string) func(http.Handler) http.Handler {
+// Middleware avec vérification de rôle (version simplifiée)
+func (m *AuthMiddleware) RequireRole(role models.UserRole) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return m.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			claims := GetClaimsFromContext(r.Context())
+			claims := sharedContext.GetClaimsFromContext(r.Context())
 
-			if !claims.HasScope(scope) {
-				http.Error(w, "Insufficient permissions", http.StatusForbidden)
-				return
-			}
-
-			next.ServeHTTP(w, r)
-		}))
-	}
-}
-
-// Middleware avec vérification de rôle
-func (m *AuthMiddleware) RequireRole(role string) func(http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		return m.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			claims := GetClaimsFromContext(r.Context())
-
-			if !claims.IsRole(role) {
+			if claims.Role != role {
 				http.Error(w, "Insufficient role", http.StatusForbidden)
 				return
 			}
@@ -78,20 +56,11 @@ func (m *AuthMiddleware) RequireRole(role string) func(http.Handler) http.Handle
 	}
 }
 
-// Middleware avec vérifications multiples
-func (m *AuthMiddleware) RequirePermissions(requiredRole string, requiredScope string) func(http.Handler) http.Handler {
+// Middleware pour vérifier les permissions sur une ressource
+func (m *AuthMiddleware) RequirePermission(resourceType string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return m.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			claims := GetClaimsFromContext(r.Context())
-
-			// Vérifier le rôle
-			if requiredRole != "" && !claims.IsRole(requiredRole) {
-				http.Error(w, "Insufficient role", http.StatusForbidden)
-				return
-			}
-
-			// Vérifier le scope
-			if requiredScope != "" && !claims.HasScope(requiredScope) {
+			if !sharedContext.HasPermissionFor(r.Context(), resourceType, nil) {
 				http.Error(w, "Insufficient permissions", http.StatusForbidden)
 				return
 			}
@@ -99,10 +68,28 @@ func (m *AuthMiddleware) RequirePermissions(requiredRole string, requiredScope s
 			next.ServeHTTP(w, r)
 		}))
 	}
+}
+
+// Middleware pour admins seulement
+func (m *AuthMiddleware) RequireAdmin(next http.Handler) http.Handler {
+	return m.RequireRole(models.RoleAdmin)(next)
+}
+
+// Middleware pour enseignants et admins
+func (m *AuthMiddleware) RequireTeacherOrAdmin(next http.Handler) http.Handler {
+	return m.RequireAuth(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		claims := sharedContext.GetClaimsFromContext(r.Context())
+
+		if claims.Role != models.RoleTeacher && claims.Role != models.RoleAdmin {
+			http.Error(w, "Teacher or Admin role required", http.StatusForbidden)
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	}))
 }
 
 func (m *AuthMiddleware) extractToken(r *http.Request) string {
-	// Vérifier le header Authorization
 	authHeader := r.Header.Get("Authorization")
 	if authHeader != "" {
 		parts := strings.Split(authHeader, " ")
@@ -111,58 +98,5 @@ func (m *AuthMiddleware) extractToken(r *http.Request) string {
 		}
 	}
 
-	// Fallback sur query param (pour websockets par exemple)
 	return r.URL.Query().Get("token")
-}
-
-// Helper pour récupérer les claims du contexte
-func GetClaimsFromContext(ctx context.Context) *services.CustomClaims {
-	if claims, ok := ctx.Value(ClaimsContextKey).(*services.CustomClaims); ok {
-		return claims
-	}
-	return nil
-}
-
-// Helper pour récupérer l'ID de l'entreprise depuis le contexte
-func GetEnterpriseIDFromContext(ctx context.Context) (int, bool) {
-	claims := GetClaimsFromContext(ctx)
-	if claims == nil {
-		log.Println("DEBUG: No claims found in context")
-		return 0, false
-	}
-
-	log.Printf("DEBUG: User role: %s, EntityID: %v", claims.Role, claims.EntityID)
-
-	// Vérifier que c'est bien un utilisateur entreprise
-	if claims.Role != "enterprise" {
-		log.Printf("DEBUG: User is not enterprise role, got: %s", claims.Role)
-		return 0, false
-	}
-
-	// EntityID pour un user entreprise = ID de l'entreprise
-	if claims.EntityID == nil {
-		log.Println("DEBUG: EntityID is nil")
-		return 0, false
-	}
-
-	log.Printf("DEBUG: Returning enterprise ID: %d", *claims.EntityID)
-	return *claims.EntityID, true
-}
-
-// Helper pour récupérer l'ID utilisateur depuis le contexte
-func GetUserIDFromContext(ctx context.Context) (int, bool) {
-	claims := GetClaimsFromContext(ctx)
-	if claims == nil {
-		return 0, false
-	}
-	return claims.UserID, true
-}
-
-// Helper pour récupérer le rôle depuis le contexte
-func GetUserRoleFromContext(ctx context.Context) (string, bool) {
-	claims := GetClaimsFromContext(ctx)
-	if claims == nil {
-		return "", false
-	}
-	return claims.Role, true
 }

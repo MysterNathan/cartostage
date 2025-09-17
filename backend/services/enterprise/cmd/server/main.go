@@ -1,22 +1,21 @@
 package main
 
 import (
-	"enterprise/internal/handlers"
-	"enterprise/internal/repositories"
-	"enterprise/internal/services"
+	//"enterprise/internal/handlers"
+	//"enterprise/internal/repositories"
+	//"enterprise/internal/services"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"shared/config"
-	sharedHandlers "shared/handlers"
+	sharedHandler "shared/handlers"
 	"shared/middleware"
 	sharedRepositories "shared/repositories"
 	sharedServices "shared/services"
 )
 
 func main() {
-
 	jwtSecret := os.Getenv("JWT_SECRET")
 	if jwtSecret == "" {
 		log.Fatal("JWT_SECRET environment variable is required")
@@ -37,24 +36,33 @@ func main() {
 	}
 	defer db.Close()
 
-	// Créer les repositories
-	enterpriseRepo := repositories.NewEnterpriseRepository(db)
-	userRepo := sharedRepositories.NewUserRepository(db)
+	// === REPOSITORIES ===
+	// Repository entreprise (existant)
+	//enterpriseRepo := repositories.NewEnterpriseRepository(db)
 
-	// Créer les services
-	enterpriseService := services.NewEnterpriseService(enterpriseRepo)
-	userService := sharedServices.NewUserService(userRepo)
+	// Repository générique pour les utilisateurs/tuteurs
+	tutorGenericRepo := sharedRepositories.NewUserRepository(db)
 
-	// Créer les handlers
-	enterpriseHandler := handlers.NewEnterpriseHandler(enterpriseService)
-	userHandler := sharedHandlers.NewUserHandler(userService)
+	// === SERVICES ===
+	// Service entreprise (existant)
+	//enterpriseService := services.NewEnterpriseService(enterpriseRepo)
 
-	jwtService := sharedServices.NewJWTService(jwtSecret, issuer)
+	// Service générique pour les tuteurs
+	tutorGenericService := sharedServices.NewUserService(tutorGenericRepo)
 
-	authMiddleware := middleware.NewAuthMiddleware(jwtService)
+	// === HANDLERS ===
+	// Handler entreprise (existant)
+	//enterpriseHandler := handlers.NewEnterpriseHandler(enterpriseService)
+
+	// Handler générique pour les tuteurs
+	tutorGenericHandler := sharedHandler.NewUserHandler(tutorGenericService)
+
+	// Services partagés
+	authService := sharedServices.NewAuthService(jwtSecret)
+	authMiddleware := middleware.NewAuthMiddleware(authService)
 
 	// Setup des routes
-	r := setupRoutes(enterpriseHandler, userHandler, authMiddleware)
+	r := setupRoutes(tutorGenericHandler, authMiddleware)
 
 	fmt.Println("Enterprise microservice running")
 	log.Fatal(http.ListenAndServe(":80", r))

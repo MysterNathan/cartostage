@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-
 	"shared/config"
 	"shared/middleware"
 	"shared/services"
@@ -15,10 +14,13 @@ import (
 
 func main() {
 	jwtSecret := os.Getenv("JWT_SECRET")
+	if jwtSecret == "" {
+		log.Fatal("JWT_SECRET environment variable is required")
+	}
 
 	issuer := os.Getenv("JWT_ISSUER")
 	if issuer == "" {
-		issuer = "stage-map-service" // valeur par défaut
+		issuer = "stage-map-service"
 	}
 
 	// Charger la config
@@ -31,24 +33,23 @@ func main() {
 	}
 	defer db.Close()
 
-	// Créer les repositories
-	stageRepo := repositories.NewStageRepository(db)
-	filiereRepo := repositories.NewFiliereRepository(db)
+	// === SIMPLE SETUP ===
+	stageRepository := repositories.NewStageRepository(db)
+	filiereRepository := repositories.NewFiliereRepository(db)
 
-	// Créer les services
-	authService := services.NewJWTService(jwtSecret, issuer)
+	stageHandler := handlers.NewStageHandler(stageRepository)
+	filiereHandler := handlers.NewFiliereHandler(filiereRepository)
 
-	// Créer les handlers en leur passant les repos
-	stageHandler := handlers.NewStageHandler(stageRepo)
-	filiereHandler := handlers.NewFiliereHandler(filiereRepo)
-
-	// Créer les middlewares en leur passant es services
+	authService := services.NewAuthService(jwtSecret)
 	authMiddleware := middleware.NewAuthMiddleware(authService)
-
-	// Setup des routes avec les deux handlers
+	// Setup des routes
 	r := setupRoutes(stageHandler, filiereHandler, authMiddleware)
 
-	fmt.Println("🚀 Server running on :80")
-	log.Fatal(http.ListenAndServe(":80", r))
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "80"
+	}
 
+	fmt.Printf("🗺️ Stage-map service running on port %s\n", port)
+	log.Fatal(http.ListenAndServe(":"+port, r))
 }

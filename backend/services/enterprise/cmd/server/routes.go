@@ -1,58 +1,32 @@
 package main
 
 import (
-	"enterprise/internal/handlers"
 	"github.com/gorilla/mux"
 	"net/http"
 	sharedHandler "shared/handlers"
 	"shared/middleware"
 )
 
-func setupRoutes(enterpriseHandler *handlers.EnterpriseHandler, userHandler *sharedHandler.UserHandler, authMiddleware *middleware.AuthMiddleware) *mux.Router {
+func setupRoutes(
+	userHandler *sharedHandler.UserHandler,
+	authMiddleware *middleware.AuthMiddleware,
+) *mux.Router {
 	r := mux.NewRouter()
 	r.Use(corsMiddleware)
-	r.Use(authMiddleware.RequireAuth)
 
 	api := r.PathPrefix("/api").Subrouter()
 
-	// Routes pour les entreprises
-	enterprisesRouter := api.PathPrefix("/enterprises").Subrouter()
-
-	enterprisesRouter.HandleFunc("", enterpriseHandler.GetAll).Methods("GET")
-	enterprisesRouter.HandleFunc("/me", enterpriseHandler.GetMe).Methods("GET")
-	enterprisesRouter.HandleFunc("/{id}", enterpriseHandler.GetByID).Methods("GET")
-	enterprisesRouter.HandleFunc("/", enterpriseHandler.Create).Methods("POST")
-	enterprisesRouter.HandleFunc("/{id}", enterpriseHandler.Update).Methods("PUT")
-	enterprisesRouter.HandleFunc("/{id}", enterpriseHandler.Delete).Methods("DELETE")
-	enterprisesRouter.HandleFunc("/{id}/stats", enterpriseHandler.GetWithStats).Methods("GET")
-
-	// Gestion OPTIONS pour toutes les routes entreprise
-	enterprisesRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
-	enterprisesRouter.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
-	enterprisesRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
-	enterprisesRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
-	enterprisesRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
-	enterprisesRouter.HandleFunc("/me", corsPreflightHandler).Methods("OPTIONS")
-
+	// === ROUTES TUTEURS (avec handler générique) ===
 	tutorsRouter := api.PathPrefix("/tutors").Subrouter()
+	tutorsRouter.Use(authMiddleware.RequireAuth)
 
-	// Routes pour les tuteurs
+	// Routes CRUD génériques avec filtres automatiques basés sur les rôles
 	tutorsRouter.HandleFunc("", userHandler.GetAll).Methods("GET")
-	tutorsRouter.HandleFunc("/{id}", userHandler.GetByID).Methods("GET")
 	tutorsRouter.HandleFunc("", userHandler.Create).Methods("POST")
-	tutorsRouter.HandleFunc("/{id}", userHandler.Update).Methods("PUT")
-	tutorsRouter.HandleFunc("/{id}", userHandler.Delete).Methods("DELETE")
-
-	// Gestion OPTIONS pour toutes les routes tutors
-	tutorsRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
-	tutorsRouter.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
-	tutorsRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
-	tutorsRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
-	tutorsRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
-	tutorsRouter.HandleFunc("/me", corsPreflightHandler).Methods("OPTIONS")
 
 	return r
 }
+
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Configuration CORS
@@ -93,6 +67,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r)
 	})
 }
+
 func corsPreflightHandler(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusOK)
 }
