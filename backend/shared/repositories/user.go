@@ -3,9 +3,9 @@ package repositories
 import (
 	"context"
 	"fmt"
-	"shared/models"
-
 	"github.com/jmoiron/sqlx"
+	sharedContext "shared/context"
+	"shared/models"
 )
 
 type UserRepository struct {
@@ -17,15 +17,17 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 }
 
 func (r *UserRepository) GetByRole(ctx context.Context, role models.UserRole) ([]models.User, error) {
+	claims := sharedContext.GetUserClaims(ctx)
 	query := `
-        SELECT id, username, first_name, last_name, email, role, created_at, updated_at 
+        SELECT id, username, first_name, last_name, email, role, entity_id, created_at, updated_at 
         FROM users 
-        WHERE role = $1
+        WHERE role = $1 
+          AND entity_id = (SELECT entity_id FROM users WHERE id = $2)
         ORDER BY last_name, first_name
     `
 
 	var users []models.User
-	err := r.db.SelectContext(ctx, &users, query, role)
+	err := r.db.SelectContext(ctx, &users, query, role, claims.UserID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get users by role %s: %w", role, err)
 	}
@@ -35,8 +37,8 @@ func (r *UserRepository) GetByRole(ctx context.Context, role models.UserRole) ([
 
 func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 	query := `
-        INSERT INTO users (username, first_name, last_name, email, password_hash, role, created_at, updated_at)
-        VALUES (:username, :first_name, :last_name, :email, :password_hash, :role, :created_at, :updated_at)
+        INSERT INTO users (username, first_name, last_name, email, password_hash, role, entity_id, created_at, updated_at)
+        VALUES (:username, :first_name, :last_name, :email, :password_hash, :role,:entity_id , :created_at, :updated_at)
         RETURNING id
     `
 
@@ -56,15 +58,15 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-func (r *UserRepository) GetByID(ctx context.Context, id int) (*models.User, error) {
+func (r *UserRepository) GetByID(ctx context.Context, id int, entityID int) (*models.User, error) {
 	query := `
-        SELECT id, username, first_name, last_name, email, role, created_at, updated_at 
+        SELECT id, username, first_name, last_name, email, role, entity_id, created_at, updated_at 
         FROM users 
-        WHERE id = $1
+        WHERE id = $1 AND entity_id = $2
     `
 
 	var user models.User
-	err := r.db.GetContext(ctx, &user, query, id)
+	err := r.db.GetContext(ctx, &user, query, id, entityID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by ID %d: %w", id, err)
 	}

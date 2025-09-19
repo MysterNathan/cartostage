@@ -65,3 +65,19 @@ func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 	json.NewEncoder(w).Encode(user)
 }
+
+func (h *UserHandler) Delete(w http.ResponseWriter, r *http.Request){
+	var req;
+	if err := json.NewDecoder(r.Body).Decode(&req) != nil {
+		http.Error(w, "Invalide request body", http.StatusBadRequest)
+		return
+	}
+	res, err := h.userService.DeleteUser(r.Context(), &req)
+	if err != nil {
+		http.Error(w, error.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusGone)
+	json.NewEncoder(w).Encode(res)
+}

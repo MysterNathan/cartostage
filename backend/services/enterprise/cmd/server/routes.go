@@ -24,6 +24,9 @@ func setupRoutes(
 	tutorsRouter.HandleFunc("", userHandler.GetAll).Methods("GET")
 	tutorsRouter.HandleFunc("", userHandler.Create).Methods("POST")
 
+	tutorsRouter.HandleFunc("/{id}", userHandler.Delete).Methods("DELETE")
+
+	tutorsRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 	return r
 }
 

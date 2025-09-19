@@ -107,3 +107,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *CreateUserRequest) (*
 	publicUser := user.ToPublic()
 	return &publicUser, nil
 }
+
+func (s *UserService) DeleteUser(ctx context.Context, req *CreateUserRequest) (*models.User, error) {
+	
+}

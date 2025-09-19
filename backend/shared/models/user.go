@@ -24,6 +24,7 @@ type User struct {
 	PasswordHash string     `json:"-" db:"password_hash"`
 	Role         UserRole   `json:"role" db:"role"`
 	Phone        *string    `json:"phone,omitempty" db:"phone"`
+	EntityID     int        `json:"entity_id" db:"entity_id"`
 	IsActive     bool       `json:"is_active" db:"is_active"`
 	CreatedAt    time.Time  `json:"created_at" db:"created_at"`
 	UpdatedAt    time.Time  `json:"updated_at" db:"updated_at"`
@@ -121,7 +122,7 @@ func ParseUserRole(role string) (UserRole, bool) {
 		return RoleTeacher, true
 	case "tuteur", "tutor":
 		return RoleTutor, true
-	case "eleve", "student":
+	case "eleve", "eleve":
 		return RoleStudent, true
 	}
 	return "", false

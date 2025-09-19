@@ -19,6 +19,7 @@ CREATE TABLE IF NOT EXISTS users (
                                      email VARCHAR(255) UNIQUE NOT NULL,
                                      password_hash TEXT NOT NULL,
                                      role user_role NOT NULL DEFAULT 'eleve',
+                                     entity_id INT, -- 🔹 nouvelle colonne
                                      phone VARCHAR(15),
                                      is_active BOOLEAN NOT NULL DEFAULT true,
                                      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
@@ -31,6 +32,7 @@ CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
 CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
 CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
 CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active);
+CREATE INDEX IF NOT EXISTS idx_users_entity_id ON users(entity_id); -- 🔹 index pour entity_id
 
 -- Fonction pour mettre à jour automatiquement updated_at
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -48,29 +50,27 @@ CREATE TRIGGER update_users_updated_at
 EXECUTE FUNCTION update_updated_at_column();
 
 -- Insertion des utilisateurs par défaut
--- Mot de passe haché pour "admin" (utilise bcrypt avec cost 12)
--- Hash généré avec : golang.org/x/crypto/bcrypt.GenerateFromPassword([]byte("admin"), 12)
-INSERT INTO users (username, first_name, last_name, email, password_hash, role, is_active)
+INSERT INTO users (username, first_name, last_name, email, password_hash, role, is_active, entity_id)
 VALUES
     (
         'admin',
         'Admin',
         'System',
         'admin@example.com',
-        -- Hash bcrypt pour "admin" (cost 12)
         '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/kYLs5JvXu',
         'administrateur',
-        true
+        true,
+        1 -- 🔹 exemple d’entity_id
     ),
     (
         'user',
         'User',
         'Test',
         'user@example.com',
-        -- Hash bcrypt pour "admin" (cost 12)
         '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/kYLs5JvXu',
         'eleve',
-        true
+        true,
+        1 -- 🔹 exemple d’entity_id
     )
 ON CONFLICT (username) DO NOTHING;
 
@@ -78,4 +78,5 @@ ON CONFLICT (username) DO NOTHING;
 COMMENT ON TABLE users IS 'Table des utilisateurs du système';
 COMMENT ON COLUMN users.password_hash IS 'Hash bcrypt du mot de passe';
 COMMENT ON COLUMN users.role IS 'Rôle de l''utilisateur dans le système';
+COMMENT ON COLUMN users.entity_id IS 'Identifiant de l''entité à laquelle appartient l''utilisateur'; -- 🔹 documentation
 COMMENT ON COLUMN users.is_active IS 'Statut actif/inactif de l''utilisateur';
