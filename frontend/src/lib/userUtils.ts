@@ -23,7 +23,7 @@ export const isTutor = (user: User): user is Tutor => {
 }
 
 export const isStudent = (user: User): user is User => {
-    return user.role === 'student'
+    return user.role === 'eleve'
 }
 
 export const isTeacher = (user: User): user is User => {

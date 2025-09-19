@@ -32,7 +32,6 @@ export default function MyEnterprisePage() {
             return
         }
 
-        loadEnterpriseData()
     }, [router])
 
     useEffect(() => {
@@ -71,27 +70,6 @@ export default function MyEnterprisePage() {
         router.push('/login')
     }
 
-    const loadEnterpriseData = async () => {
-        try {
-            setLoading(true)
-            setError('')
-
-            const data = await getMyEnterpriseData()
-            setEnterprise(data.enterprise)
-            setTutors(data.tutors || [])
-        } catch (err) {
-            const errorMessage = err instanceof Error ? err.message : 'Impossible de charger les données'
-            setError(errorMessage)
-            console.error('Erreur:', err)
-
-            if (err instanceof Error && err.message.includes('401')) {
-                authApi.logout()
-                router.push('/login')
-            }
-        } finally {
-            setLoading(false)
-        }
-    }
 
     // Gestionnaires pour les tuteurs
     const handleAddTutor = () => {
@@ -167,18 +145,6 @@ export default function MyEnterprisePage() {
 
             {/* Contenu principal */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-                        {error}
-                        <button
-                            onClick={loadEnterpriseData}
-                            className="ml-4 underline hover:no-underline"
-                        >
-                            Réessayer
-                        </button>
-                    </div>
-                )}
-
                 <EnterpriseStats
                     activeTutors={activeTutors}
                 />

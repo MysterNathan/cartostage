@@ -19,8 +19,25 @@ export default function LoginPage() {
         setIsLoading(true)
 
         try {
-            await authApi.login(credentials)
-            router.push('/admin')
+            const data = await  authApi.login(credentials)
+            console.log(data.user.role);
+            switch(data.user.role){
+                case 'administrateur':
+                    router.push('/admin');
+                    break;
+                case 'eleve':
+                    router.push('/');
+                    break;
+                case 'tuteur':
+                    router.push('/entreprise');
+                    break;
+                case 'enseignant':
+                    router.push('/admin');
+                    break;
+                default: //todo peut etre faire peter une erreur
+                    router.push('/');
+                    break;
+            }
         } catch (error: any) {
             if (error.status === 401) {
                 setError('Nom d\'utilisateur ou mot de passe incorrect')

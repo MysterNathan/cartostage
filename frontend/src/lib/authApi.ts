@@ -8,6 +8,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   token: string;
   expires_at: string;
+  role: string;
 }
 
 export interface CreateUserRequest {
@@ -83,6 +84,7 @@ export const authApi = {
     });
 
     const data = await handleApiResponse<LoginResponse>(response);
+    console.log(data);
 
     // Stocker le token en localStorage après une connexion réussie
     if (data.token) {
