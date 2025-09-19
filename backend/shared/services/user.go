@@ -58,6 +58,11 @@ type CreateUserRequest struct {
 	Role      models.UserRole `json:"role"`
 }
 
+type DeleteUserRequest struct {
+	Id   int             `json:"id"`
+	Role models.UserRole `json:"role"`
+}
+
 func (s *UserService) CreateUser(ctx context.Context, req *CreateUserRequest) (*models.User, error) {
 	// Vérifier les permissions
 	claims := sharedContext.GetUserClaims(ctx)
@@ -108,6 +113,27 @@ func (s *UserService) CreateUser(ctx context.Context, req *CreateUserRequest) (*
 	return &publicUser, nil
 }
 
-func (s *UserService) DeleteUser(ctx context.Context, req *CreateUserRequest) (*models.User, error) {
-	
+func (s *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (int, error) {
+	// Vérifier les permissions
+	claims := sharedContext.GetUserClaims(ctx)
+	if claims == nil {
+		return 0, fmt.Errorf("unauthorized: no claims in context")
+	}
+
+	// Seuls les admins peuvent supprimer des utilisateurs pour l'instant
+	if !claims.IsAdmin() {
+		return 0, fmt.Errorf("forbidden: only admins can delete users")
+	}
+
+	// Validation basique
+	if req.Id == 0 {
+		return 0, fmt.Errorf("id user is required")
+	}
+
+	err := s.userRepo.Delete(ctx, req.Id)
+	if err != nil {
+		return 0, err
+	}
+
+	return req.Id, nil
 }

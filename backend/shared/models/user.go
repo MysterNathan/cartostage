@@ -122,7 +122,7 @@ func ParseUserRole(role string) (UserRole, bool) {
 		return RoleTeacher, true
 	case "tuteur", "tutor":
 		return RoleTutor, true
-	case "eleve", "eleve":
+	case "eleve", "student":
 		return RoleStudent, true
 	}
 	return "", false

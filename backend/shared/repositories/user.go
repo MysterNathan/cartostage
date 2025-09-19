@@ -73,3 +73,23 @@ func (r *UserRepository) GetByID(ctx context.Context, id int, entityID int) (*mo
 
 	return &user, nil
 }
+
+func (r *UserRepository) Delete(ctx context.Context, userID int) error {
+	query := `DELETE FROM user WHERE ID = $1`
+
+	result, err := r.db.ExecContext(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return fmt.Errorf("failed to check rows affected: %w", err)
+	}
+
+	if rowsAffected == 0 {
+		return fmt.Errorf("no user found with ID %d", userID)
+	}
+
+	return nil
+}
