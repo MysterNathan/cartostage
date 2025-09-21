@@ -20,7 +20,7 @@ func main() {
 
 	issuer := os.Getenv("JWT_ISSUER")
 	if issuer == "" {
-		issuer = "stage-map-service"
+		issuer = "stage-service"
 	}
 
 	// Charger la config

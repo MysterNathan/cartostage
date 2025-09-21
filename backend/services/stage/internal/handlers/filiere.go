@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"shared/models"
-	"stage-map/internal/repositories"
+	"stage/internal/repositories"
 	"strconv"
 )
 

@@ -14,7 +14,7 @@ const (
 	RoleStudent UserRole = "eleve"
 )
 
-// Structure principale User simplifiée
+// Structure principale User
 type User struct {
 	ID           int        `json:"id" db:"id"`
 	Username     string     `json:"username" db:"username"`
@@ -40,8 +40,10 @@ type CreateUserRequest struct {
 	Password  string   `json:"password" validate:"required,min=8"`
 	Role      UserRole `json:"role" validate:"required"`
 	Phone     *string  `json:"phone,omitempty" validate:"omitempty,min=10,max=15"`
+	EntityID  int      `json:"entity_id" validate:"required"`
 }
 
+// Structure pour l'update - tous les champs optionnels avec des pointeurs
 type UpdateUserRequest struct {
 	Username  *string   `json:"username,omitempty" validate:"omitempty,min=3,max=50"`
 	FirstName *string   `json:"first_name,omitempty" validate:"omitempty,min=2,max=100"`
@@ -49,6 +51,7 @@ type UpdateUserRequest struct {
 	Email     *string   `json:"email,omitempty" validate:"omitempty,email"`
 	Role      *UserRole `json:"role,omitempty"`
 	Phone     *string   `json:"phone,omitempty" validate:"omitempty,min=10,max=15"`
+	EntityID  *int      `json:"entity_id,omitempty"`
 	IsActive  *bool     `json:"is_active,omitempty"`
 }
 
@@ -68,7 +71,48 @@ type ChangePasswordRequest struct {
 	NewPassword string `json:"new_password" validate:"required,min=8"`
 }
 
-// Méthodes utilitaires
+type DeleteUserRequest struct {
+	Id   int      `json:"id"`
+	Role UserRole `json:"role"`
+}
+
+// Méthodes utilitaires pour UpdateUserRequest
+func (u *UpdateUserRequest) HasUpdates() bool {
+	return u.Username != nil || u.FirstName != nil || u.LastName != nil ||
+		u.Email != nil || u.Role != nil || u.Phone != nil ||
+		u.EntityID != nil || u.IsActive != nil
+}
+
+// Méthode pour appliquer les updates à un user existant
+func (u *UpdateUserRequest) ApplyTo(user *User) {
+	if u.Username != nil {
+		user.Username = *u.Username
+	}
+	if u.FirstName != nil {
+		user.FirstName = *u.FirstName
+	}
+	if u.LastName != nil {
+		user.LastName = *u.LastName
+	}
+	if u.Email != nil {
+		user.Email = *u.Email
+	}
+	if u.Role != nil {
+		user.Role = *u.Role
+	}
+	if u.Phone != nil {
+		user.Phone = u.Phone
+	}
+	if u.EntityID != nil {
+		user.EntityID = *u.EntityID
+	}
+	if u.IsActive != nil {
+		user.IsActive = *u.IsActive
+	}
+	user.UpdatedAt = time.Now()
+}
+
+// Méthodes utilitaires existantes
 func (u *User) IsAdmin() bool {
 	return u.Role == RoleAdmin
 }
@@ -97,14 +141,12 @@ func (u *User) GetDisplayName() string {
 	return u.Username
 }
 
-// ToPublic retourne une version sans données sensibles
 func (u *User) ToPublic() User {
 	public := *u
 	public.PasswordHash = ""
 	return public
 }
 
-// Validation des rôles
 func (r UserRole) IsValid() bool {
 	switch r {
 	case RoleAdmin, RoleTeacher, RoleTutor, RoleStudent:
@@ -113,7 +155,6 @@ func (r UserRole) IsValid() bool {
 	return false
 }
 
-// Helper pour convertir string en UserRole
 func ParseUserRole(role string) (UserRole, bool) {
 	switch role {
 	case "administrateur", "admin":

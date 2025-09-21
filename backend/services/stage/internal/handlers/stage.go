@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"shared/models"
-	"stage-map/internal/repositories"
+	"stage/internal/repositories"
 	"strconv"
 	"strings"
 )
@@ -21,6 +21,7 @@ func NewStageHandler(repo *repositories.StageRepository) *StageHandler {
 
 // GetAllStages - Équivalent du GET NextJS
 func (h *StageHandler) GetAllStages(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Get all stages")
 	// Vérifier les paramètres de requête pour les filtres
 	filiere := r.URL.Query().Get("filiere")
 	commune := r.URL.Query().Get("commune")

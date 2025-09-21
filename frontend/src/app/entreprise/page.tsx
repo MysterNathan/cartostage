@@ -11,6 +11,7 @@ import type { Tutor } from '@/types/tutor'
 import EnterpriseStats from '@/components/enterprise/EnterpriseStats'
 import TutorsList from '@/components/enterprise/TutorsList'
 import TutorModal from '@/components/enterprise/TutorModal'
+import StudentsList from '@/components/enterprise/StudentsList'
 
 export default function MyEnterprisePage() {
     const router = useRouter()
@@ -168,6 +169,10 @@ export default function MyEnterprisePage() {
                     isNew={isTutorNew}
                 />
             )}
+            {/* Nouvelle section pour les élèves */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <StudentsList />
+            </div>
         </div>
     )
 }

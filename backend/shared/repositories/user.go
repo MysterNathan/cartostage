@@ -58,15 +58,15 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 	return nil
 }
 
-func (r *UserRepository) GetByID(ctx context.Context, id int, entityID int) (*models.User, error) {
+func (r *UserRepository) GetByID(ctx context.Context, id int) (*models.User, error) {
 	query := `
         SELECT id, username, first_name, last_name, email, role, entity_id, created_at, updated_at 
         FROM users 
-        WHERE id = $1 AND entity_id = $2
+        WHERE id = $1
     `
 
 	var user models.User
-	err := r.db.GetContext(ctx, &user, query, id, entityID)
+	err := r.db.GetContext(ctx, &user, query, id)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get user by ID %d: %w", id, err)
 	}
@@ -74,6 +74,36 @@ func (r *UserRepository) GetByID(ctx context.Context, id int, entityID int) (*mo
 	return &user, nil
 }
 
+func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*models.User, error) {
+	query := `
+        SELECT id, username, first_name, last_name, email, role, entity_id, created_at, updated_at 
+        FROM users 
+        WHERE username = $1
+    `
+
+	var user models.User
+	err := r.db.GetContext(ctx, &user, query, username)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by username %d: %w", username, err)
+	}
+
+	return &user, nil
+}
+func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
+	query := `
+        SELECT id, username, first_name, last_name, email, role, entity_id, created_at, updated_at 
+        FROM users 
+        WHERE email = $1
+    `
+
+	var user models.User
+	err := r.db.GetContext(ctx, &user, query, email)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get user by email %d: %w", email, err)
+	}
+
+	return &user, nil
+}
 func (r *UserRepository) Delete(ctx context.Context, userID int) error {
 	query := `DELETE FROM user WHERE ID = $1`
 
@@ -89,6 +119,52 @@ func (r *UserRepository) Delete(ctx context.Context, userID int) error {
 
 	if rowsAffected == 0 {
 		return fmt.Errorf("no user found with ID %d", userID)
+	}
+
+	return nil
+}
+
+func (r *UserRepository) Update(ctx context.Context, user *models.User, userID int) error {
+	query := `
+        UPDATE users
+        SET username = :username,
+            first_name = :first_name,
+            last_name = :last_name,
+            email = :email,
+            password_hash = :password_hash,
+            role = :role,
+            entity_id = :entity_id,
+            updated_at = :updated_at
+        WHERE id = :id
+        RETURNING id
+    `
+
+	// On doit ajouter l'ID dans la struct user ou créer une map
+	params := map[string]interface{}{
+		"id":            userID,
+		"username":      user.Username,
+		"first_name":    user.FirstName,
+		"last_name":     user.LastName,
+		"email":         user.Email,
+		"password_hash": user.PasswordHash,
+		"role":          user.Role,
+		"entity_id":     user.EntityID,
+		"updated_at":    user.UpdatedAt,
+	}
+
+	rows, err := r.db.NamedQueryContext(ctx, query, params)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+	defer rows.Close()
+
+	if rows.Next() {
+		err = rows.Scan(&user.ID)
+		if err != nil {
+			return fmt.Errorf("failed to scan updated user ID: %w", err)
+		}
+	} else {
+		return fmt.Errorf("no user found with id %d", userID)
 	}
 
 	return nil

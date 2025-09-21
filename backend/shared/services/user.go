@@ -3,13 +3,12 @@ package services
 import (
 	"context"
 	"fmt"
+	"golang.org/x/crypto/bcrypt"
 	"log"
 	sharedContext "shared/context"
 	"shared/models"
 	"shared/repositories"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -49,21 +48,7 @@ func (s *UserService) GetUsersByRole(ctx context.Context, targetRole models.User
 	return publicUsers, nil
 }
 
-type CreateUserRequest struct {
-	Username  string          `json:"username"`
-	FirstName string          `json:"first_name"`
-	LastName  string          `json:"last_name"`
-	Email     string          `json:"email"`
-	Password  string          `json:"password"`
-	Role      models.UserRole `json:"role"`
-}
-
-type DeleteUserRequest struct {
-	Id   int             `json:"id"`
-	Role models.UserRole `json:"role"`
-}
-
-func (s *UserService) CreateUser(ctx context.Context, req *CreateUserRequest) (*models.User, error) {
+func (s *UserService) CreateUser(ctx context.Context, req *models.CreateUserRequest) (*models.User, error) {
 	// Vérifier les permissions
 	claims := sharedContext.GetUserClaims(ctx)
 	if claims == nil {
@@ -113,7 +98,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *CreateUserRequest) (*
 	return &publicUser, nil
 }
 
-func (s *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (int, error) {
+func (s *UserService) Delete(ctx context.Context, req *models.DeleteUserRequest) (int, error) {
 	// Vérifier les permissions
 	claims := sharedContext.GetUserClaims(ctx)
 	if claims == nil {
@@ -136,4 +121,90 @@ func (s *UserService) Delete(ctx context.Context, req *DeleteUserRequest) (int, 
 	}
 
 	return req.Id, nil
+}
+func (s *UserService) UpdateUser(ctx context.Context, userID int, req *models.UpdateUserRequest) (*models.User, error) {
+	// Vérifier les permissions
+	claims := sharedContext.GetUserClaims(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("unauthorized: no claims in context")
+	}
+
+	// Validation basique de l'ID
+	if userID <= 0 {
+		return nil, fmt.Errorf("validation: invalid user ID")
+	}
+
+	// Vérifier s'il y a des champs à mettre à jour
+	if !req.HasUpdates() {
+		return nil, fmt.Errorf("validation: no fields to update")
+	}
+
+	// Récupérer l'utilisateur existant
+	existing, err := s.userRepo.GetByID(ctx, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to load user: %w", err)
+	}
+	if existing == nil {
+		return nil, fmt.Errorf("not found: user with id %d not found", userID)
+	}
+
+	// Vérifier les permissions spécifiques
+	// Un admin peut tout modifier
+	// Un utilisateur ne peut modifier que ses propres données (et certains champs seulement)
+	if !claims.IsAdmin() {
+		// Un utilisateur ne peut modifier que son propre profil
+		if claims.UserID != userID {
+			return nil, fmt.Errorf("forbidden: can only update your own profile")
+		}
+
+		// Les utilisateurs non-admin ne peuvent pas modifier certains champs critiques
+		if req.Role != nil {
+			return nil, fmt.Errorf("forbidden: cannot change role")
+		}
+		if req.IsActive != nil {
+			return nil, fmt.Errorf("forbidden: cannot change active status")
+		}
+		if req.EntityID != nil {
+			return nil, fmt.Errorf("forbidden: cannot change entity")
+		}
+	}
+
+	// Validation additionnelle du rôle si fourni
+	if req.Role != nil && !req.Role.IsValid() {
+		return nil, fmt.Errorf("validation: invalid role")
+	}
+
+	// Vérifier l'unicité du username et email si modifiés
+	if req.Username != nil && *req.Username != existing.Username {
+		existingByUsername, err := s.userRepo.GetByUsername(ctx, *req.Username)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check username uniqueness: %w", err)
+		}
+		if existingByUsername != nil {
+			return nil, fmt.Errorf("duplicate: username already exists")
+		}
+	}
+
+	if req.Email != nil && *req.Email != existing.Email {
+		existingByEmail, err := s.userRepo.GetByEmail(ctx, *req.Email)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check email uniqueness: %w", err)
+		}
+		if existingByEmail != nil {
+			return nil, fmt.Errorf("duplicate: email already exists")
+		}
+	}
+
+	// Appliquer les modifications en utilisant la méthode ApplyTo
+	req.ApplyTo(existing)
+
+	// Persister les changements
+	err = s.userRepo.Update(ctx, existing, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to update user: %w", err)
+	}
+
+	// Retourner la version publique de l'utilisateur mis à jour
+	publicUser := existing.ToPublic()
+	return &publicUser, nil
 }

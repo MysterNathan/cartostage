@@ -8,14 +8,14 @@ WORKDIR /app
 # Copy shared module first
 COPY shared/ ./shared/
 
-# Copy stage-map service
+# Copy stage service
 COPY services/stage-map/ ./services/stage-map/
 
 # Initialize go modules in shared
 WORKDIR /app/shared
 RUN go mod download
 
-# Build stage-map service
+# Build stage service
 WORKDIR /app/services/stage-map
 RUN go mod download
 
