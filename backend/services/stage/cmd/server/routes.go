@@ -5,7 +5,7 @@ import (
 	"shared/middleware"
 
 	"github.com/gorilla/mux"
-	"stage-map/internal/handlers"
+	"stage/internal/handlers"
 )
 
 func setupRoutes(
@@ -25,8 +25,6 @@ func setupRoutes(
 
 	// Routes publiques (pas de middleware auth)
 	stagesRouter.HandleFunc("", stageHandler.GetAllStages).Methods("GET")
-	stagesRouter.HandleFunc("/filters", stageHandler.GetFilterOptions).Methods("GET")
-	stagesRouter.HandleFunc("/{id:[0-9]+}", stageHandler.GetStageByID).Methods("GET")
 
 	// Routes protégées (avec middleware auth)
 	protectedStages := stagesRouter.NewRoute().Subrouter()

@@ -39,7 +39,7 @@ func NewCustomClaims(user User, sessionID string, expiresAt int64) *CustomClaims
 	return &CustomClaims{
 		UserID:    user.ID,
 		Username:  user.Username,
-		Role:      user.Role,
+		Role:      UserRole(user.Role),
 		SessionID: sessionID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Unix(expiresAt, 0)),

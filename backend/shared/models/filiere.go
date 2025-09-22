@@ -11,6 +11,6 @@ type Filiere struct {
 	UpdatedAt time.Time `json:"updated_at" db:"updated_at"`
 }
 
-type FilieresData struct {
+type Filieres struct {
 	Filieres []Filiere `json:"filieres"`
 }

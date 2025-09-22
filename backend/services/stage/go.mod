@@ -1,4 +1,4 @@
-module stage-map
+module stage
 
 go 1.25.0
 

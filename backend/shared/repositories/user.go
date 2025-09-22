@@ -19,10 +19,11 @@ func NewUserRepository(db *sqlx.DB) *UserRepository {
 func (r *UserRepository) GetByRole(ctx context.Context, role models.UserRole) ([]models.User, error) {
 	claims := sharedContext.GetUserClaims(ctx)
 	query := `
-        SELECT id, username, first_name, last_name, email, role, entity_id, created_at, updated_at 
+        SELECT id, username, first_name, last_name, email, role, phone, 
+               establishment_id, is_active, last_login, created_at, updated_at 
         FROM users 
         WHERE role = $1 
-          AND entity_id = (SELECT entity_id FROM users WHERE id = $2)
+          AND establishment_id = (SELECT establishment_id FROM users WHERE id = $2)
         ORDER BY last_name, first_name
     `
 
@@ -37,8 +38,10 @@ func (r *UserRepository) GetByRole(ctx context.Context, role models.UserRole) ([
 
 func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 	query := `
-        INSERT INTO users (username, first_name, last_name, email, password_hash, role, entity_id, created_at, updated_at)
-        VALUES (:username, :first_name, :last_name, :email, :password_hash, :role,:entity_id , :created_at, :updated_at)
+        INSERT INTO users (username, first_name, last_name, email, password_hash, role, 
+                          phone, establishment_id, is_active, created_at, updated_at)
+        VALUES (:username, :first_name, :last_name, :email, :password_hash, :role,
+                :phone, :establishment_id, :is_active, :created_at, :updated_at)
         RETURNING id
     `
 
@@ -60,7 +63,8 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 
 func (r *UserRepository) GetByID(ctx context.Context, id int) (*models.User, error) {
 	query := `
-        SELECT id, username, first_name, last_name, email, role, entity_id, created_at, updated_at 
+        SELECT id, username, first_name, last_name, email, role, phone, 
+               establishment_id, is_active, last_login, created_at, updated_at 
         FROM users 
         WHERE id = $1
     `
@@ -76,7 +80,8 @@ func (r *UserRepository) GetByID(ctx context.Context, id int) (*models.User, err
 
 func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*models.User, error) {
 	query := `
-        SELECT id, username, first_name, last_name, email, role, entity_id, created_at, updated_at 
+        SELECT id, username, first_name, last_name, email, password_hash, role, phone, 
+               establishment_id, is_active, last_login, created_at, updated_at 
         FROM users 
         WHERE username = $1
     `
@@ -84,14 +89,16 @@ func (r *UserRepository) GetByUsername(ctx context.Context, username string) (*m
 	var user models.User
 	err := r.db.GetContext(ctx, &user, query, username)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user by username %d: %w", username, err)
+		return nil, fmt.Errorf("failed to get user by username %s: %w", username, err)
 	}
 
 	return &user, nil
 }
+
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	query := `
-        SELECT id, username, first_name, last_name, email, role, entity_id, created_at, updated_at 
+        SELECT id, username, first_name, last_name, email, password_hash, role, phone, 
+               establishment_id, is_active, last_login, created_at, updated_at 
         FROM users 
         WHERE email = $1
     `
@@ -99,13 +106,14 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 	var user models.User
 	err := r.db.GetContext(ctx, &user, query, email)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get user by email %d: %w", email, err)
+		return nil, fmt.Errorf("failed to get user by email %s: %w", email, err)
 	}
 
 	return &user, nil
 }
+
 func (r *UserRepository) Delete(ctx context.Context, userID int) error {
-	query := `DELETE FROM user WHERE ID = $1`
+	query := `DELETE FROM users WHERE id = $1`
 
 	result, err := r.db.ExecContext(ctx, query, userID)
 	if err != nil {
@@ -133,23 +141,26 @@ func (r *UserRepository) Update(ctx context.Context, user *models.User, userID i
             email = :email,
             password_hash = :password_hash,
             role = :role,
-            entity_id = :entity_id,
+            phone = :phone,
+            establishment_id = :establishment_id,
+            is_active = :is_active,
             updated_at = :updated_at
         WHERE id = :id
         RETURNING id
     `
 
-	// On doit ajouter l'ID dans la struct user ou créer une map
 	params := map[string]interface{}{
-		"id":            userID,
-		"username":      user.Username,
-		"first_name":    user.FirstName,
-		"last_name":     user.LastName,
-		"email":         user.Email,
-		"password_hash": user.PasswordHash,
-		"role":          user.Role,
-		"entity_id":     user.EntityID,
-		"updated_at":    user.UpdatedAt,
+		"id":               userID,
+		"username":         user.Username,
+		"first_name":       user.FirstName,
+		"last_name":        user.LastName,
+		"email":            user.Email,
+		"password_hash":    user.PasswordHash,
+		"role":             user.Role,
+		"phone":            user.Phone,
+		"establishment_id": user.EstablishmentID,
+		"is_active":        user.IsActive,
+		"updated_at":       user.UpdatedAt,
 	}
 
 	rows, err := r.db.NamedQueryContext(ctx, query, params)
@@ -165,6 +176,18 @@ func (r *UserRepository) Update(ctx context.Context, user *models.User, userID i
 		}
 	} else {
 		return fmt.Errorf("no user found with id %d", userID)
+	}
+
+	return nil
+}
+
+// Méthode utilitaire pour mettre à jour le dernier login
+func (r *UserRepository) UpdateLastLogin(ctx context.Context, userID int) error {
+	query := `UPDATE users SET last_login = NOW() WHERE id = $1`
+
+	_, err := r.db.ExecContext(ctx, query, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update last login: %w", err)
 	}
 
 	return nil

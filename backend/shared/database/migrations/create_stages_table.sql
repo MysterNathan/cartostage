@@ -1,52 +1,60 @@
--- Création de la table stages
-CREATE TABLE IF NOT EXISTS stages (
-                                      id SERIAL PRIMARY KEY,
-                                      poste VARCHAR(255) NOT NULL,
-                                      adresse TEXT NOT NULL,
-                                      lat DECIMAL(10, 8) NOT NULL,
-                                      lng DECIMAL(11, 8) NOT NULL,
-                                      places_disponibles INTEGER NOT NULL DEFAULT 0,
-                                      enterprise VARCHAR(255) NOT NULL,
-                                      filiere VARCHAR(100) NOT NULL,
-                                      sector VARCHAR(100) NOT NULL,
-                                      commune VARCHAR(255) NOT NULL,
-                                      capacity_total INTEGER NOT NULL DEFAULT 0,
-                                      capacity_filled INTEGER NOT NULL DEFAULT 0,
-                                      period VARCHAR(100) NOT NULL,
-                                      parcours VARCHAR(50) NOT NULL CHECK (parcours IN ('scolaire', 'apprentissage', 'mixte')),
-                                      famille_metiers VARCHAR(255),
-                                      niveau_scolaire VARCHAR(10) CHECK (niveau_scolaire IN ('2de', '1re', 'Tle')),
-                                      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-                                      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-
-    -- Contraintes de validation
-                                      CONSTRAINT chk_capacity_valid
-                                          CHECK (capacity_filled <= capacity_total),
-                                      CONSTRAINT chk_places_valid
-                                          CHECK (places_disponibles >= 0),
-                                      CONSTRAINT chk_coordinates_valid
-                                          CHECK (lat BETWEEN -90 AND 90 AND lng BETWEEN -180 AND 180)
+-- Migration: 005_create_stages.up.sql
+CREATE TABLE contents (
+                          id SERIAL PRIMARY KEY,
+                          content TEXT
 );
 
--- Index pour les recherches géospatiales et fréquentes
-CREATE INDEX IF NOT EXISTS idx_stages_lat_lng ON stages(lat, lng);
-CREATE INDEX IF NOT EXISTS idx_stages_commune ON stages(commune);
-CREATE INDEX IF NOT EXISTS idx_stages_filiere ON stages(filiere);
-CREATE INDEX IF NOT EXISTS idx_stages_sector ON stages(sector);
-CREATE INDEX IF NOT EXISTS idx_stages_enterprise ON stages(enterprise);
-CREATE INDEX IF NOT EXISTS idx_stages_period ON stages(period);
-CREATE INDEX IF NOT EXISTS idx_stages_parcours ON stages(parcours);
-CREATE INDEX IF NOT EXISTS idx_stages_niveau_scolaire ON stages(niveau_scolaire);
-CREATE INDEX IF NOT EXISTS idx_stages_places_disponibles ON stages(places_disponibles);
-CREATE INDEX IF NOT EXISTS idx_stages_created_at ON stages(created_at);
+-- Exemple minimal de données
+INSERT INTO contents (content) VALUES
+                                   ('Exemple de contenu 1'),
+                                   ('Exemple de contenu 2');
 
--- Index composite pour les recherches complexes
-CREATE INDEX IF NOT EXISTS idx_stages_filiere_commune ON stages(filiere, commune);
-CREATE INDEX IF NOT EXISTS idx_stages_sector_period ON stages(sector, period);
-CREATE INDEX IF NOT EXISTS idx_stages_parcours_niveau ON stages(parcours, niveau_scolaire);
+CREATE TABLE stages (
+                        id SERIAL PRIMARY KEY,
+                        stage_offer_id INTEGER NOT NULL REFERENCES stage_offers(id) ON DELETE CASCADE,
+                        student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+                        teacher_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                        tutor_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+                        establishment_id INTEGER REFERENCES establishments(id) ON DELETE SET NULL,
+                        content_id INTEGER REFERENCES contents(id) ON DELETE SET NULL,
+                        status VARCHAR(20) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'in_progress', 'completed', 'cancelled')),
+                        start_date DATE NOT NULL,
+                        end_date DATE NOT NULL,
+                        created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                        updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
 
--- Trigger pour mettre à jour updated_at automatiquement
-DROP TRIGGER IF EXISTS update_stages_updated_at ON stages;
+                        CONSTRAINT check_dates CHECK (end_date > start_date)
+);
+
+-- Index pour améliorer les performances
+CREATE INDEX idx_stages_stage_offer ON stages(stage_offer_id);
+CREATE INDEX idx_stages_student ON stages(student_id);
+CREATE INDEX idx_stages_teacher ON stages(teacher_id);
+CREATE INDEX idx_stages_tutor ON stages(tutor_id);
+CREATE INDEX idx_stages_establishment ON stages(establishment_id);
+CREATE INDEX idx_stages_status ON stages(status);
+CREATE INDEX idx_stages_dates ON stages(start_date, end_date);
+
+-- Trigger pour updated_at
 CREATE TRIGGER update_stages_updated_at
     BEFORE UPDATE ON stages
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Données d'exemple
+INSERT INTO stages (
+    stage_offer_id, student_id, teacher_id, tutor_id, establishment_id,
+    status, start_date, end_date
+) VALUES
+      (
+          1, 2, 3, 1, 1,
+          'approved',
+          '2024-03-01',
+          '2024-05-31'
+      ),
+      (
+          1, 2, 3, NULL, 2,
+          'in_progress',
+          '2024-02-15',
+          '2024-04-15'
+      );
+

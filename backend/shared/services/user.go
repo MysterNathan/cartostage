@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"golang.org/x/crypto/bcrypt"
-	"log"
 	sharedContext "shared/context"
 	"shared/models"
 	"shared/repositories"
@@ -21,14 +20,13 @@ func NewUserService(userRepo *repositories.UserRepository) *UserService {
 	}
 }
 
-func (s *UserService) GetUsersByRole(ctx context.Context, targetRole models.UserRole) ([]models.User, error) {
+func (s *UserService) GetUsersByRole(ctx context.Context, targetRole models.UserRole) ([]models.UserPublic, error) {
 	// Vérifier les permissions via le contexte
 	claims := sharedContext.GetUserClaims(ctx)
 	if claims == nil {
 		return nil, fmt.Errorf("unauthorized: no claims in context")
 	}
 
-	log.Println(claims)
 	// Règles de permission : chaque rôle ne voit que son propre rôle (sauf admin)
 	if !claims.IsAdmin() && claims.Role != targetRole {
 		return nil, fmt.Errorf("forbidden: cannot access %s data", targetRole)
@@ -40,7 +38,7 @@ func (s *UserService) GetUsersByRole(ctx context.Context, targetRole models.User
 	}
 
 	// Convertir en version publique (sans password_hash)
-	publicUsers := make([]models.User, len(users))
+	publicUsers := make([]models.UserPublic, len(users))
 	for i, user := range users {
 		publicUsers[i] = user.ToPublic()
 	}

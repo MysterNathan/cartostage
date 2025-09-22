@@ -16,7 +16,7 @@ func NewFiliereRepository(db *sqlx.DB) *FiliereRepository {
 }
 
 // GetFilieres récupère toutes les filières
-func (r *FiliereRepository) GetFilieres() (*models.FilieresData, error) {
+func (r *FiliereRepository) GetFilieres() (*models.Filieres, error) {
 	query := `
         SELECT id, code, label, color, created_at, updated_at
         FROM filieres 
@@ -50,7 +50,7 @@ func (r *FiliereRepository) GetFilieres() (*models.FilieresData, error) {
 		return nil, fmt.Errorf("erreur lors de l'itération: %v", err)
 	}
 
-	return &models.FilieresData{Filieres: filieres}, nil
+	return &models.Filieres{Filieres: filieres}, nil
 }
 
 // GetFiliereByCode récupère une filière par son code

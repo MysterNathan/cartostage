@@ -9,14 +9,14 @@ WORKDIR /app
 COPY shared/ ./shared/
 
 # Copy stage service
-COPY services/stage-map/ ./services/stage-map/
+COPY services/stage/ ./services/stage/
 
 # Initialize go modules in shared
 WORKDIR /app/shared
 RUN go mod download
 
 # Build stage service
-WORKDIR /app/services/stage-map
+WORKDIR /app/services/stage
 RUN go mod download
 
 # Build the Go app
@@ -30,7 +30,7 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 
 # Copy the built binary
-COPY --from=builder /app/services/stage-map/main .
+COPY --from=builder /app/services/stage/main .
 
 EXPOSE 80
 

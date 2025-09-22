@@ -21,7 +21,7 @@ func NewFiliereHandler(repo *repositories.FiliereRepository) *FiliereHandler {
 // GetFilieres
 func (h *FiliereHandler) GetFilieres(w http.ResponseWriter, r *http.Request) {
 
-	var filiereData *models.FilieresData
+	var filiereData *models.Filieres
 	var err error
 
 	filiereData, err = h.repo.GetFilieres()

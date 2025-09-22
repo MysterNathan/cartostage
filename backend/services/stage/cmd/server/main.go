@@ -8,8 +8,8 @@ import (
 	"shared/config"
 	"shared/middleware"
 	"shared/services"
-	"stage-map/internal/handlers"
-	"stage-map/internal/repositories"
+	"stage/internal/handlers"
+	"stage/internal/repositories"
 )
 
 func main() {
@@ -50,6 +50,6 @@ func main() {
 		port = "80"
 	}
 
-	fmt.Printf("🗺️ Stage-map service running on port %s\n", port)
+	fmt.Printf("🗺️ Stage service running on port %s\n", port)
 	log.Fatal(http.ListenAndServe(":"+port, r))
 }
