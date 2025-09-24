@@ -13,6 +13,15 @@ const (
 	RoleStudent UserRole = "eleve"
 )
 
+// Méthode pour valider le rôle
+func (r UserRole) IsValid() bool {
+	switch r {
+	case RoleAdmin, RoleTeacher, RoleTutor, RoleStudent:
+		return true
+	}
+	return false
+}
+
 type User struct {
 	ID              int        `json:"id" db:"id"`
 	Username        string     `json:"username" db:"username"`
@@ -64,4 +73,72 @@ type UserPublic struct {
 	IsActive        bool       `json:"is_active"`
 	CreatedAt       time.Time  `json:"created_at"`
 	LastLogin       *time.Time `json:"last_login,omitempty"`
+}
+
+func (p UserPublic) ToPublic() UserPublic {
+	return p
+}
+
+// Structures pour les requêtes de création/mise à jour
+type CreateUserRequest struct {
+	Username        string   `json:"username" binding:"required"`
+	FirstName       string   `json:"first_name" binding:"required"`
+	LastName        string   `json:"last_name" binding:"required"`
+	Email           string   `json:"email" binding:"required"`
+	Password        string   `json:"password" binding:"required"`
+	Role            UserRole `json:"role" binding:"required"`
+	Phone           *string  `json:"phone,omitempty"`
+	EstablishmentID *int     `json:"establishment_id,omitempty"`
+}
+
+type UpdateUserRequest struct {
+	Username        *string   `json:"username,omitempty"`
+	FirstName       *string   `json:"first_name,omitempty"`
+	LastName        *string   `json:"last_name,omitempty"`
+	Email           *string   `json:"email,omitempty"`
+	Role            *UserRole `json:"role,omitempty"`
+	Phone           *string   `json:"phone,omitempty"`
+	EstablishmentID *int      `json:"establishment_id,omitempty"`
+	IsActive        *bool     `json:"is_active,omitempty"`
+}
+
+// Méthode pour vérifier s'il y a des champs à mettre à jour
+func (r *UpdateUserRequest) HasUpdates() bool {
+	return r.Username != nil || r.FirstName != nil || r.LastName != nil ||
+		r.Email != nil || r.Role != nil || r.Phone != nil ||
+		r.EstablishmentID != nil || r.IsActive != nil
+}
+
+// Méthode pour appliquer les modifications à un utilisateur existant
+func (r *UpdateUserRequest) ApplyTo(user *User) {
+	if r.Username != nil {
+		user.Username = *r.Username
+	}
+	if r.FirstName != nil {
+		user.FirstName = *r.FirstName
+	}
+	if r.LastName != nil {
+		user.LastName = *r.LastName
+	}
+	if r.Email != nil {
+		user.Email = *r.Email
+	}
+	if r.Role != nil {
+		user.Role = string(*r.Role)
+	}
+	if r.Phone != nil {
+		user.Phone = r.Phone
+	}
+	if r.EstablishmentID != nil {
+		user.EstablishmentID = r.EstablishmentID
+	}
+	if r.IsActive != nil {
+		user.IsActive = *r.IsActive
+	}
+
+	user.UpdatedAt = time.Now()
+}
+
+type DeleteUserRequest struct {
+	Id int `json:"id" binding:"required"`
 }

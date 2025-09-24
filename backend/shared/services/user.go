@@ -46,7 +46,7 @@ func (s *UserService) GetUsersByRole(ctx context.Context, targetRole models.User
 	return publicUsers, nil
 }
 
-func (s *UserService) CreateUser(ctx context.Context, req *models.CreateUserRequest) (*models.User, error) {
+func (s *UserService) CreateUser(ctx context.Context, req *models.CreateUserRequest) (*models.UserPublic, error) {
 	// Vérifier les permissions
 	claims := sharedContext.GetUserClaims(ctx)
 	if claims == nil {
@@ -81,7 +81,7 @@ func (s *UserService) CreateUser(ctx context.Context, req *models.CreateUserRequ
 		LastName:     req.LastName,
 		Email:        req.Email,
 		PasswordHash: string(hashedPassword),
-		Role:         req.Role,
+		Role:         string(req.Role),
 		CreatedAt:    now,
 		UpdatedAt:    now,
 	}
@@ -120,7 +120,7 @@ func (s *UserService) Delete(ctx context.Context, req *models.DeleteUserRequest)
 
 	return req.Id, nil
 }
-func (s *UserService) UpdateUser(ctx context.Context, userID int, req *models.UpdateUserRequest) (*models.User, error) {
+func (s *UserService) UpdateUser(ctx context.Context, userID int, req *models.UpdateUserRequest) (*models.UserPublic, error) {
 	// Vérifier les permissions
 	claims := sharedContext.GetUserClaims(ctx)
 	if claims == nil {
@@ -161,9 +161,6 @@ func (s *UserService) UpdateUser(ctx context.Context, userID int, req *models.Up
 		}
 		if req.IsActive != nil {
 			return nil, fmt.Errorf("forbidden: cannot change active status")
-		}
-		if req.EntityID != nil {
-			return nil, fmt.Errorf("forbidden: cannot change entity")
 		}
 	}
 

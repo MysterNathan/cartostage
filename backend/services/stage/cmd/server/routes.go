@@ -24,32 +24,32 @@ func setupRoutes(
 	stagesRouter := api.PathPrefix("/stages").Subrouter()
 
 	// Routes publiques (pas de middleware auth)
-	stagesRouter.HandleFunc("", stageHandler.GetAllStages).Methods("GET")
+	stagesRouter.HandleFunc("", stageHandler.GetStages).Methods("GET")
 
 	// Routes protégées (avec middleware auth)
 	protectedStages := stagesRouter.NewRoute().Subrouter()
 	protectedStages.Use(authMiddleware.RequireAuth)
-	protectedStages.HandleFunc("", stageHandler.SaveStage).Methods("POST")
-	protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.UpdateStage).Methods("PUT")
-	protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.DeleteStage).Methods("DELETE")
+	//protectedStages.HandleFunc("", stageHandler.SaveStage).Methods("POST")
+	//protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.UpdateStage).Methods("PUT")
+	//protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.DeleteStage).Methods("DELETE")
 
-	// Routes filières public
-	filiereRouterPublic := api.PathPrefix("/filieres").Subrouter()
-	filiereRouterPublic.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
+	//// Routes filières public
+	//filiereRouterPublic := api.PathPrefix("/filieres").Subrouter()
+	//filiereRouterPublic.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
 
-	// Routes filieres (avec middleware auth)
-	filieresRouter := api.PathPrefix("/filieres").Subrouter()
-	filieresRouter.Use(authMiddleware.RequireAuth)
-	filieresRouter.HandleFunc("", filiereHandler.CreateFiliere).Methods("POST")
-	filieresRouter.HandleFunc("/{id:[0-9]+}", filiereHandler.UpdateFiliere).Methods("PUT")
-	filieresRouter.HandleFunc("/{id:[0-9]+}", filiereHandler.DeleteFiliere).Methods("DELETE")
+	//// Routes filieres (avec middleware auth)
+	//filieresRouter := api.PathPrefix("/filieres").Subrouter()
+	//filieresRouter.Use(authMiddleware.RequireAuth)
+	//filieresRouter.HandleFunc("", filiereHandler.CreateFiliere).Methods("POST")
+	//filieresRouter.HandleFunc("/{id:[0-9]+}", filiereHandler.UpdateFiliere).Methods("PUT")
+	//filieresRouter.HandleFunc("/{id:[0-9]+}", filiereHandler.DeleteFiliere).Methods("DELETE")
 
 	// Gestion OPTIONS pour toutes les routes
 	stagesRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
-	stagesRouter.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
-	stagesRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
-	filieresRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
-	filieresRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
+	//stagesRouter.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
+	//stagesRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
+	//filieresRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	//filieresRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
 
 	return r
 }

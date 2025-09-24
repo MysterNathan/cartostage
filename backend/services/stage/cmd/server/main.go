@@ -7,9 +7,10 @@ import (
 	"os"
 	"shared/config"
 	"shared/middleware"
-	"shared/services"
+	sharedServices "shared/services"
 	"stage/internal/handlers"
 	"stage/internal/repositories"
+	"stage/internal/services"
 )
 
 func main() {
@@ -37,10 +38,12 @@ func main() {
 	stageRepository := repositories.NewStageRepository(db)
 	filiereRepository := repositories.NewFiliereRepository(db)
 
-	stageHandler := handlers.NewStageHandler(stageRepository)
+	stageService := services.NewStageService(stageRepository)
+
+	stageHandler := handlers.NewStageHandler(stageService)
 	filiereHandler := handlers.NewFiliereHandler(filiereRepository)
 
-	authService := services.NewAuthService(jwtSecret)
+	authService := sharedServices.NewAuthService(jwtSecret)
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 	// Setup des routes
 	r := setupRoutes(stageHandler, filiereHandler, authMiddleware)

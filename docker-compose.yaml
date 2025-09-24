@@ -40,10 +40,10 @@ services:
       - stages-network
 
   # Service de gestion des stages/carte
-  stage-map-service:
+  stage-service:
     build:
       context: ./backend
-      dockerfile: backend/services/stage/Dockerfile
+      dockerfile: services/stage/Dockerfile
     container_name: stages-map
     restart: unless-stopped
     environment:
@@ -101,7 +101,7 @@ services:
       - "443"
     depends_on:
       - auth-service
-      - stage-map-service
+      - stage-service
       - enterprise-service
     networks:
       - stages-network
@@ -122,7 +122,7 @@ services:
       # - "443:443"  # Commenté pour dev local
     depends_on:
       - auth-service
-      - stage-map-service
+      - stage-service
       - enterprise-service
       - frontend
     networks:

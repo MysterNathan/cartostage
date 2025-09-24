@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/jmoiron/sqlx"
+	"log"
 	sharedContext "shared/context"
 	"shared/models"
 )
@@ -53,6 +54,7 @@ func (r *StageRepository) GetStagesPublic() ([]models.Stage, error) {
 		}
 		stages = append(stages, stage)
 	}
+	log.Println(stages)
 
 	return stages, rows.Err()
 }
@@ -68,11 +70,12 @@ func (r *StageRepository) GetStages(ctx context.Context) ([]models.Stage, error)
                establishment_id, content_id, status, start_date, end_date, 
                created_at, updated_at
         FROM stages s
-        JOIN public.users ON s.student_id = public.users.id
-        WHERE student_id = $1
-
+        JOIN users u ON s.student_id = u.id
+		WHERE s.student_id = $1
     `
 	rows, err := r.db.Query(query, userID)
+	log.Println(rows)
+
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de la récupération des stages: %v", err)
 	}
