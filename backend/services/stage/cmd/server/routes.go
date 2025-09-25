@@ -17,6 +17,7 @@ func setupRoutes(
 
 	// Middleware CORS appliqué globalement
 	r.Use(corsMiddleware)
+	r.Use(authMiddleware.RequireAuth)
 
 	api := r.PathPrefix("/api").Subrouter()
 

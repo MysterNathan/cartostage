@@ -22,7 +22,7 @@ func (h *StageHandler) GetStages(w http.ResponseWriter, r *http.Request) {
 	var err error
 
 	if claims == nil {
-		stagesData, err = h.service.GetStagesPublic()
+		http.Error(w, `{"stages": []}`, http.StatusInternalServerError)
 		return
 	}
 

@@ -19,10 +19,10 @@ func NewStageRepository(db *sqlx.DB) *StageRepository {
 
 func (r *StageRepository) GetStagesPublic() ([]models.Stage, error) {
 	query := `
-        SELECT id, stage_offer_id, student_id, teacher_id, tutor_id, 
-               establishment_id, content_id, status, start_date, end_date, 
-               created_at, updated_at
-        FROM stages 
+        SELECT s.id, s.stage_offer_id, 
+               s.establishment_id, s.content_id, s.status, s.start_date, s.end_date, 
+               s.created_at, s.updated_at
+        FROM stages s
         ORDER BY created_at DESC
     `
 
@@ -38,9 +38,6 @@ func (r *StageRepository) GetStagesPublic() ([]models.Stage, error) {
 		err := rows.Scan(
 			&stage.ID,
 			&stage.StageOfferID,
-			&stage.StudentID,
-			&stage.TeacherID,
-			&stage.TutorID,
 			&stage.EstablishmentID,
 			&stage.ContentID,
 			&stage.Status,
@@ -66,9 +63,9 @@ func (r *StageRepository) GetStages(ctx context.Context) ([]models.Stage, error)
 	}
 	userID := claims.UserID
 	query := `
-        SELECT id, stage_offer_id, student_id, teacher_id, tutor_id, 
-               establishment_id, content_id, status, start_date, end_date, 
-               created_at, updated_at
+        SELECT s.id, s.stage_offer_id, s.student_id, s.teacher_id, s.tutor_id, 
+               s.establishment_id, s.content_id, s.status, s.start_date, s.end_date, 
+               s.created_at, s.updated_at
         FROM stages s
         JOIN users u ON s.student_id = u.id
 		WHERE s.student_id = $1
