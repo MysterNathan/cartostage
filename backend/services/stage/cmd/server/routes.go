@@ -26,6 +26,9 @@ func setupRoutes(
 
 	// Routes publiques (pas de middleware auth)
 	stagesRouter.HandleFunc("", stageHandler.GetStages).Methods("GET")
+	stagesRouter.HandleFunc("", stageHandler.CreateStage).Methods("POST")
+	stagesRouter.HandleFunc("/{id:[0-9]+}", stageHandler.UpdateStage).Methods("PUT")
+	stagesRouter.HandleFunc("/{id:[0-9]+}", stageHandler.DeleteStage).Methods("DELETE")
 
 	// Routes protégées (avec middleware auth)
 	protectedStages := stagesRouter.NewRoute().Subrouter()
@@ -48,7 +51,7 @@ func setupRoutes(
 	// Gestion OPTIONS pour toutes les routes
 	stagesRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 	//stagesRouter.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
-	//stagesRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
+	stagesRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
 	//filieresRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 	//filieresRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
 
