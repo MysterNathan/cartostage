@@ -18,13 +18,18 @@ func NewStageRepository(db *sqlx.DB) *StageRepository {
 	return &StageRepository{db: db}
 }
 
-func (r *StageRepository) GetStagesPublic() ([]models.Stage, error) {
+func (r *StageRepository) GetStagesPublic() ([]models.StageWithDetails, error) {
 	query := `
-        SELECT s.id, s.stage_offer_id, 
-               s.establishment_id, s.content_id, s.status, s.start_date, s.end_date, 
-               s.created_at, s.updated_at
+        SELECT 
+            s.id, s.stage_offer_id, s.student_id, s.teacher_id, s.tutor_id,
+            s.establishment_id, s.content_id, s.status, s.start_date, s.end_date, 
+            s.created_at, s.updated_at,
+            so.id, so.position, so.address, so.lat, so.lng, so.enterprise, 
+            so.sector, so.capacity_total, so.capacity_filled, so.period, 
+            so.course, so.job_family, so.scolar_level, so.created_at, so.updated_at
         FROM stages s
-        ORDER BY created_at DESC
+        LEFT JOIN stage_offers so ON s.stage_offer_id = so.id
+        ORDER BY s.created_at DESC
     `
 
 	rows, err := r.db.Query(query)
@@ -33,27 +38,78 @@ func (r *StageRepository) GetStagesPublic() ([]models.Stage, error) {
 	}
 	defer rows.Close()
 
-	var stages []models.Stage
+	var stages []models.StageWithDetails
 	for rows.Next() {
-		var stage models.Stage
+		var stageWithDetails models.StageWithDetails
+
+		// Variables pour gérer les potentiels NULL du stage_offer
+		var soID sql.NullInt64
+		var soPosition, soAddress, soEnterprise, soSector, soPeriod, soCourse, soJobFamily, soScolarLevel sql.NullString
+		var soLat, soLng sql.NullFloat64
+		var soCapacityTotal, soCapacityFilled sql.NullInt64
+		var soCreatedAt, soUpdatedAt sql.NullTime
+
 		err := rows.Scan(
-			&stage.ID,
-			&stage.StageOfferID,
-			&stage.EstablishmentID,
-			&stage.ContentID,
-			&stage.Status,
-			&stage.StartDate,
-			&stage.EndDate,
-			&stage.CreatedAt,
-			&stage.UpdatedAt,
+			// Champs du stage
+			&stageWithDetails.Stage.ID,
+			&stageWithDetails.Stage.StageOfferID,
+			&stageWithDetails.Stage.StudentID,
+			&stageWithDetails.Stage.TeacherID,
+			&stageWithDetails.Stage.TutorID,
+			&stageWithDetails.Stage.EstablishmentID,
+			&stageWithDetails.Stage.ContentID,
+			&stageWithDetails.Stage.Status,
+			&stageWithDetails.Stage.StartDate,
+			&stageWithDetails.Stage.EndDate,
+			&stageWithDetails.Stage.CreatedAt,
+			&stageWithDetails.Stage.UpdatedAt,
+			// Champs du stage_offer (potentiellement NULL)
+			&soID,
+			&soPosition,
+			&soAddress,
+			&soLat,
+			&soLng,
+			&soEnterprise,
+			&soSector,
+			&soCapacityTotal,
+			&soCapacityFilled,
+			&soPeriod,
+			&soCourse,
+			&soJobFamily,
+			&soScolarLevel,
+			&soCreatedAt,
+			&soUpdatedAt,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("erreur lors du scan: %v", err)
 		}
-		stages = append(stages, stage)
-	}
-	log.Println(stages)
 
+		// Si le stage_offer existe, l'assigner
+		if soID.Valid {
+			stageOffer := &models.StageOffer{
+				ID:             int(soID.Int64),
+				Position:       soPosition.String,
+				Address:        soAddress.String,
+				Lat:            soLat.Float64,
+				Lng:            soLng.Float64,
+				Enterprise:     soEnterprise.String,
+				Sector:         soSector.String,
+				CapacityTotal:  int(soCapacityTotal.Int64),
+				CapacityFilled: int(soCapacityFilled.Int64),
+				Period:         soPeriod.String,
+				Course:         soCourse.String,
+				JobFamily:      soJobFamily.String,
+				ScolarLevel:    soScolarLevel.String,
+				CreatedAt:      soCreatedAt.Time,
+				UpdatedAt:      soUpdatedAt.Time,
+			}
+			stageWithDetails.StageOffer = stageOffer
+		}
+
+		stages = append(stages, stageWithDetails)
+	}
+
+	log.Println(stages)
 	return stages, rows.Err()
 }
 

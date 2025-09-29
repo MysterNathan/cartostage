@@ -18,7 +18,7 @@ func NewStageService(stageRepo *repositories.StageRepository) *StageService {
 	}
 }
 
-func (s *StageService) GetStagesPublic() ([]models.Stage, error) {
+func (s *StageService) GetStagesPublic() ([]models.StageWithDetails, error) {
 	return s.stageRepo.GetStagesPublic()
 }
 

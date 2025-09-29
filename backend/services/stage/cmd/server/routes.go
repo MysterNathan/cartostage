@@ -17,25 +17,20 @@ func setupRoutes(
 
 	// Middleware CORS appliqué globalement
 	r.Use(corsMiddleware)
-	r.Use(authMiddleware.RequireAuth)
 
 	api := r.PathPrefix("/api").Subrouter()
 
 	// Routes stages - GET publiques, POST/PUT/DELETE protégées
 	stagesRouter := api.PathPrefix("/stages").Subrouter()
+	stagesRouter.HandleFunc("/public", stageHandler.GetStagesPublic).Methods("GET")
 
-	// Routes publiques (pas de middleware auth)
-	stagesRouter.HandleFunc("", stageHandler.GetStages).Methods("GET")
-	stagesRouter.HandleFunc("", stageHandler.CreateStage).Methods("POST")
-	stagesRouter.HandleFunc("/{id:[0-9]+}", stageHandler.UpdateStage).Methods("PUT")
-	stagesRouter.HandleFunc("/{id:[0-9]+}", stageHandler.DeleteStage).Methods("DELETE")
-
-	// Routes protégées (avec middleware auth)
 	protectedStages := stagesRouter.NewRoute().Subrouter()
 	protectedStages.Use(authMiddleware.RequireAuth)
-	//protectedStages.HandleFunc("", stageHandler.SaveStage).Methods("POST")
-	//protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.UpdateStage).Methods("PUT")
-	//protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.DeleteStage).Methods("DELETE")
+
+	protectedStages.HandleFunc("", stageHandler.GetStages).Methods("GET")
+	protectedStages.HandleFunc("", stageHandler.CreateStage).Methods("POST")
+	protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.UpdateStage).Methods("PUT")
+	protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.DeleteStage).Methods("DELETE")
 
 	//// Routes filières public
 	//filiereRouterPublic := api.PathPrefix("/filieres").Subrouter()
@@ -50,6 +45,7 @@ func setupRoutes(
 
 	// Gestion OPTIONS pour toutes les routes
 	stagesRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	stagesRouter.HandleFunc("/public", corsPreflightHandler).Methods("OPTIONS")
 	//stagesRouter.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
 	stagesRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
 	//filieresRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")

@@ -42,7 +42,23 @@ func (h *StageHandler) GetStages(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
+func (h *StageHandler) GetStagesPublic(w http.ResponseWriter, r *http.Request) {
+	var stagesData []models.StageWithDetails
+	var err error
 
+	stagesData, err = h.stageService.GetStagesPublic()
+	if err != nil {
+		http.Error(w, `{"stages": []}`, http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+
+	if err := json.NewEncoder(w).Encode(stagesData); err != nil {
+		http.Error(w, "Erreur serveur", http.StatusInternalServerError)
+		return
+	}
+}
 func (h *StageHandler) UpdateStage(w http.ResponseWriter, r *http.Request) {
 	id := mux.Vars(r)["id"]
 	if id == "" {
