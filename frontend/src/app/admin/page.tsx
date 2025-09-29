@@ -6,7 +6,7 @@ import { authApi } from '@/lib/authApi'
 import { getStages, addStage, updateStage, deleteStage } from '@/lib/stageApi'
 import StageModal from '@/components/admin/StageModal'
 import StatisticsModal from '@/components/admin/StatisticsModal'
-import type { Stage } from '@/types/stage'
+import type {Stage, StageWithDetails} from '@/types/stage'
 import FilieresManager from '@/components/admin/FilieresManager'
 import StagesList from "@/components/admin/StageList";
 import StatsCards from "@/components/admin/StatCard";
@@ -42,8 +42,8 @@ export default function AdminPage() {
       setLoading(true)
       setError('')
 
-      const data = await getStages()
-      setStages(data.stages || [])
+      const data: StageWithDetails[] = await getStages()
+      setStages(data)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Impossible de charger les stages'
       setError(errorMessage)
@@ -106,8 +106,8 @@ export default function AdminPage() {
   };
 
   const totalStages = stages.length
-  const totalCapacity = stages.reduce((sum, stage) => sum + stage.capacity_total, 0)
-  const occupiedPlaces = stages.reduce((sum, stage) => sum + stage.capacity_filled, 0)
+  const totalCapacity = stages.reduce((sum, stage) => sum + stage.stage_offer.capacity_total, 0)
+  const occupiedPlaces = stages.reduce((sum, stage) => sum + stage.stage_offer.capacity_filled, 0)
   const availablePlaces = totalCapacity - occupiedPlaces
 
 

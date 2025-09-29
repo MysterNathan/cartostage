@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import StageSelector from '@/components/StageSelector'
 import { getStages } from '@/lib/stageApi'
-import type { Stage } from '@/types/stage'
+import type {Stage, StageWithDetails} from '@/types/stage'
 
 // Import dynamique pour éviter les erreurs SSR avec Leaflet
 const StageMap = dynamic(() => import('@/components/StageMap'), {
@@ -35,12 +35,10 @@ export default function HomePage() {
       setLoading(true)
       setError(null)
 
-      // Utilisation de la fonction getStages de la librairie
-      const data = await getStages()
-      const stagesData = data.stages || []
+      const data: StageWithDetails[] = await getStages()
 
-      setStages(stagesData)
-      setFilteredStages(stagesData)
+      setStages(data)
+      setFilteredStages(data)
     } catch (error) {
       console.error('Erreur lors du chargement:', error)
       setError(error instanceof Error ? error.message : 'Erreur inconnue')

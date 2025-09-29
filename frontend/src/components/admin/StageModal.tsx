@@ -132,7 +132,7 @@ export default function StageModal({
   const handleDelete = async () => {
     if (!stage?.id || isNew) return;
 
-    const confirmMessage = `Êtes-vous sûr de vouloir supprimer le stage "${stage.poste}" chez ${stage.enterprise} ?`;
+    const confirmMessage = `Êtes-vous sûr de vouloir supprimer le stage "${stage.stage_offer.poste}" chez ${stage.stage_offer.enterprise} ?`;
     if (!confirm(confirmMessage)) return;
 
     setIsLoading(true);

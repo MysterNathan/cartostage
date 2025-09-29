@@ -121,62 +121,63 @@ const StagesList: React.FC<StagesListProps> = ({
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                     {stages.map((stage) => {
+                        const available_places = Math.round(stage.stage_offer.capacity_total - stage.stage_offer.capacity_filled)
                         const capacityStyles = getCapacityStyles(
-                            stage.capacity_filled,
-                            stage.capacity_total,
-                            stage.places_disponibles
+                            stage.stage_offer.capacity_filled,
+                            stage.stage_offer.capacity_total,
+                            available_places
                         );
-                        const progressPercentage = stage.capacity_total > 0
-                            ? (stage.capacity_filled / stage.capacity_total) * 100
+                        const progressPercentage = stage.stage_offer.capacity_total > 0
+                            ? (stage.stage_offer.capacity_filled / stage.stage_offer.capacity_total) * 100
                             : 0;
 
                         return (
                             <tr key={stage.id} className="hover:bg-gray-50">
                                 <td className="px-4 py-4 whitespace-nowrap">
                                     <div className="text-sm font-medium text-gray-900">
-                                        {stage.enterprise}
+                                        {stage.stage_offer.enterprise}
                                     </div>
                                     <div className="text-xs text-gray-500">
-                                        {stage.sector || 'Secteur non renseigné'}
+                                        {stage.stage_offer.sector || 'Secteur non renseigné'}
                                     </div>
                                 </td>
                                 <td className="px-4 py-4">
                                     <div className="text-sm text-gray-900 max-w-xs truncate" title={stage.poste}>
-                                        {stage.poste}
+                                        {stage.stage_offer.position}
                                     </div>
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-900">
-                                        {stage.commune || 'Non renseigné'}
+                                        {stage.stage_offer.address || 'Non renseigné'}
                                     </div>
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap">
                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getFiliereStyles(stage.filiere)}`}>
-                                            {stage.filiere}
+                                            {stage.stage_offer.filiere}
                                         </span>
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap">
                                         <span className={`inline-flex px-2 py-1 text-xs font-medium rounded-full border ${getParcoursStyles(stage.parcours || '')}`}>
-                                            {stage.parcours || 'Non défini'}
+                                            {stage.stage_offer.parcours || 'Non défini'}
                                         </span>
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap">
                                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded ${getNiveauStyles(stage.niveau_scolaire || '')}`}>
-                                            {stage.niveau_scolaire || 'Non défini'}
+                                            {stage.stage_offer.scolar_level || 'Non défini'}
                                         </span>
                                 </td>
                                 <td className="px-4 py-4">
                                     <div className="text-sm text-gray-900 max-w-xs truncate" title={stage.famille_metiers}>
-                                        {stage.famille_metiers || 'Non renseigné'}
+                                        {stage.stage_offer.job_family || 'Non renseigné'}
                                     </div>
                                 </td>
                                 <td className="px-4 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-900">
                                             <span className={`font-medium ${capacityStyles.text}`}>
-                                                {stage.capacity_filled}/{stage.capacity_total}
+                                                {stage.stage_offer.capacity_filled}/{stage.stage_offer.capacity_total}
                                             </span>
                                         <span className="text-gray-500 ml-1 text-xs block">
-                                                ({stage.places_disponibles || 0} libres)
+                                                ({available_places || 0} libres)
                                             </span>
                                     </div>
                                     <div className="mt-1 w-full bg-gray-200 rounded-full h-1.5">

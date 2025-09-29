@@ -6,7 +6,7 @@ import type { Stage } from '@/types/stage'
 
 // Configuration de l'icône personnalisée avec couleur selon filière
 const createCustomIcon = (stage: Stage, isSelected = false) => {
-  const filiereColor = stage.filiere === 'CCST' ? '#3B82F6' : '#10B981'
+  const filiereColor = stage.stage_offer.course === 'CCST' ? '#3B82F6' : '#10B981'
   const color = isSelected ? '#EF4444' : filiereColor
   
   return L.divIcon({
@@ -67,15 +67,15 @@ export default function StageMap({ stages, selectedStage, onStageClick }: StageM
     stages.forEach((stage) => {
       const isSelected = selectedStage?.id === stage.id
       
-      const marker = L.marker([stage.lat, stage.lng], {
+      const marker = L.marker([stage.stage_offer.lat, stage.stage_offer.lng], {
         icon: createCustomIcon(stage, isSelected)
       }).addTo(mapRef.current!)
+      const place_disponibles = Math.round(stage.stage_offer.capacity_total - stage.stage_offer.capacity_filled)
 
       // Popup enrichie avec tous les champs
-      const tauxOccupation = stage.capacity_total > 0 
-        ? Math.round((stage.capacity_filled / stage.capacity_total) * 100)
+      const tauxOccupation = stage.stage_offer.capacity_total > 0
+        ? Math.round((stage.stage_offer.capacity_filled / stage.stage_offer.capacity_total) * 100)
         : 0
-
       const popupContent = `
         <div style="min-width: 280px; font-family: ui-sans-serif, system-ui;">
           <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
@@ -86,32 +86,31 @@ export default function StageMap({ stages, selectedStage, onStageClick }: StageM
               border-radius: 12px; 
               font-size: 11px; 
               font-weight: bold;
-            ">${stage.filiere}</span>
+            ">${stage.stage_offer.course}</span>
           </div>
           
           <h3 style="margin: 0 0 8px 0; font-size: 16px; font-weight: bold; color: #111827;">
-            ${stage.poste}
+            ${stage.stage_offer.position}
           </h3>
           
           <div style="margin-bottom: 8px;">
             <div style="font-weight: 600; color: #374151; margin-bottom: 2px;">
-              ${stage.enterprise}
+              ${stage.stage_offer.enterprise}
             </div>
             <div style="font-size: 12px; color: #6B7280;">
-              ${stage.sector}
+              ${stage.stage_offer.sector}
             </div>
           </div>
 
           <div style="font-size: 13px; color: #374151; margin-bottom: 8px;">
-            📍 ${stage.commune}<br/>
-            ${stage.adresse}
+            ${stage.stage_offer.address}
           </div>
 
           <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
             <div style="background: #F3F4F6; padding: 6px; border-radius: 6px; text-align: center;">
               <div style="font-size: 11px; color: #6B7280;">Places libres</div>
-              <div style="font-size: 16px; font-weight: bold; color: ${stage.places_disponibles > 0 ? '#059669' : '#DC2626'};">
-                ${stage.places_disponibles}
+              <div style="font-size: 16px; font-weight: bold; color: ${place_disponibles > 0 ? '#059669' : '#DC2626'};">
+                ${place_disponibles}
               </div>
             </div>
             <div style="background: #F3F4F6; padding: 6px; border-radius: 6px; text-align: center;">
@@ -123,8 +122,8 @@ export default function StageMap({ stages, selectedStage, onStageClick }: StageM
           </div>
 
           <div style="font-size: 12px; color: #6B7280;">
-            <div><strong>Capacité:</strong> ${stage.capacity_filled}/${stage.capacity_total} occupées</div>
-            ${stage.period ? `<div><strong>Périodes:</strong> ${stage.period}</div>` : ''}
+            <div><strong>Capacité:</strong> ${stage.stage_offer.capacity_filled}/${stage.stage_offer.capacity_total} occupées</div>
+            ${stage.stage_offer.period ? `<div><strong>Périodes:</strong> ${stage.stage_offer.period}</div>` : ''}
           </div>
         </div>
       `
@@ -143,7 +142,7 @@ export default function StageMap({ stages, selectedStage, onStageClick }: StageM
 
     // Auto-zoom sur les marqueurs visibles
     if (stages.length > 0) {
-      const bounds = L.latLngBounds(stages.map(stage => [stage.lat, stage.lng]))
+      const bounds = L.latLngBounds(stages.map(stage => [stage.stage_offer.lat, stage.stage_offer.lng]))
       if (bounds.isValid()) {
         mapRef.current.fitBounds(bounds.pad(0.1))
       }
@@ -152,7 +151,7 @@ export default function StageMap({ stages, selectedStage, onStageClick }: StageM
     // Ouvrir popup et centrer sur le stage sélectionné
     if (selectedStage && markersRef.current[selectedStage.id]) {
       markersRef.current[selectedStage.id].openPopup()
-      mapRef.current.setView([selectedStage.lat, selectedStage.lng], 
+      mapRef.current.setView([selectedStage.stage_offer.lat, selectedStage.stage_offer.lng],
         Math.max(mapRef.current.getZoom(), 13)
       )
     }

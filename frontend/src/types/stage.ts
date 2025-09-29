@@ -1,24 +1,74 @@
+import {StageOffer} from "@/types/stage_offer";
+
 export interface Stage {
   id: number
-  poste: string
-  adresse: string
-  lat: number
-  lng: number
-  places_disponibles: number
-  enterprise: string
-  filiere: string
-  sector: string
-  commune: string
-  capacity_total: number
-  capacity_filled: number
-  period?: string
-  parcours: "scolaire" | "apprentissage" | "mixte"
-  famille_metiers: string
-  niveau_scolaire: "2de" | "1re" | "Tle"
-  created_at?: string // ISO datetime du backend
-  updated_at?: string // ISO datetime du backend
+  stage_offer_id: number
+  student_id: number
+  teacher_id?: number
+  tutor_id?: number
+  establishment_id?: number
+  content_id?: number
+  status: string
+  start_date: string // ISO datetime
+  end_date: string // ISO datetime
+  created_at: string // ISO datetime
+  updated_at: string // ISO datetime
 }
 
-export interface StagesData {
-  stages: Stage[]
+export interface StageWithDetails {
+  id: number
+  stage_offer_id: number
+  student_id: number
+  teacher_id?: number
+  tutor_id?: number
+  establishment_id?: number
+  content_id?: number
+  status: string
+  start_date: string
+  end_date: string
+  created_at: string
+  updated_at: string
+  stage_offer?: StageOffer
+  student?: UserPublic
+  teacher?: UserPublic
+  tutor?: UserPublic
+  establishment?: Establishment
+  content?: Content
+}
+
+export interface CreateStageRequest {
+  stage_offer_id: number
+  student_id: number
+  teacher_id?: number
+  tutor_id?: number
+  establishment_id?: number
+  content_id?: number
+  status: string
+  start_date: string
+  end_date: string
+}
+
+export interface UpdateStageRequest {
+  teacher_id?: number
+  tutor_id?: number
+  content_id?: number
+  status?: string
+  start_date?: string
+  end_date?: string
+}
+
+export interface Content {
+  id: number
+  content?: string
+}
+
+// Types utilitaires
+export interface UserPublic {
+  id: number
+  // Ajouter les autres champs selon votre modèle User
+}
+
+export interface Establishment {
+  id: number
+  // Ajouter les autres champs selon votre modèle Establishment
 }

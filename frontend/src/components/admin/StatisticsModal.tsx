@@ -45,8 +45,8 @@ export default function StatisticsModal({ stages, isOpen, onClose }: StatisticsM
     }
 
     const totalStages = stages.length
-    const totalCapacity = stages.reduce((sum, stage) => sum + stage.capacity_total, 0)
-    const totalFilled = stages.reduce((sum, stage) => sum + stage.capacity_filled, 0)
+    const totalCapacity = stages.reduce((sum, stage) => sum + stage.stage_offer.capacity_total, 0)
+    const totalFilled = stages.reduce((sum, stage) => sum + stage.stage_offer.capacity_filled, 0)
     const totalAvailable = totalCapacity - totalFilled
     const fillRate = totalCapacity > 0 ? (totalFilled / totalCapacity) * 100 : 0
 
@@ -63,9 +63,10 @@ export default function StatisticsModal({ stages, isOpen, onClose }: StatisticsM
           }
         }
         acc[value].count += 1
-        acc[value].capacity += stage.capacity_total
-        acc[value].filled += stage.capacity_filled
-        acc[value].available += stage.places_disponibles || 0
+        acc[value].capacity += stage.stage_offer.capacity_total
+        acc[value].filled += stage.stage_offer.capacity_filled
+        // Calcul des places disponibles : capacity_total - capacity_filled
+        acc[value].available += Math.max(0, stage.stage_offer.capacity_total - stage.stage_offer.capacity_filled)
         return acc
       }, {} as Record<string, any>)
     }
@@ -78,29 +79,28 @@ export default function StatisticsModal({ stages, isOpen, onClose }: StatisticsM
     const byFamilleMetiers = createStats('famille_metiers')
     const byNiveauScolaire = createStats('niveau_scolaire')
 
-    // Filtrer les stages du Parcours Y (ici j'assume que c'est identifiable par certains critères)
-    // Vous devrez adapter cette logique selon vos données
+    // Filtrer les stages du Parcours Y
     const parcoursYStages = stages.filter(stage =>
-        stage.parcours === 'scolaire' &&
-        (stage.niveauScolaire === '2de' || stage.period?.includes('découverte'))
+        stage.stage_offer.course === 'scolaire' &&
+        (stage.stage_offer.scolar_level === '2de' || stage.stage_offer.period?.includes('découverte'))
     )
+
+    const parcoursYTotalCapacity = parcoursYStages.reduce((sum, stage) => sum + stage.stage_offer.capacity_total, 0)
+    const parcoursYTotalFilled = parcoursYStages.reduce((sum, stage) => sum + stage.stage_offer.capacity_filled, 0)
+    const parcoursYTotalAvailable = parcoursYTotalCapacity - parcoursYTotalFilled
 
     const parcoursYStats = {
       totalStages: parcoursYStages.length,
-      totalCapacity: parcoursYStages.reduce((sum, stage) => sum + stage.capacity_total, 0),
-      totalFilled: parcoursYStages.reduce((sum, stage) => sum + stage.capacity_filled, 0),
-      totalAvailable: parcoursYStages.reduce((sum, stage) => sum + (stage.places_disponibles || 0), 0),
-      fillRate: 0,
+      totalCapacity: parcoursYTotalCapacity,
+      totalFilled: parcoursYTotalFilled,
+      totalAvailable: parcoursYTotalAvailable,
+      fillRate: parcoursYTotalCapacity > 0 ? (parcoursYTotalFilled / parcoursYTotalCapacity) * 100 : 0,
       byFiliere: createStats('filiere', parcoursYStages),
       byPeriod: createStats('period', parcoursYStages),
       byCommune: createStats('commune', parcoursYStages),
       bySector: createStats('sector', parcoursYStages),
-      byEntreprise: createStats('enterprise', parcoursYStages)
+      byEntreprise: createStats('entreprise', parcoursYStages)
     }
-
-    parcoursYStats.fillRate = parcoursYStats.totalCapacity > 0
-        ? (parcoursYStats.totalFilled / parcoursYStats.totalCapacity) * 100
-        : 0
 
     return {
       totalStages,
@@ -117,6 +117,7 @@ export default function StatisticsModal({ stages, isOpen, onClose }: StatisticsM
       parcoursY: parcoursYStats
     }
   }, [stages])
+
 
   const handleOverlayClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {

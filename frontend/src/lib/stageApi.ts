@@ -3,7 +3,7 @@ import { Stage, StagesData } from "@/types/stage";
 import { authApi } from "@/lib/authApi";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const API_URL = `${API_BASE_URL}/api/stages`;
+const API_URL = `${API_BASE_URL}/api/stages/public`;
 
 // Utilitaire pour récupérer les headers avec authentification
 const getAuthHeaders = (): HeadersInit => {
