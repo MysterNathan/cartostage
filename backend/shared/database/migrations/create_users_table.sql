@@ -7,7 +7,7 @@ CREATE TABLE users (
                        last_name VARCHAR(100) NOT NULL,
                        email VARCHAR(320) UNIQUE NOT NULL CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
                        password_hash VARCHAR(255) NOT NULL,
-                       role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'moderator', 'user', 'student', 'teacher')),
+                       role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'tutor', 'student', 'teacher')),
                        phone VARCHAR(20),
                        establishment_id INTEGER REFERENCES establishments(id) ON DELETE SET NULL,
                        is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -60,5 +60,15 @@ INSERT INTO users (
           '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4A9LQOS5Wi', -- hash de "password123"
           'teacher',
           '+33 6 55 44 33 22',
+          2
+      ),
+      (
+          'tutor_jean',
+          'Jean',
+          'Marc',
+          'jeanm@digital-marketing-pro.com',
+          '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4A9LQOS5Wi', -- hash de "password123"
+          'tutor',
+          '+33 6 55 44 33 23',
           2
       );

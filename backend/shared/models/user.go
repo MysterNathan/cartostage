@@ -7,10 +7,10 @@ import (
 type UserRole string
 
 const (
-	RoleAdmin   UserRole = "administrateur"
-	RoleTeacher UserRole = "enseignant"
-	RoleTutor   UserRole = "tuteur"
-	RoleStudent UserRole = "eleve"
+	RoleAdmin   UserRole = "admin"
+	RoleTeacher UserRole = "teacher"
+	RoleTutor   UserRole = "tutor"
+	RoleStudent UserRole = "student"
 )
 
 // Méthode pour valider le rôle

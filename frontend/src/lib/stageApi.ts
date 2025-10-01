@@ -3,7 +3,8 @@ import { Stage, StagesData } from "@/types/stage";
 import { authApi } from "@/lib/authApi";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
-const API_URL = `${API_BASE_URL}/api/stages/public`;
+const API_URL_PUBLIC = `${API_BASE_URL}/api/stages/public`;
+const API_URL = `${API_BASE_URL}/api/stages`;
 
 // Utilitaire pour récupérer les headers avec authentification
 const getAuthHeaders = (): HeadersInit => {
@@ -15,7 +16,7 @@ const getAuthHeaders = (): HeadersInit => {
 };
 
 export async function getStages(): Promise<StagesData> {
-    const response = await fetch(API_URL, {
+    const response = await fetch(API_URL_PUBLIC, {
         method: 'GET',
         headers: getAuthHeaders(),
     })

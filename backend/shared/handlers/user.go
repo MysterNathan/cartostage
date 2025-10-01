@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	sharedContext "shared/context"
 	"shared/models"
@@ -34,7 +35,7 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		// Si pas de rôle spécifié, utiliser le rôle de l'utilisateur actuel
 		targetRole = sharedContext.GetUserRoleFromContext(r.Context())
 	}
-
+	log.Println(targetRole)
 	if !targetRole.IsValid() {
 		http.Error(w, "Invalid role", http.StatusBadRequest)
 		return

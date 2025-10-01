@@ -33,18 +33,19 @@ func setupRoutes(
 	protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.DeleteStage).Methods("DELETE")
 
 	//// Routes filières public
-	//filiereRouterPublic := api.PathPrefix("/filieres").Subrouter()
-	//filiereRouterPublic.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
+	filiereRouterPublic := api.PathPrefix("/filieres").Subrouter()
+	filiereRouterPublic.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
 
 	//// Routes filieres (avec middleware auth)
-	//filieresRouter := api.PathPrefix("/filieres").Subrouter()
-	//filieresRouter.Use(authMiddleware.RequireAuth)
-	//filieresRouter.HandleFunc("", filiereHandler.CreateFiliere).Methods("POST")
-	//filieresRouter.HandleFunc("/{id:[0-9]+}", filiereHandler.UpdateFiliere).Methods("PUT")
-	//filieresRouter.HandleFunc("/{id:[0-9]+}", filiereHandler.DeleteFiliere).Methods("DELETE")
+	filieresRouter := api.PathPrefix("/filieres").Subrouter()
+	filieresRouter.Use(authMiddleware.RequireAuth)
+	filieresRouter.HandleFunc("", filiereHandler.CreateFiliere).Methods("POST")
+	filieresRouter.HandleFunc("/{id:[0-9]+}", filiereHandler.UpdateFiliere).Methods("PUT")
+	filieresRouter.HandleFunc("/{id:[0-9]+}", filiereHandler.DeleteFiliere).Methods("DELETE")
 
 	// Gestion OPTIONS pour toutes les routes
 	stagesRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	filieresRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 	stagesRouter.HandleFunc("/public", corsPreflightHandler).Methods("OPTIONS")
 	//stagesRouter.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")
 	stagesRouter.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
