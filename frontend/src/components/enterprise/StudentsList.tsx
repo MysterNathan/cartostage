@@ -2,7 +2,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import StudentForm from './StudentForm'
 import { addStudent, updateStudent, deleteStudent, getStudents } from '@/lib/enterpriseApi'
 import { formatStudentData } from '@/lib/enterpriseUtils'
 import type { User } from '@/types/user'
@@ -48,53 +47,6 @@ export default function StudentsList({ initialStudents, autoFetch = true }: Stud
     const handleAdd = () => {
         setEditingStudent(null)
         setShowForm(true)
-    }
-
-    const handleEdit = (student: User) => {
-        setEditingStudent(student)
-        setShowForm(true)
-    }
-
-    const handleDelete = async (studentId: number) => {
-        try {
-            setDeletingStudentId(studentId)
-            await deleteStudent(studentId)
-            setStudents(prevStudents => prevStudents.filter(student => student.id !== studentId))
-            setShowDeleteConfirm(null)
-        } catch (error) {
-            console.error('Erreur lors de la suppression:', error)
-            setError(error instanceof Error ? error.message : 'Erreur lors de la suppression')
-        } finally {
-            setDeletingStudentId(null)
-        }
-    }
-
-    const handleFormSubmit = async (data: ReturnType<typeof formatStudentData>) => {
-        try {
-            if (editingStudent) {
-                // Modification
-                const updatedStudent = await updateStudent(editingStudent.id, data)
-                setStudents(prevStudents =>
-                    prevStudents.map(student =>
-                        student.id === updatedStudent.id ? updatedStudent : student
-                    )
-                )
-            } else {
-                // Ajout
-                const newStudent = await addStudent(data)
-                setStudents(prevStudents => [...prevStudents, newStudent])
-            }
-            setShowForm(false)
-            setEditingStudent(null)
-        } catch (error) {
-            // L'erreur sera gérée par le formulaire
-            throw error
-        }
-    }
-
-    const handleFormCancel = () => {
-        setShowForm(false)
-        setEditingStudent(null)
     }
 
     // Fonction helper pour obtenir les initiales
@@ -162,26 +114,6 @@ export default function StudentsList({ initialStudents, autoFetch = true }: Stud
                     <h3 className="text-lg font-medium text-gray-900">
                         Élèves ({students?.length || 0})
                     </h3>
-                    <div className="flex items-center space-x-2">
-                        {autoFetch && (
-                            <button
-                                onClick={loadStudents}
-                                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50"
-                                title="Actualiser"
-                            >
-                                ↻
-                            </button>
-                        )}
-                        <button
-                            onClick={handleAdd}
-                            className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors flex items-center"
-                        >
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Ajouter un élève
-                        </button>
-                    </div>
                 </div>
 
                 {!students || students.length === 0 ? (
@@ -295,15 +227,6 @@ export default function StudentsList({ initialStudents, autoFetch = true }: Stud
                     </div>
                 )}
             </div>
-
-            {showForm && (
-                <StudentForm
-                    student={editingStudent}
-                    onSubmit={handleFormSubmit}
-                    onCancel={handleFormCancel}
-                />
-            )}
-
             <StudentStageModal
                 student={showStageModal}
                 onClose={() => setShowStageModal(null)}

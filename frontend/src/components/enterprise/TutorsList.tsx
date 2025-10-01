@@ -2,7 +2,6 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import TutorForm from './TutorForm'
 import { addTutor, updateTutor, deleteTutor, getTutors} from '@/lib/enterpriseApi'
 import { formatTutorData } from '@/lib/enterpriseUtils'
 import type { User, } from '@/types/user'
@@ -68,34 +67,6 @@ export default function TutorsList({ initialTutors, autoFetch = true }: TutorsLi
         }
     }
 
-    const handleFormSubmit = async (data: ReturnType<typeof formatTutorData>) => {
-        try {
-            if (editingTutor) {
-                // Modification
-                const updatedTutor = await updateTutor(editingTutor.id, data)
-                setTutors(prevTutors =>
-                    prevTutors.map(tutor =>
-                        tutor.id === updatedTutor.id ? updatedTutor : tutor
-                    )
-                )
-            } else {
-                // Ajout
-                const newTutor = await addTutor(data)
-                setTutors(prevTutors => [...prevTutors, newTutor])
-            }
-            setShowForm(false)
-            setEditingTutor(null)
-        } catch (error) {
-            // L'erreur sera gérée par le formulaire
-            throw error
-        }
-    }
-
-    const handleFormCancel = () => {
-        setShowForm(false)
-        setEditingTutor(null)
-    }
-
     // Fonction helper pour obtenir les initiales
     const getUserInitials = (user: User): string => {
         const first = user.first_name?.[0]?.toUpperCase() || ''
@@ -156,26 +127,6 @@ export default function TutorsList({ initialTutors, autoFetch = true }: TutorsLi
                     <h3 className="text-lg font-medium text-gray-900">
                         Tuteurs ({tutors?.length || 0})
                     </h3>
-                    <div className="flex items-center space-x-2">
-                        {autoFetch && (
-                            <button
-                                onClick={loadTutors}
-                                className="px-3 py-1 text-sm text-gray-600 hover:text-gray-900 border border-gray-300 rounded-md hover:bg-gray-50"
-                                title="Actualiser"
-                            >
-                                ↻
-                            </button>
-                        )}
-                        <button
-                            onClick={handleAdd}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors flex items-center"
-                        >
-                            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Ajouter un tuteur
-                        </button>
-                    </div>
                 </div>
 
                 {!tutors || tutors.length === 0 ? (
@@ -323,14 +274,6 @@ export default function TutorsList({ initialTutors, autoFetch = true }: TutorsLi
                     </div>
                 )}
             </div>
-
-            {showForm && (
-                <TutorForm
-                    tutor={editingTutor}
-                    onSubmit={handleFormSubmit}
-                    onCancel={handleFormCancel}
-                />
-            )}
         </>
     )
 }
