@@ -127,7 +127,7 @@ export async function getTutors(): Promise<Tutor[]> {
 }
 
 export async function getStudents(): Promise<Tutor[]>{
-    const response = await fetch(`${API_URL}/api/tutors`, {
+    const response = await fetch(`${API_URL}/api/tutors/students`, {
         headers: getAuthHeaders(),
     })
     return handleApiResponse<Tutor[]>(response)

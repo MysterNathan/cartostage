@@ -112,6 +112,22 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 	return &user, nil
 }
 
+func (r *UserRepository) GetStudentByTutor(ctx context.Context, id int) (*[]models.User, error) {
+	query := `
+        SELECT id, username, first_name, last_name, email, password_hash, role, phone,
+       	establishment_id, is_active, last_login, created_at, updated_at
+		FROM users 
+		WHERE id = (SELECT student_id FROM stages WHERE tutor_id = $1);
+    `
+	var users []models.User
+	err := r.db.SelectContext(ctx, &users, query, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get students for tutor %s: %w", id, err)
+	}
+
+	return &users, nil
+}
+
 func (r *UserRepository) Delete(ctx context.Context, userID int) error {
 	query := `DELETE FROM users WHERE id = $1`
 

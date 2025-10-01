@@ -46,6 +46,10 @@ func (s *UserService) GetUsersByRole(ctx context.Context, targetRole models.User
 	return publicUsers, nil
 }
 
+func (s *UserService) GetStudentByTutor(ctx context.Context, id int) (*[]models.User, error) {
+	return s.userRepo.GetStudentByTutor(ctx, id)
+}
+
 func (s *UserService) CreateUser(ctx context.Context, req *models.CreateUserRequest) (*models.UserPublic, error) {
 	// Vérifier les permissions
 	claims := sharedContext.GetUserClaims(ctx)

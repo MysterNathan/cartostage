@@ -51,6 +51,20 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(users)
 }
 
+func (h *UserHandler) GetStudents(w http.ResponseWriter, r *http.Request) {
+	claims := sharedContext.GetUserClaims(r.Context())
+	if claims.Role != "tutor" {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+	}
+	students, err := h.userService.GetStudentByTutor(r.Context(), claims.UserID)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(students)
+}
+
 func (h *UserHandler) Create(w http.ResponseWriter, r *http.Request) {
 	var req models.CreateUserRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {

@@ -23,12 +23,15 @@ func setupRoutes(
 	// Routes CRUD génériques avec filtres automatiques basés sur les rôles
 	tutorsRouter.HandleFunc("", userHandler.GetAll).Methods("GET")
 
+	tutorsRouter.HandleFunc("/students", userHandler.GetStudents).Methods("GET")
+
 	tutorsRouter.HandleFunc("", userHandler.Create).Methods("POST")
 
 	tutorsRouter.HandleFunc("/{id}", userHandler.Update).Methods("PUT")
 	tutorsRouter.HandleFunc("/{id}", userHandler.Delete).Methods("DELETE")
 
 	tutorsRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	tutorsRouter.HandleFunc("/students", corsPreflightHandler).Methods("OPTIONS")
 	tutorsRouter.HandleFunc("/{id}", corsPreflightHandler).Methods("OPTIONS")
 	return r
 }

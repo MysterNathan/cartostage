@@ -37,7 +37,7 @@ INSERT INTO users (
           'Marie',
           'Dupont',
           'admin@techcorp-solutions.fr',
-          '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4A9LQOS5Wi', -- hash de "password123"
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei', -- hash de "admin"
           'admin',
           '+33 6 12 34 56 78',
           1
@@ -47,7 +47,7 @@ INSERT INTO users (
           'John',
           'Martin',
           'john.martin@student.edu',
-          '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4A9LQOS5Wi', -- hash de "password123"
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei', -- hash de "admin"
           'student',
           '+33 6 98 65 43 21',
           NULL
@@ -57,7 +57,7 @@ INSERT INTO users (
           'Sophie',
           'Lefebvre',
           'sophie.lefebvre@digital-marketing-pro.com',
-          '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4A9LQOS5Wi', -- hash de "password123"
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei', -- hash de "admin"
           'teacher',
           '+33 6 55 44 33 22',
           2
@@ -67,7 +67,7 @@ INSERT INTO users (
           'Jean',
           'Marc',
           'jeanm@digital-marketing-pro.com',
-          '$2a$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4A9LQOS5Wi', -- hash de "password123"
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei', -- hash de "admin"
           'tutor',
           '+33 6 55 44 33 23',
           2
