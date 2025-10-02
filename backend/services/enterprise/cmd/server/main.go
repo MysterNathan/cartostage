@@ -1,6 +1,10 @@
 package main
 
 import (
+	"enterprise/internal/handlers"
+	"enterprise/internal/repositories"
+	"enterprise/internal/services"
+
 	//"enterprise/internal/handlers"
 	//"enterprise/internal/repositories"
 	//"enterprise/internal/services"
@@ -42,14 +46,14 @@ func main() {
 
 	// Repository générique pour les utilisateurs/tuteurs
 	tutorGenericRepo := sharedRepositories.NewUserRepository(db)
-
+	enterpriseRepo := repositories.NewEnterpriseRepository(db)
 	// === SERVICES ===
 	// Service entreprise (existant)
 	//enterpriseService := services.NewEnterpriseService(enterpriseRepo)
 
 	// Service générique pour les tuteurs
 	tutorGenericService := sharedServices.NewUserService(tutorGenericRepo)
-
+	enterpriseService := services.NewEnterpriseService(enterpriseRepo)
 	// === HANDLERS ===
 	// Handler entreprise (existant)
 	//enterpriseHandler := handlers.NewEnterpriseHandler(enterpriseService)
@@ -60,9 +64,10 @@ func main() {
 	// Services partagés
 	authService := sharedServices.NewAuthService(jwtSecret)
 	authMiddleware := middleware.NewAuthMiddleware(authService)
+	enterpriseHandler := handlers.NewEnterpriseHandler(enterpriseService)
 
 	// Setup des routes
-	r := setupRoutes(tutorGenericHandler, authMiddleware)
+	r := setupRoutes(tutorGenericHandler, enterpriseHandler, authMiddleware)
 
 	fmt.Println("Enterprise microservice running")
 	log.Fatal(http.ListenAndServe(":80", r))

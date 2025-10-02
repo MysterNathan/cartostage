@@ -1,14 +1,17 @@
 package main
 
 import (
-	"github.com/gorilla/mux"
+	"enterprise/internal/handlers"
 	"net/http"
 	sharedHandler "shared/handlers"
 	"shared/middleware"
+
+	"github.com/gorilla/mux"
 )
 
 func setupRoutes(
 	userHandler *sharedHandler.UserHandler,
+	enterpriseHandler *handlers.EnterpriseHandler,
 	authMiddleware *middleware.AuthMiddleware,
 ) *mux.Router {
 	r := mux.NewRouter()
@@ -24,6 +27,7 @@ func setupRoutes(
 	tutorsRouter.HandleFunc("", userHandler.GetAll).Methods("GET")
 
 	tutorsRouter.HandleFunc("/students", userHandler.GetStudents).Methods("GET")
+	tutorsRouter.HandleFunc("/stats", enterpriseHandler.GetStats).Methods("GET")
 
 	tutorsRouter.HandleFunc("", userHandler.Create).Methods("POST")
 
