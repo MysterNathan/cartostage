@@ -14,8 +14,8 @@ export interface Enterprise {
     updated_at: string
 }
 
-export interface EnterpriseWithStats extends Enterprise {
-    total_tutors: number
-    active_stages: number
-    total_students: number
+export interface EnterpriseStats {
+    tutors: number
+    stages: number
+    students: number
 }

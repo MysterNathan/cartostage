@@ -1,5 +1,5 @@
 // lib/enterpriseApi.ts
-import type { EnterpriseData } from '@/types/enterprise'
+import {EnterpriseData, EnterpriseStats} from '@/types/enterprise'
 import type { Stage } from '@/types/stage'
 import type { Tutor } from '@/types/tutor'
 
@@ -131,4 +131,11 @@ export async function getStudents(): Promise<Tutor[]>{
         headers: getAuthHeaders(),
     })
     return handleApiResponse<Tutor[]>(response)
+}
+
+export async function getEnterpriseStats(): Promise<EnterpriseStats>{
+    const response = await fetch(`${API_URL}/api/tutors/stats`, {
+        headers: getAuthHeaders(),
+    })
+    return handleApiResponse<EnterpriseStats>(response)
 }

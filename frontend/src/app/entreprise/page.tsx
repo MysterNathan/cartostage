@@ -4,9 +4,8 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/authApi'
-import { getMyEnterpriseData } from '@/lib/enterpriseApi'
-import type { EnterpriseWithStats } from '@/types/enterprise'
-import type { EnterpriseData } from '@/types/enterprise'
+import { getEnterpriseStats } from '@/lib/enterpriseApi'
+import type { EnterpriseStats } from '@/types/enterprise'
 import type { Tutor } from '@/types/tutor'
 import EnterpriseStats from '@/components/enterprise/EnterpriseStats'
 import TutorsList from '@/components/enterprise/TutorsList'
@@ -15,12 +14,9 @@ import StudentsList from '@/components/enterprise/StudentsList'
 
 export default function MyEnterprisePage() {
     const router = useRouter()
-    const [data, setData] = useState<EnterpriseData | null>(null)
-
-    const [enterprise, setEnterprise] = useState<EnterpriseWithStats | null>(null)
+    const [stats, setStats] = useState<EnterpriseStats | null>(null)
     const [tutors, setTutors] = useState<Tutor[]>([])
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState('')
 
     // États pour les modals
     const [editingTutor, setEditingTutor] = useState<Tutor | null>(null)
@@ -32,38 +28,37 @@ export default function MyEnterprisePage() {
             router.push('/login')
             return
         }
-
-    }, [router])
-
-    useEffect(() => {
         loadData()
-    }, [])
+    }, [router])
 
     const loadData = async () => {
         try {
-            const enterpriseData = await getMyEnterpriseData()
-            setData(enterpriseData)
+            setLoading(true)
+            const enterpriseStats = await getEnterpriseStats()
+            setStats(enterpriseStats)
         } catch (error) {
-            console.error('Erreur:', error)
+            console.error('Erreur lors du chargement des données:', error)
         } finally {
             setLoading(false)
         }
     }
 
     const handleTutorAdded = (newTutor: Tutor) => {
-        setData(prevData => ({
-            ...prevData!,
-            tutors: [...(prevData?.tutors || []), newTutor]
-        }))
+        setTutors(prevTutors => [...prevTutors, newTutor])
+        loadData() // Recharger les stats
     }
 
     const handleTutorUpdated = (updatedTutor: Tutor) => {
-        setData(prevData => ({
-            ...prevData!,
-            tutors: prevData!.tutors.map(tutor =>
+        setTutors(prevTutors =>
+            prevTutors.map(tutor =>
                 tutor.id === updatedTutor.id ? updatedTutor : tutor
             )
-        }))
+        )
+    }
+
+    const handleTutorDelete = (tutorId: number) => {
+        setTutors(prevTutors => prevTutors.filter(t => t.id !== tutorId))
+        loadData() // Recharger les stats
     }
 
     const handleLogout = () => {
@@ -71,8 +66,6 @@ export default function MyEnterprisePage() {
         router.push('/login')
     }
 
-
-    // Gestionnaires pour les tuteurs
     const handleAddTutor = () => {
         setEditingTutor(null)
         setIsTutorNew(true)
@@ -87,14 +80,10 @@ export default function MyEnterprisePage() {
 
     const handleTutorSuccess = (tutor: Tutor) => {
         if (isTutorNew) {
-            setTutors([...tutors, tutor])
+            handleTutorAdded(tutor)
         } else {
-            setTutors(tutors.map(t => t.id === tutor.id ? tutor : t))
+            handleTutorUpdated(tutor)
         }
-    }
-
-    const handleTutorDelete = (tutorId: number) => {
-        setTutors(tutors.filter(t => t.id !== tutorId))
     }
 
     if (loading) {
@@ -108,9 +97,15 @@ export default function MyEnterprisePage() {
         )
     }
 
-    // Calcul des statistiques
-    const safeTutors = tutors || []
-    const activeTutors = safeTutors.length
+    if (!stats) {
+        return (
+            <div className="min-h-screen flex items-center justify-center">
+                <div className="text-center">
+                    <p className="text-gray-600">Aucune donnée disponible</p>
+                </div>
+            </div>
+        )
+    }
 
     return (
         <div className="min-h-screen bg-gray-100">
@@ -120,11 +115,8 @@ export default function MyEnterprisePage() {
                     <div className="flex justify-between items-center h-16">
                         <div>
                             <h1 className="text-xl font-semibold text-gray-900">
-                                {enterprise?.nom || 'Mon Entreprise'}
+                                Mon Entreprise
                             </h1>
-                            {enterprise?.adresse && (
-                                <p className="text-sm text-gray-600">{enterprise.adresse}</p>
-                            )}
                         </div>
                         <div className="flex items-center gap-4">
                             <a
@@ -147,12 +139,14 @@ export default function MyEnterprisePage() {
             {/* Contenu principal */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <EnterpriseStats
-                    activeTutors={activeTutors}
+                    activeTutors={stats.tutors}
+                    totalStages={stats.stages}
+                    totalStudents={stats.students}
                 />
 
                 <TutorsList
-                    tutors={data?.tutors || []}
-                    loading={loading}
+                    tutors={tutors}
+                    loading={false}
                     onTutorAdded={handleTutorAdded}
                     onTutorUpdated={handleTutorUpdated}
                 />
@@ -169,7 +163,8 @@ export default function MyEnterprisePage() {
                     isNew={isTutorNew}
                 />
             )}
-            {/* Nouvelle section pour les élèves */}
+
+            {/* Section élèves */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <StudentsList />
             </div>
