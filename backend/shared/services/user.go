@@ -3,11 +3,12 @@ package services
 import (
 	"context"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
 	sharedContext "shared/context"
 	"shared/models"
 	"shared/repositories"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type UserService struct {
@@ -46,8 +47,8 @@ func (s *UserService) GetUsersByRole(ctx context.Context, targetRole models.User
 	return publicUsers, nil
 }
 
-func (s *UserService) GetStudentByTutor(ctx context.Context, id int) (*[]models.User, error) {
-	return s.userRepo.GetStudentByTutor(ctx, id)
+func (s *UserService) GetStudentByTutor(ctx context.Context) (*[]models.User, error) {
+	return s.userRepo.GetStudentByTutor(ctx)
 }
 
 func (s *UserService) CreateUser(ctx context.Context, req *models.CreateUserRequest) (*models.UserPublic, error) {

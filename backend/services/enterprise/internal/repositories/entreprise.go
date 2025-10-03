@@ -205,10 +205,11 @@ func (r *EnterpriseRepository) GetStats(ctx context.Context) (*models.Enterprise
 
 	// Nombre de tuteurs dans l'établissement de l'utilisateur
 	queryTutors := `
-		SELECT COUNT(*) 
-		FROM stages 
-		WHERE establishment_id = (SELECT establishment_id FROM "users" WHERE id = $1);
-	`
+		SELECT COUNT(DISTINCT s.tutor_id) AS nb_tuteurs_uniques
+		FROM stages s
+         JOIN users u ON u.establishment_id = s.establishment_id
+		WHERE u.id = $1
+		`
 	if err := r.db.QueryRowContext(ctx, queryTutors, claims.UserID).Scan(&result.TotalTutors); err != nil {
 		return nil, err
 	}

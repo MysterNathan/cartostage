@@ -56,7 +56,7 @@ func (h *UserHandler) GetStudents(w http.ResponseWriter, r *http.Request) {
 	if claims.Role != "tutor" {
 		http.Error(w, "Unauthorized", http.StatusUnauthorized)
 	}
-	students, err := h.userService.GetStudentByTutor(r.Context(), claims.UserID)
+	students, err := h.userService.GetStudentByTutor(r.Context())
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
