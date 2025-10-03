@@ -10,7 +10,7 @@ const (
 	RoleAdmin   UserRole = "admin"
 	RoleTeacher UserRole = "teacher"
 	RoleTutor   UserRole = "tutor"
-	RoleStudent UserRole = "student"
+	RoleStudent UserRole = "eleve"
 )
 
 // Méthode pour valider le rôle

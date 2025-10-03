@@ -4,7 +4,7 @@ export interface User {
     first_name: string
     last_name: string
     email: string
-    role: 'admin' | 'tutor' | 'eleve' | 'teacher' | 'enterprise'
+    role: 'admin' | 'tutor' | 'student' | 'teacher' | 'enterprise'
     entity_type?: string
     entity_id?: number
     is_active: boolean
@@ -44,7 +44,7 @@ export interface CreateUserRequest {
     last_name: string
     email: string
     password: string
-    role: 'admin' | 'tutor' | 'eleve' | 'teacher' | 'enterprise'
+    role: 'admin' | 'tutor' | 'student' | 'teacher' | 'enterprise'
     entity_type?: string
     entity_id?: number
     phone?: string

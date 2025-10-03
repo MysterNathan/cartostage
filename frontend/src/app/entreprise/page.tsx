@@ -43,48 +43,11 @@ export default function MyEnterprisePage() {
         }
     }
 
-    const handleTutorAdded = (newTutor: Tutor) => {
-        setTutors(prevTutors => [...prevTutors, newTutor])
-        loadData() // Recharger les stats
-    }
-
-    const handleTutorUpdated = (updatedTutor: Tutor) => {
-        setTutors(prevTutors =>
-            prevTutors.map(tutor =>
-                tutor.id === updatedTutor.id ? updatedTutor : tutor
-            )
-        )
-    }
-
-    const handleTutorDelete = (tutorId: number) => {
-        setTutors(prevTutors => prevTutors.filter(t => t.id !== tutorId))
-        loadData() // Recharger les stats
-    }
-
     const handleLogout = () => {
         authApi.logout()
         router.push('/login')
     }
-
-    const handleAddTutor = () => {
-        setEditingTutor(null)
-        setIsTutorNew(true)
-        setIsTutorModalOpen(true)
-    }
-
-    const handleEditTutor = (tutor: Tutor) => {
-        setEditingTutor(tutor)
-        setIsTutorNew(false)
-        setIsTutorModalOpen(true)
-    }
-
-    const handleTutorSuccess = (tutor: Tutor) => {
-        if (isTutorNew) {
-            handleTutorAdded(tutor)
-        } else {
-            handleTutorUpdated(tutor)
-        }
-    }
+    
 
     if (loading) {
         return (
@@ -147,8 +110,6 @@ export default function MyEnterprisePage() {
                 <TutorsList
                     tutors={tutors}
                     loading={false}
-                    onTutorAdded={handleTutorAdded}
-                    onTutorUpdated={handleTutorUpdated}
                 />
             </div>
 

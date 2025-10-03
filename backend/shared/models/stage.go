@@ -23,7 +23,7 @@ type Stage struct {
 type StageWithDetails struct {
 	Stage
 	StageOffer    *StageOffer    `json:"stage_offer,omitempty"`
-	Student       *UserPublic    `json:"student,omitempty"`
+	Student       *UserPublic    `json:"eleve,omitempty"`
 	Teacher       *UserPublic    `json:"teacher,omitempty"`
 	Tutor         *UserPublic    `json:"tutor,omitempty"`
 	Establishment *Establishment `json:"establishment,omitempty"`
