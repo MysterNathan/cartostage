@@ -32,43 +32,220 @@ CREATE TRIGGER update_users_updated_at
 INSERT INTO users (
     username, first_name, last_name, email, password_hash, role, phone, establishment_id
 ) VALUES
+      -- Admin (1)
       (
           'admin_user',
           'Marie',
           'Dupont',
           'admin@techcorp-solutions.fr',
-          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei', -- hash de "admin"
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
           'admin',
           '+33 6 12 34 56 78',
           1
       ),
+
+      -- Students (10)
       (
-          'student_john',
-          'John',
-          'Martin',
-          'john.martin@student.edu',
-          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei', -- hash de "admin"
+          'student_lucas',
+          'Lucas',
+          'Bernard',
+          'lucas.bernard@student.edu',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
           'student',
-          '+33 6 98 65 43 21',
+          '+33 6 11 22 33 44',
           NULL
       ),
       (
-          'teacher_sophie',
-          'Sophie',
-          'Lefebvre',
-          'sophie.lefebvre@digital-marketing-pro.com',
-          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei', -- hash de "admin"
+          'student_emma',
+          'Emma',
+          'Petit',
+          'emma.petit@student.edu',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'student',
+          '+33 6 22 33 44 55',
+          NULL
+      ),
+      (
+          'student_theo',
+          'Théo',
+          'Dubois',
+          'theo.dubois@student.edu',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'student',
+          '+33 6 33 44 55 66',
+          NULL
+      ),
+      (
+          'student_lea',
+          'Léa',
+          'Moreau',
+          'lea.moreau@student.edu',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'student',
+          '+33 6 44 55 66 77',
+          NULL
+      ),
+      (
+          'student_hugo',
+          'Hugo',
+          'Simon',
+          'hugo.simon@student.edu',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'student',
+          '+33 6 55 66 77 88',
+          NULL
+      ),
+      (
+          'student_chloe',
+          'Chloé',
+          'Laurent',
+          'chloe.laurent@student.edu',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'student',
+          '+33 6 66 77 88 99',
+          NULL
+      ),
+      (
+          'student_arthur',
+          'Arthur',
+          'Lefevre',
+          'arthur.lefevre@student.edu',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'student',
+          '+33 6 77 88 99 00',
+          NULL
+      ),
+      (
+          'student_camille',
+          'Camille',
+          'Roux',
+          'camille.roux@student.edu',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'student',
+          '+33 6 88 99 00 11',
+          NULL
+      ),
+      (
+          'student_louis',
+          'Louis',
+          'Fournier',
+          'louis.fournier@student.edu',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'student',
+          '+33 6 99 00 11 22',
+          NULL
+      ),
+      (
+          'student_alice',
+          'Alice',
+          'Girard',
+          'alice.girard@student.edu',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'student',
+          '+33 6 00 11 22 33',
+          NULL
+      ),
+
+      -- Teachers (5)
+      (
+          'teacher_pierre',
+          'Pierre',
+          'Bonnet',
+          'pierre.bonnet@digital-marketing-pro.com',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
           'teacher',
-          '+33 6 55 44 33 22',
+          '+33 6 10 20 30 40',
           2
       ),
       (
-          'tutor_jean',
-          'Jean',
+          'teacher_julie',
+          'Julie',
+          'Mercier',
+          'julie.mercier@techcorp-solutions.fr',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'teacher',
+          '+33 6 20 30 40 50',
+          1
+      ),
+      (
+          'teacher_marc',
           'Marc',
-          'jeanm@digital-marketing-pro.com',
-          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei', -- hash de "admin"
-          'tutor',
-          '+33 6 55 44 33 23',
+          'Vincent',
+          'marc.vincent@digital-marketing-pro.com',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'teacher',
+          '+33 6 30 40 50 60',
           2
+      ),
+      (
+          'teacher_claire',
+          'Claire',
+          'Rousseau',
+          'claire.rousseau@techcorp-solutions.fr',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'teacher',
+          '+33 6 40 50 60 70',
+          1
+      ),
+      (
+          'teacher_nicolas',
+          'Nicolas',
+          'Blanc',
+          'nicolas.blanc@digital-marketing-pro.com',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'teacher',
+          '+33 6 50 60 70 80',
+          2
+      ),
+
+      -- Tutors (5)
+      (
+          'tutor_sophie',
+          'Sophie',
+          'Garnier',
+          'sophie.garnier@techcorp-solutions.fr',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'tutor',
+          '+33 6 60 70 80 90',
+          1
+      ),
+      (
+          'tutor_francois',
+          'François',
+          'Faure',
+          'francois.faure@digital-marketing-pro.com',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'tutor',
+          '+33 6 70 80 90 01',
+          2
+      ),
+      (
+          'tutor_isabelle',
+          'Isabelle',
+          'Andre',
+          'isabelle.andre@techcorp-solutions.fr',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'tutor',
+          '+33 6 80 90 01 12',
+          1
+      ),
+      (
+          'tutor_antoine',
+          'Antoine',
+          'Lambert',
+          'antoine.lambert@digital-marketing-pro.com',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'tutor',
+          '+33 6 90 01 12 23',
+          2
+      ),
+      (
+          'tutor_valerie',
+          'Valérie',
+          'Fontaine',
+          'valerie.fontaine@techcorp-solutions.fr',
+          '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
+          'tutor',
+          '+33 6 01 12 23 34',
+          1
       );
