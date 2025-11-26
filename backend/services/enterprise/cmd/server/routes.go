@@ -20,7 +20,7 @@ func setupRoutes(
 	api := r.PathPrefix("/api").Subrouter()
 
 	// === ROUTES TUTEURS (avec handler générique) ===
-	tutorsRouter := api.PathPrefix("/tutors").Subrouter()
+	tutorsRouter := api.PathPrefix("/enterprises").Subrouter()
 	tutorsRouter.Use(authMiddleware.RequireAuth)
 
 	// Routes CRUD génériques avec filtres automatiques basés sur les rôles

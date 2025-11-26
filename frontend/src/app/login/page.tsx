@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { authApi, LoginRequest } from '@/lib/authApi'
+import { authApi, LoginRequest } from '@/lib/api/authApi'
 
 export default function LoginPage() {
     const [credentials, setCredentials] = useState<LoginRequest>({

@@ -3,14 +3,14 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { authApi } from '@/lib/authApi'
-import { getEnterpriseStats } from '@/lib/enterpriseApi'
+import { authApi } from '@/lib/api/authApi'
+import { getEnterpriseStats } from '@/lib/api/enterpriseApi'
 import type { EnterpriseStats } from '@/types/enterprise'
 import type { Tutor } from '@/types/tutor'
 import EnterpriseStats from '@/components/enterprise/EnterpriseStats'
-import TutorsList from '@/components/enterprise/TutorsList'
+import TutorsList from '@/components/misc/TutorsList'
 import TutorModal from '@/components/enterprise/TutorModal'
-import StudentsList from '@/components/enterprise/StudentsList'
+import StudentsList from '@/components/misc/StudentsList'
 
 export default function MyEnterprisePage() {
     const router = useRouter()

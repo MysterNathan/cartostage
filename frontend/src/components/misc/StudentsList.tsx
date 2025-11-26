@@ -1,44 +1,53 @@
-// components/enterprise/TutorsList.tsx
+// components/enterprise/StudentsList.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
-import { addTutor, updateTutor, deleteTutor, getTutors} from '@/lib/enterpriseApi'
-import { formatTutorData } from '@/lib/enterpriseUtils'
-import type { User, } from '@/types/user'
-import {getUserDisplayName} from '@/lib/userUtils'
+import { formatStudentData } from '@/lib/enterpriseUtils'
+import type { User } from '@/types/user'
+import { getUserDisplayName } from '@/lib/userUtils'
+import StudentStageModal from "@/components/enterprise/StudentStageModal";
+import {getStudents} from "@/lib/api/tutorApi";
 
-interface TutorsListProps {
+interface StudentsListProps {
     // Props optionnelles pour override les données
-    initialTutors?: User[]
+    initialStudents?: User[]
     autoFetch?: boolean
 }
 
-export default function TutorsList({ initialTutors, autoFetch = true }: TutorsListProps) {
-    const [tutors, setTutors] = useState<User[]>(initialTutors || [])
-    const [loading, setLoading] = useState(autoFetch && !initialTutors)
+export default function StudentsList({ initialStudents, autoFetch = true }: StudentsListProps) {
+    const [students, setStudents] = useState<User[]>(initialStudents || [])
+    const [loading, setLoading] = useState(autoFetch && !initialStudents)
     const [error, setError] = useState<string | null>(null)
+    const [showForm, setShowForm] = useState(false)
+    const [editingStudent, setEditingStudent] = useState<User | null>(null)
+    const [showStageModal, setShowStageModal] = useState<User | null>(null)
 
-    // Fetch des tuteurs au montage si autoFetch est activé
+
+    // Fetch des étudiants au montage si autoFetch est activé
     useEffect(() => {
-        if (autoFetch && !initialTutors) {
-            loadTutors()
+        if (autoFetch && !initialStudents) {
+            loadStudents()
         }
-    }, [autoFetch, initialTutors])
+    }, [autoFetch, initialStudents])
 
-    const loadTutors = async () => {
+    const loadStudents = async () => {
         try {
             setLoading(true)
             setError(null)
-            const data = await getTutors()
-            setTutors(data || [])
+            const data = await getStudents()
+            setStudents(data || [])
         } catch (error) {
-            console.error('Erreur lors du chargement des tuteurs:', error)
+            console.error('Erreur lors du chargement des élèves:', error)
             setError(error instanceof Error ? error.message : 'Erreur de chargement')
         } finally {
             setLoading(false)
         }
     }
 
+    const handleAdd = () => {
+        setEditingStudent(null)
+        setShowForm(true)
+    }
 
     // Fonction helper pour obtenir les initiales
     const getUserInitials = (user: User): string => {
@@ -52,13 +61,18 @@ export default function TutorsList({ initialTutors, autoFetch = true }: TutorsLi
         return user.profile?.phone || null
     }
 
-    // Fonction helper pour obtenir le poste
-    const getUserPoste = (user: User): string => {
-        return user.profile?.poste || 'Non défini'
+    // Fonction helper pour obtenir la filière
+    const getUserFiliere = (user: User): string => {
+        return user.profile?.filiere || 'Non définie'
     }
 
-    // Afficher l'erreur si il y en a une
-    if (error && !loading) {
+    // Fonction helper pour obtenir l'établissement
+    const getUserEtablissement = (user: User): string => {
+        return user.profile?.etablissement || 'Non défini'
+    }
+
+    // Afficher l'erreur si présente
+    if (error) {
         return (
             <div className="bg-white rounded-lg shadow">
                 <div className="p-6">
@@ -69,7 +83,7 @@ export default function TutorsList({ initialTutors, autoFetch = true }: TutorsLi
                         <h3 className="mt-2 text-sm font-medium text-gray-900">Erreur de chargement</h3>
                         <p className="mt-1 text-sm text-gray-500">{error}</p>
                         <button
-                            onClick={loadTutors}
+                            onClick={loadStudents}
                             className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                         >
                             Réessayer
@@ -86,7 +100,7 @@ export default function TutorsList({ initialTutors, autoFetch = true }: TutorsLi
                 <div className="p-6">
                     <div className="text-center">
                         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                        <p className="text-gray-600">Chargement des tuteurs...</p>
+                        <p className="text-gray-600">Chargement des élèves...</p>
                     </div>
                 </div>
             </div>
@@ -98,7 +112,7 @@ export default function TutorsList({ initialTutors, autoFetch = true }: TutorsLi
             <div className="bg-white rounded-lg shadow overflow-hidden">
                 <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
                     <h3 className="text-lg font-medium text-gray-900">
-                        Tuteurs ({tutors?.length || 0})
+                        Élèves ({students?.length || 0})
                     </h3>
                 </div>
                     <div className="overflow-x-auto">
@@ -106,70 +120,87 @@ export default function TutorsList({ initialTutors, autoFetch = true }: TutorsLi
                             <thead className="bg-gray-50">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Tuteur
+                                    Élève
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Contact
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Poste
+                                    Formation
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Statut
                                 </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
                             </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-gray-200">
-                            {tutors.map((tutor) => (
-                                <tr key={tutor.id} className="hover:bg-gray-50">
+                            {students.map((student) => (
+                                <tr key={student.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0 h-10 w-10">
-                                                <div className="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+                                                <div className="h-10 w-10 rounded-full bg-green-500 flex items-center justify-center">
                                                     <span className="text-sm font-medium text-white">
-                                                        {getUserInitials(tutor)}
+                                                        {getUserInitials(student)}
                                                     </span>
                                                 </div>
                                             </div>
                                             <div className="ml-4">
                                                 <div className="text-sm font-medium text-gray-900">
-                                                    {getUserDisplayName(tutor)}
+                                                    {getUserDisplayName(student)}
                                                 </div>
                                                 <div className="text-sm text-gray-500">
-                                                    @{tutor.username}
+                                                    @{student.username}
                                                 </div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="text-sm text-gray-900">{tutor.email}</div>
-                                        {getUserPhone(tutor) && (
-                                            <div className="text-sm text-gray-500">{getUserPhone(tutor)}</div>
+                                        <div className="text-sm text-gray-900">{student.email}</div>
+                                        {getUserPhone(student) && (
+                                            <div className="text-sm text-gray-500">{getUserPhone(student)}</div>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                            {getUserPoste(tutor)}
+                                        <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-purple-100 text-purple-800">
+                                            {getUserFiliere(student)}
                                         </span>
-                                        {tutor.profile?.departement && (
+                                        {getUserEtablissement(student) && (
                                             <div className="text-xs text-gray-500 mt-1">
-                                                {tutor.profile.departement}
+                                                {getUserEtablissement(student)}
                                             </div>
                                         )}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                                            tutor.is_active && (tutor.profile?.is_active !== false)
+                                            student.is_active && (student.profile?.is_active !== false)
                                                 ? 'bg-green-100 text-green-800'
                                                 : 'bg-red-100 text-red-800'
                                         }`}>
-                                            {tutor.is_active && (tutor.profile?.is_active !== false) ? 'Actif' : 'Inactif'}
+                                            {student.is_active && (student.profile?.is_active !== false) ? 'Actif' : 'Inactif'}
                                         </span>
-                                        {!tutor.email_verified && (
+                                        {!student.email_verified && (
                                             <div className="text-xs text-orange-600 mt-1">
                                                 Email non vérifié
                                             </div>
                                         )}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">(
+                                        <div className="flex items-center space-x-3">
+                                            <button
+                                                onClick={() => setShowStageModal(student)}
+                                                className="text-green-600 hover:text-green-900 font-medium flex items-center"
+                                            >
+                                                <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                                </svg>
+                                                Voir le stage
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             ))}
@@ -177,6 +208,10 @@ export default function TutorsList({ initialTutors, autoFetch = true }: TutorsLi
                         </table>
                     </div>
             </div>
+            <StudentStageModal
+                student={showStageModal}
+                onClose={() => setShowStageModal(null)}
+            />
         </>
     )
 }

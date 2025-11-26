@@ -2,8 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { authApi } from '@/lib/authApi'
-import { getStages, addStage, updateStage, deleteStage } from '@/lib/stageApi'
+import { authApi } from '@/lib/api/authApi'
+import { getStages, addStage, updateStage, deleteStage } from '@/lib/api/stageApi'
 import StageModal from '@/components/admin/StageModal'
 import StatisticsModal from '@/components/admin/StatisticsModal'
 import type {Stage, StageWithDetails} from '@/types/stage'

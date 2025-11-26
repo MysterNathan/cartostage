@@ -1,6 +1,6 @@
 'use client'
 import { useState, useEffect, useCallback } from 'react'
-import { getFilieres, addFiliere, updateFiliere, deleteFiliere } from '@/lib/filiereApi'
+import { getFilieres, addFiliere, updateFiliere, deleteFiliere } from '@/lib/api/filiereApi'
 import type { Filiere } from '@/types/filiere'
 
 export interface UseFilieres {

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import StageSelector from '@/components/StageSelector'
-import { getStages } from '@/lib/stageApi'
+import { getStages } from '@/lib/api/stageApi'
 import type {Stage, StageWithDetails} from '@/types/stage'
 
 // Import dynamique pour éviter les erreurs SSR avec Leaflet

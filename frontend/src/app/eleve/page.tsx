@@ -1,11 +1,12 @@
 'use client'
 import {useEffect, useState} from "react";
-import {getEnterpriseStats} from "@/lib/enterpriseApi";
-import authApi from "@/lib/authApi";
+import {getEnterpriseStats} from "@/lib/api/enterpriseApi";
+import authApi from "@/lib/api/authApi";
 import {router} from "next/client";
 import EnterpriseStats from "@/components/enterprise/EnterpriseStats";
-import TutorsList from "@/components/student/TutorsList";
+import TutorsList from "@/components/misc/TutorsList";
 import {Tutor} from "@/types/tutors";
+import TeachersList from "@/components/misc/TeacherList";
 
 export default function StudentPage() {
     const [loading, setLoading] = useState(true)
@@ -79,6 +80,12 @@ export default function StudentPage() {
                     loading={false}
                 />
             </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <TeachersList
+                tutors={tutors}
+                loading={false}
+            />
+        </div>
         </>
     )
 

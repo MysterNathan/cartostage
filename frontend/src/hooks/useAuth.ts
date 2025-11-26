@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, createContext, useContext } from 'react';
-import { authApi, LoginRequest } from '@/lib/authApi';
+import { authApi, LoginRequest } from '@/lib/api/authApi';
 
 interface AuthContextType {
   isAuthenticated: boolean;

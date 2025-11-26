@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Stage } from '@/types/stage';
-import { addStage, updateStage, deleteStage } from '@/lib/stageApi';
-import { authApi } from '@/lib/authApi';
+import { addStage, updateStage, deleteStage } from '@/lib/api/stageApi';
+import { authApi } from '@/lib/api/authApi';
 import FiliereSelect from '@/components/admin/FiliereSelect';
 import { sanitizeStage } from "@/lib/stageUtils";
 import { handleApiError, isAuthError } from "@/lib/errorUtils";

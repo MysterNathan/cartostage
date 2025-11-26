@@ -2,10 +2,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { addTutor, updateTutor, deleteTutor, getTutors} from '@/lib/stageApi.ts'
 import { formatTutorData } from '@/lib/enterpriseUtils'
 import type { User, } from '@/types/user'
 import {getUserDisplayName} from '@/lib/userUtils'
+import {getTutors} from "@/lib/api/tutorApi";
 
 interface TutorsListProps {
     // Props optionnelles pour override les données

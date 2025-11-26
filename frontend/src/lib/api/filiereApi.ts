@@ -1,5 +1,5 @@
 import type { Filiere, FilieresResponse, CreateFiliereData, UpdateFiliereData } from '@/types/filiere'
-import authApi from "@/lib/authApi";
+import authApi from "@/lib/api/authApi";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_URL = `${API_BASE_URL}/api/filieres`;

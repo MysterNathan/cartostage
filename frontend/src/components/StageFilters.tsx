@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import type { Stage } from '@/types/stage'
 import type { Filiere } from '@/types/filiere'
-import { getFilieres } from '@/lib/filiereApi'
+import { getFilieres } from '@/lib/api/filiereApi'
 
 interface StageFiltersProps {
   stages: Stage[]

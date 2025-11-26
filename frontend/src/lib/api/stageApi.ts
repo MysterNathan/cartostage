@@ -1,6 +1,6 @@
 // lib/stageApi.ts
 import { Stage, StagesData } from "@/types/stage";
-import { authApi } from "@/lib/authApi";
+import { authApi } from "@/lib/api/authApi";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_URL_PUBLIC = `${API_BASE_URL}/api/stages/public`;
