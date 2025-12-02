@@ -3,7 +3,7 @@ import type { Tutor } from '@/types/tutor'
 import {fetchApi} from "@/lib/api/apiHelper";
 
 export async function getTutors(): Promise<Tutor[]> {
-    return fetchApi<Tutor[]>('/api/enterprises')
+    return fetchApi<Tutor[]>('/api/enterprises/users')
 }
 
 export async function getTutorById(id: number): Promise<Tutor> {
@@ -15,7 +15,7 @@ export async function getTeacher(): Promise<Tutor[]> {
 }
 
 export async function getStudents(): Promise<Tutor[]> {
-    return fetchApi<Tutor[]>('/api/enterprises/students')
+    return fetchApi<Tutor[]>('/api/student/users')
 }
 
 export async function addTutor(
