@@ -1,16 +1,15 @@
 package main
 
 import (
-	"enterprise/internal/handlers"
 	"net/http"
 	"shared/middleware"
+	"student/internal/handlers"
 
 	"github.com/gorilla/mux"
 )
 
 func setupRoutes(
 	userHandler *handlers.UserHandler,
-	enterpriseHandler *handlers.EnterpriseHandler,
 	authMiddleware *middleware.AuthMiddleware,
 ) *mux.Router {
 	r := mux.NewRouter()
@@ -21,25 +20,17 @@ func setupRoutes(
 	// API v1
 	api := r.PathPrefix("/api").Subrouter()
 
-	// === ROUTES ENTERPRISES ===
-	enterprises := api.PathPrefix("/enterprises").Subrouter()
-	enterprises.Use(authMiddleware.RequireAuth)
-
-	// Routes CRUD
-	//enterprises.HandleFunc("", enterpriseHandler.GetAll).Methods("GET")
-	//enterprises.HandleFunc("/{id}", enterpriseHandler.GetByID).Methods("GET")
-	enterprises.HandleFunc("/stats", enterpriseHandler.GetStats).Methods("GET")
-	//enterprises.HandleFunc("", enterpriseHandler.Create).Methods("POST")
-	//enterprises.HandleFunc("/{id}", enterpriseHandler.Update).Methods("PUT")
-	//enterprises.HandleFunc("/{id}", enterpriseHandler.Delete).Methods("DELETE")
+	// === ROUTES STUDENT ===
+	student := api.PathPrefix("/student").Subrouter()
+	student.Use(authMiddleware.RequireAuth)
 
 	// Preflight
-	enterprises.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
-	enterprises.HandleFunc("/{id}", corsPreflightHandler).Methods("OPTIONS")
-	enterprises.HandleFunc("/stats", corsPreflightHandler).Methods("OPTIONS")
+	student.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	student.HandleFunc("/{id}", corsPreflightHandler).Methods("OPTIONS")
+	student.HandleFunc("/stats", corsPreflightHandler).Methods("OPTIONS")
 
 	// === ROUTES USERS (TUTEURS) ===
-	users := enterprises.PathPrefix("/users").Subrouter()
+	users := student.PathPrefix("/users").Subrouter()
 	users.Use(authMiddleware.RequireAuth)
 
 	// Routes CRUD avec filtres automatiques basés sur les rôles

@@ -114,16 +114,16 @@ func (s *UserService) Delete(ctx context.Context, req *models.DeleteUserRequest)
 	}
 
 	// Validation basique
-	if req.Id == 0 {
+	if req.ID == 0 {
 		return 0, fmt.Errorf("id user is required")
 	}
 
-	err := s.userRepo.Delete(ctx, req.Id)
+	err := s.userRepo.Delete(ctx, req.ID)
 	if err != nil {
 		return 0, err
 	}
 
-	return req.Id, nil
+	return req.ID, nil
 }
 func (s *UserService) UpdateUser(ctx context.Context, userID int, req *models.UpdateUserRequest) (*models.UserPublic, error) {
 	// Vérifier les permissions

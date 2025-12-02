@@ -2,9 +2,6 @@ package main
 
 import (
 	"context"
-	"enterprise/internal/handlers"
-	"enterprise/internal/repositories"
-	"enterprise/internal/services"
 	"fmt"
 	"log"
 	"net/http"
@@ -13,6 +10,9 @@ import (
 	"shared/config"
 	"shared/middleware"
 	sharedServices "shared/services"
+	"student/internal/handlers"
+	"student/internal/repositories"
+	"student/internal/services"
 	"time"
 )
 
@@ -27,11 +27,9 @@ func main() {
 
 	// Initialiser les repositories
 	userRepo := repositories.NewUserRepository(db)
-	enterpriseRepo := repositories.NewEnterpriseRepository(db)
 
 	// Initialiser les services
-	userService := services.NewUserService(userRepo)
-	enterpriseService := services.NewEnterpriseService(enterpriseRepo)
+	userService := services.NewUserService(&userRepo)
 
 	// Initialiser le middleware d'authentification
 	jwtSecret := os.Getenv("JWT_SECRET")
@@ -43,10 +41,9 @@ func main() {
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 	// Initialiser les handlers
 	userHandler := handlers.NewUserHandler(userService)
-	enterpriseHandler := handlers.NewEnterpriseHandler(enterpriseService)
 
 	// Configurer les routes
-	router := setupRoutes(userHandler, enterpriseHandler, authMiddleware)
+	router := setupRoutes(userHandler, authMiddleware)
 
 	// Configuration du serveur
 	port := os.Getenv("PORT")

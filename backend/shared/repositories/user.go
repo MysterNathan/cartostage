@@ -123,7 +123,7 @@ func (r *UserRepository) GetStudentByTutor(ctx context.Context) (*[]models.User,
 	var users []models.User
 	err := r.db.SelectContext(ctx, &users, query, claims.UserID)
 	if err != nil {
-		return nil, fmt.Errorf("failed to get students for tutor %s: %w", claims.UserID, err)
+		return nil, fmt.Errorf("failed to get student for tutor %s: %w", claims.UserID, err)
 	}
 
 	return &users, nil

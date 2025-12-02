@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   postgres:
     image: postgres:16-alpine
@@ -67,6 +65,27 @@ services:
       context: ./backend
       dockerfile: services/enterprise/Dockerfile
     container_name: stages-enterprise
+    restart: unless-stopped
+    environment:
+      PORT: 80
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: stages_user
+      POSTGRES_PASSWORD: stages_password
+      POSTGRES_DB: postgres
+      JWT_SECRET: 'Er3vsrwb3y35GN6kQH9fFs6HdQnqMh+WV0uJiQHUkvuFZMSczD/jf/wMCA31Jx2a WvZZaRkylQ9iCqcToLNpOQ=='
+    expose:
+      - "80"
+    depends_on:
+      - postgres
+    networks:
+      - stages-network
+
+  student-service:
+    build:
+      context: ./backend
+      dockerfile: services/student/Dockerfile
+    container_name: stages-student
     restart: unless-stopped
     environment:
       PORT: 80
