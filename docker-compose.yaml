@@ -102,6 +102,27 @@ services:
     networks:
       - stages-network
 
+  teacher-service:
+    build:
+      context: ./backend
+      dockerfile: services/teacher/Dockerfile
+    container_name: stages-teacher
+    restart: unless-stopped
+    environment:
+      PORT: 80
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: stages_user
+      POSTGRES_PASSWORD: stages_password
+      POSTGRES_DB: postgres
+      JWT_SECRET: 'Er3vsrwb3y35GN6kQH9fFs6HdQnqMh+WV0uJiQHUkvuFZMSczD/jf/wMCA31Jx2a WvZZaRkylQ9iCqcToLNpOQ=='
+    expose:
+      - "80"
+    depends_on:
+      - postgres
+    networks:
+      - stages-network
+
 
   frontend:
     build:
