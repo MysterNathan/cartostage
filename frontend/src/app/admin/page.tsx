@@ -28,6 +28,10 @@ export default function AdminPage() {
       router.push('/login')
       return
     }
+    if (!authApi.isAdmin()){
+      router.push('/')
+      return
+    }
 
     loadStages()
   }, [router])

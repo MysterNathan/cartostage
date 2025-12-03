@@ -28,6 +28,10 @@ export default function MyEnterprisePage() {
             router.push('/login')
             return
         }
+        if (!authApi.isTutor()){
+            router.push('/')
+            return
+        }
         loadData()
     }, [router])
 

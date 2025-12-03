@@ -11,7 +11,7 @@ export async function getTutorById(id: number): Promise<Tutor> {
 }
 
 export async function getTeacher(): Promise<Tutor[]> {
-    return fetchApi<Tutor[]>('/api/teacher')
+    return fetchApi<Tutor[]>('/api/teacher/users')
 }
 
 export async function getStudents(): Promise<Tutor[]> {

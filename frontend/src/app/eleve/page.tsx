@@ -7,14 +7,20 @@ import EnterpriseStats from "@/components/enterprise/EnterpriseStats";
 import TutorsList from "@/components/misc/TutorsList";
 import {Tutor} from "@/types/tutors";
 import TeachersList from "@/components/misc/TeacherList";
+import {useRouter} from "next/navigation";
 
 export default function StudentPage() {
     const [loading, setLoading] = useState(true)
     const [tutors, setTutors] = useState<Tutor[]>([])
+    const router = useRouter()
 
     useEffect(() => {
         if (!authApi.isAuthenticated()) {
             router.push('/login')
+            return
+        }
+        if (!authApi.isStudent()){
+            router.push('/')
             return
         }
         loadData()
@@ -54,7 +60,7 @@ export default function StudentPage() {
                     <div className="flex justify-between items-center h-16">
                         <div>
                             <h1 className="text-xl font-semibold text-gray-900">
-                                Mon Entreprise
+                                Mon Espace Eleve
                             </h1>
                         </div>
                         <div className="flex items-center gap-4">

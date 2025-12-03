@@ -84,12 +84,13 @@ export const authApi = {
     });
 
     const data = await handleApiResponse<LoginResponse>(response);
-    console.log(data);
+    console.log("datas: ", data);
 
     // Stocker le token en localStorage après une connexion réussie
     if (data.token) {
       localStorage.setItem('authToken', data.token);
       localStorage.setItem('authTokenExpiry', data.expires_at);
+      localStorage.setItem('role', data.user.Role);
     }
 
     return data;
@@ -124,6 +125,22 @@ export const authApi = {
     }
 
     return true;
+  },
+
+  isStudent(): boolean {
+    return localStorage.getItem('role')=='eleve' || localStorage.getItem('role')=='admin';
+  },
+
+  isTeacher(): boolean {
+    return localStorage.getItem('role')=='teacher' || localStorage.getItem('role')=='admin';
+  },
+
+  isTutor(): boolean {
+    return localStorage.getItem('role')=='tutor' || localStorage.getItem('role')=='admin';
+  },
+
+  isAdmin() {
+    return localStorage.getItem('role')=='admin';
   },
 
   // Récupérer le token actuel
@@ -183,6 +200,7 @@ export const authApi = {
 
     return handleApiResponse<void>(response);
   },
+
 };
 
 export default authApi;
