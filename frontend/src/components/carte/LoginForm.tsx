@@ -98,7 +98,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
 
         <div className="text-center">
           <a
-            href="/"
+            href="/frontend/public"
             className="text-blue-600 hover:text-blue-800 text-sm"
           >
             ← Retour à la carte des stages
