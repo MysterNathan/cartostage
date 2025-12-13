@@ -23,7 +23,7 @@ func NewEnterpriseHandler(service *services.EnterpriseService) *EnterpriseHandle
 
 func (h *EnterpriseHandler) GetStats(w http.ResponseWriter, r *http.Request) {
 	claims := sharedContext.GetClaimsFromContext(r.Context())
-	if claims.Role != "tutor" {
+	if claims.Role != "tutor" && claims.Role != "admin" {
 		http.Error(w, "User not allowed", http.StatusForbidden)
 	}
 	stats, _ := h.service.GetStats(r.Context())
