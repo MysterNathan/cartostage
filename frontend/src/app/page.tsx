@@ -90,7 +90,7 @@ export default function HomePage() {
                                     Accédez aux informations de vos stagiaires
                                 </p>
                                 <button
-                                    onClick={() => router.push('/entreprise')}
+                                    onClick={() => router.push('/tuteur')}
                                     className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                                 >
                                     Accéder
