@@ -150,7 +150,7 @@
 //                                 value={formData.status}
 //                                 onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
 //                                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-//                                 disabled={!isNew} // Le statut ne peut être modifié que par l'entreprise
+//                                 disabled={!isNew} // Le statut ne peut être modifié que par l'tuteur
 //                             >
 //                                 <option value="pending">En attente</option>
 //                                 <option value="accepted">Acceptée</option>

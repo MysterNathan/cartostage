@@ -60,23 +60,6 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen bg-gray-100 text-gray-900">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b border-gray-200">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <h1 className="text-xl font-semibold text-gray-900">
-                            Administration des stages
-                        </h1>
-                        <a
-                            href="/"
-                            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                        >
-                            Retour à la carte
-                        </a>
-                    </div>
-                </div>
-            </header>
-
             {/* Formulaire de connexion */}
             <div className="flex justify-center items-center min-h-[calc(100vh-4rem)] px-4 sm:px-6 lg:px-8">
                 <div className="max-w-md w-full space-y-8">

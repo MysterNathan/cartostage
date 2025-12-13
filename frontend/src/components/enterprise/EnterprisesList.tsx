@@ -19,7 +19,7 @@ export default function EnterprisesList({ enterprises, loading }: EnterprisesLis
         )
     }
 
-    // Cas où il n'y a aucune entreprise
+    // Cas où il n'y a aucune tuteur
     if (!enterprises || enterprises.length === 0) {
         return (
             <div className="bg-white rounded-lg shadow">

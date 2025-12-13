@@ -99,7 +99,7 @@ export default function StatisticsModal({ stages, isOpen, onClose }: StatisticsM
       byPeriod: createStats('period', parcoursYStages),
       byCommune: createStats('commune', parcoursYStages),
       bySector: createStats('sector', parcoursYStages),
-      byEntreprise: createStats('entreprise', parcoursYStages)
+      byEntreprise: createStats('tuteur', parcoursYStages)
     }
 
     return {

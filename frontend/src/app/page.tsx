@@ -6,79 +6,11 @@ import { authApi } from '@/lib/api/authApi'
 import Image from 'next/image'
 
 export default function HomePage() {
-    const router = useRouter()
-    const [loading, setLoading] = useState(true)
+    const router = useRouter();
 
-    useEffect(() => {
-        // Vérifier l'authentification au chargement
-        setLoading(false)
-    }, [])
-
-    const handleLogin = () => {
-        router.push('/login')
-    }
-
-    const handleAdmin = () => {
-        if (authApi.isAdmin()) {
-            router.push('/admin')
-        } else {
-            router.push('/login')
-        }
-    }
-
-    // Affichage du loader pendant le chargement initial
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Chargement...</p>
-                </div>
-            </div>
-        )
-    }
 
     return (
         <div className="min-h-screen bg-gray-100 flex flex-col">
-            {/* Header */}
-            <header className="bg-white shadow-sm border-b">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                    <div className="flex justify-between items-center h-16">
-                        <h1 className="text-xl font-semibold text-gray-900">Carte des stages</h1>
-                        <div className="flex items-center gap-4">
-                            {authApi.isAuthenticated() ? (
-                                <>
-                                    {authApi.isAdmin() && (
-                                        <button
-                                            onClick={handleAdmin}
-                                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                                        >
-                                            Administration
-                                        </button>
-                                    )}
-                                    <button
-                                        onClick={() => {
-                                            authApi.logout()
-                                            window.location.reload()
-                                        }}
-                                        className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
-                                    >
-                                        Déconnexion
-                                    </button>
-                                </>
-                            ) : (
-                                <button
-                                    onClick={handleLogin}
-                                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
-                                >
-                                    Connexion
-                                </button>
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </header>
-
             {/* Body - 3 cases pour les espaces */}
             <main className="flex-grow py-12 px-4 bg-white"
                   style={{
@@ -111,9 +43,7 @@ export default function HomePage() {
                                     Consultez la carte des stages disponibles
                                 </p>
                                 <button
-                                    onClick={() => {
-                                        // À compléter
-                                    }}
+                                    onClick={() => router.push('/eleve')}
                                     className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                                 >
                                     Accéder
@@ -139,9 +69,7 @@ export default function HomePage() {
                                     Gérez les stages et suivez vos élèves
                                 </p>
                                 <button
-                                    onClick={() => {
-                                        // À compléter
-                                    }}
+                                    onClick={() => router.push('/enseignant')}
                                     className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                                 >
                                     Accéder
@@ -162,9 +90,7 @@ export default function HomePage() {
                                     Accédez aux informations de vos stagiaires
                                 </p>
                                 <button
-                                    onClick={() => {
-                                        // À compléter
-                                    }}
+                                    onClick={() => router.push('/entreprise')}
                                     className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
                                 >
                                     Accéder
@@ -174,15 +100,6 @@ export default function HomePage() {
                     </div>
                 </div>
             </main>
-
-            {/* Footer */}
-            <footer className="bg-white border-t">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-                    <div className="text-center text-gray-600 text-sm">
-                        <p>© {new Date().getFullYear()} Carte des stages - Tous droits réservés</p>
-                    </div>
-                </div>
-            </footer>
         </div>
     )
 }

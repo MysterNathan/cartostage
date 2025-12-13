@@ -128,7 +128,7 @@ export const authApi = {
   },
 
   isStudent(): boolean {
-    return localStorage.getItem('role')=='eleve' || localStorage.getItem('role')=='admin';
+    return localStorage.getItem('role')=='student' || localStorage.getItem('role')=='admin';
   },
 
   isTeacher(): boolean {
