@@ -1,16 +1,16 @@
+// app/student/page.tsx
 'use client'
-import {useEffect, useState} from "react";
-import {getEnterpriseStats} from "@/lib/api/enterpriseApi";
-import authApi from "@/lib/api/authApi";
-import {router} from "next/client";
-import EnterpriseStats from "@/components/enterprise/EnterpriseStats";
-import TutorsList from "@/components/misc/TutorsList";
-import {Tutor} from "@/types/tutors";
-import TeachersList from "@/components/misc/TeacherList";
-import {useRouter} from "next/navigation";
+
+import { useEffect, useState } from "react"
+import authApi from "@/lib/api/authApi"
+import TutorsList from "@/components/misc/TutorsList"
+import { Tutor } from "@/types/user"
+import TeachersList from "@/components/misc/TeacherList"
+import { useRouter } from "next/navigation"
+import StageMapView from "@/components/student/MapModal"
+import { getStages } from "@/lib/api/stageApi"
 
 export default function StudentPage() {
-    const [loading, setLoading] = useState(true)
     const [tutors, setTutors] = useState<Tutor[]>([])
     const router = useRouter()
 
@@ -19,54 +19,55 @@ export default function StudentPage() {
             router.push('/login')
             return
         }
-        if (!authApi.isStudent()){
+        if (!authApi.isStudent()) {
             router.push('/')
             return
         }
-        loadData()
     }, [router])
 
-    const loadData = async () => {
-        try {
-            setLoading(true)
-            //const studentDatas = await getStudentDatas()
-        } catch (error) {
-            console.error('Erreur lors du chargement des données:', error)
-        } finally {
-            setLoading(false)
-        }
+    const handleMap = () => {
+        router.push('/carte')
     }
+    
+    return (
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-[1920px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                {/* En-tête avec bouton carte */}
+                <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Espace Élève</h1>
+                        <p className="mt-2 text-gray-600">Gérez vos contacts et consultez les stages disponibles</p>
+                    </div>
 
-    const handleLogout = () => {
-        authApi.logout()
-        router.push('/login')
-    }
+                    <div className="flex justify-start md:justify-end">
+                        <button
+                            onClick={handleMap}
+                            className="px-6 py-3 bg-green-400 text-white font-semibold rounded-lg shadow-md hover:bg-green-500 transition-colors duration-200 cursor-pointer"
+                        >
+                            Accéder à la carte
+                        </button>
+                    </div>
+                </div>
 
-    if (loading) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-500 mx-auto mb-4"></div>
-                    <p className="text-gray-600">Chargement...</p>
+                {/* Tuteurs et Enseignants côte à côte - Plus larges */}
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 mb-8">
+                    {/* Tuteurs */}
+                    <div className="w-full">
+                        <TutorsList
+                            tutors={tutors}
+                            loading={false}
+                        />
+                    </div>
+
+                    {/* Enseignants */}
+                    <div className="w-full">
+                        <TeachersList
+                            tutors={tutors}
+                            loading={false}
+                        />
+                    </div>
                 </div>
             </div>
-        )
-    }
-    return(
-        <>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <TutorsList
-                    tutors={tutors}
-                    loading={false}
-                />
-            </div>
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <TeachersList
-                tutors={tutors}
-                loading={false}
-            />
         </div>
-        </>
     )
-
 }

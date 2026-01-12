@@ -5,38 +5,22 @@ export interface User {
     last_name: string
     email: string
     role: 'admin' | 'tutor' | 'student' | 'teacher' | 'enterprise'
-    entity_type?: string
-    entity_id?: number
     is_active: boolean
-    email_verified: boolean
     created_at: string
     updated_at: string
     last_login?: string
-    profile?: UserProfile
 }
 
-export interface UserProfile {
-    user_id: number
-    phone?: string
-    poste?: string
-    departement?: string
-    is_active: boolean
-    created_at: string
-    updated_at: string
-}
-
-// Interface spécifique pour les tuteurs (pour compatibilité avec votre code existant)
 export interface Tutor extends User {
     role: 'tutor'
-    entity_type: 'company'
-    entity_id: number
-    profile: UserProfile & {
-        phone: string
-        poste: string
-        departement: string
-    }
 }
 
+export interface Teacher extends User {
+    role: 'teacher'
+}
+export interface Student extends User {
+    role: 'student'
+}
 // DTOs pour les requêtes
 export interface CreateUserRequest {
     username: string

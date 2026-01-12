@@ -7,7 +7,7 @@ CREATE TABLE users (
                        last_name VARCHAR(100) NOT NULL,
                        email VARCHAR(320) UNIQUE NOT NULL CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
                        password_hash VARCHAR(255) NOT NULL,
-                       role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'tutor', 'eleve', 'teacher')),
+                       role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'tutor', 'student', 'teacher')),
                        phone VARCHAR(20),
                        establishment_id INTEGER REFERENCES establishments(id) ON DELETE SET NULL,
                        is_active BOOLEAN NOT NULL DEFAULT TRUE,

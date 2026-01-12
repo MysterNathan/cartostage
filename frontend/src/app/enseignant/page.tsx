@@ -4,18 +4,16 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/api/authApi'
-import {getEnterpriseStats, getStudentsUser} from '@/lib/api/enterpriseApi'
-import type { EnterpriseStats } from '@/types/enterprise'
-import type { Tutor, Student } from '@/types/tutor'
-import EnterpriseStats from '@/components/enterprise/EnterpriseStats'
+import {getStudentsUser, getTutorUser} from '@/lib/api/enterpriseApi'
+import type { Tutor } from '@/types/tutor'
 import TutorsList from '@/components/misc/TutorsList'
 import TutorModal from '@/components/enterprise/TutorModal'
 import StudentsList from '@/components/misc/StudentsList'
+import {Student, Tutors} from "@/types/user";
 
 export default function MyEnterprisePage() {
     const router = useRouter()
-    const [stats, setStats] = useState<EnterpriseStats | null>(null)
-    const [tutors, setTutors] = useState<Tutor[]>([])
+    const [tutors, setTutors] = useState<Tutors[]>([])
     const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(true)
 
@@ -29,7 +27,7 @@ export default function MyEnterprisePage() {
             router.push('/login')
             return
         }
-        if (!authApi.isTutor()){
+        if (!authApi.isTeacher()){
             router.push('/')
             return
         }
@@ -39,10 +37,10 @@ export default function MyEnterprisePage() {
     const loadData = async () => {
         try {
             setLoading(true)
-            const enterpriseStats = await getEnterpriseStats()
-            setStats(enterpriseStats)
-            const studentsUsers = await getStudentsUser()
-            setStudents(studentsUsers)
+            const tutorsDatas = await getTutorUser()
+            const studentDatas = await getStudentsUser()
+            setTutors(tutorsDatas)
+            setStudents(studentDatas)
         } catch (error) {
             console.error('Erreur lors du chargement des données:', error)
         } finally {
@@ -67,28 +65,12 @@ export default function MyEnterprisePage() {
         )
     }
 
-    if (!stats) {
-        return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-center">
-                    <p className="text-gray-600">Aucune donnée disponible</p>
-                </div>
-            </div>
-        )
-    }
-
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Contenu principal */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <EnterpriseStats
-                    activeTutors={stats.tutors}
-                    totalStages={stats.stages}
-                    totalStudents={stats.students}
-                />
-
                 <TutorsList
-                    tutors={tutors}
+                    initialTutors={tutors}
                     loading={false}
                 />
             </div>
@@ -108,7 +90,7 @@ export default function MyEnterprisePage() {
             {/* Section élèves */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <StudentsList
-                    students={students}
+                students={students}
                 />
             </div>
         </div>

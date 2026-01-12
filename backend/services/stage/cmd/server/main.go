@@ -34,7 +34,6 @@ func main() {
 	}
 	defer db.Close()
 
-	// === SIMPLE SETUP ===
 	stageRepository := repositories.NewStageRepository(db)
 	filiereRepository := repositories.NewFiliereRepository(db)
 

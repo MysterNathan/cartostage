@@ -123,6 +123,27 @@ services:
     networks:
       - stages-network
 
+  form-service:
+    build:
+      context: ./backend
+      dockerfile: services/form/Dockerfile
+    container_name: stages-form
+    restart: unless-stopped
+    environment:
+      PORT: 80
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: form
+      POSTGRES_PASSWORD: form_password
+      POSTGRES_DB: postgres
+      JWT_SECRET: 'Er3vsrwb3y35GN6kQH9fFs6HdQnqMh+WV0uJiQHUkvuFZMSczD/jf/wMCA31Jx2a WvZZaRkylQ9iCqcToLNpOQ=='
+    expose:
+      - "80"
+    depends_on:
+      - postgres
+    networks:
+      - stages-network
+
 
   frontend:
     build:

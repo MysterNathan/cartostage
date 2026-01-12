@@ -27,7 +27,6 @@ func setupRoutes(
 	// Preflight
 	teacher.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 	teacher.HandleFunc("/{id}", corsPreflightHandler).Methods("OPTIONS")
-	teacher.HandleFunc("/stats", corsPreflightHandler).Methods("OPTIONS")
 
 	// === ROUTES USERS (TEACHER) ===
 	users := teacher.PathPrefix("/users").Subrouter()

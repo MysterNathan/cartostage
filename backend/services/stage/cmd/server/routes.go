@@ -4,8 +4,9 @@ import (
 	"net/http"
 	"shared/middleware"
 
-	"github.com/gorilla/mux"
 	"stage/internal/handlers"
+
+	"github.com/gorilla/mux"
 )
 
 func setupRoutes(
