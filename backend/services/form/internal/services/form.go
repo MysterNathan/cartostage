@@ -27,3 +27,14 @@ func (s FormService) UpdateForm(ctx context.Context, data models.Form, formId in
 	}
 	return s.formRepository.UpdateForm(ctx, data, claims.UserID, formId)
 }
+
+func (s FormService) CreateForm(ctx context.Context, data models.Form) (*models.Form, error) {
+	claims := sharedContext.GetClaimsFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("no claims found in context")
+	}
+	if claims.UserID != *data.TeacherID {
+		return nil, fmt.Errorf("invalid teacher ID")
+	}
+	return s.formRepository.CreateForm(ctx, data, claims.UserID)
+}

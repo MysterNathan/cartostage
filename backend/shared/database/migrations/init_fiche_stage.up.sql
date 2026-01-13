@@ -8,7 +8,7 @@ CREATE TYPE user_type AS ENUM ('TEACHER', 'STUDENT', 'TUTOR');
  TABLES
  */
 CREATE TABLE IF NOT EXISTS form (
-                                    id SERIAL PRIMARY KEY,
+                                    id SERIAL PRIMARY KEY NOT NULL,
                                     stage_id INTEGER NOT NULL REFERENCES stages(id) ON DELETE CASCADE,
                                     student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
                                     teacher_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
@@ -65,32 +65,6 @@ CREATE INDEX idx_form_content ON form_section USING GIN (content);
  */
 ALTER TABLE form  FORCE ROW LEVEL SECURITY;
 ALTER TABLE form_section FORCE ROW LEVEL SECURITY;
-
-/*
-*************************************************************************
-                                TRIGGER
-*************************************************************************
- */
-
-CREATE TRIGGER trigger_update_form_updated_at
-    BEFORE UPDATE ON form
-    FOR EACH ROW
-EXECUTE FUNCTION update_form_updated_at();
-
-CREATE TRIGGER transition_form_status
-    BEFORE UPDATE ON form
-    FOR EACH ROW
-EXECUTE FUNCTION is_valid_transition_form_status();
-
-CREATE TRIGGER valid_form_update_teacher
-    BEFORE UPDATE ON form
-    FOR EACH ROW
-EXECUTE FUNCTION update_teacher_form();
-
-CREATE TRIGGER transition_form_section_status
-    BEFORE UPDATE ON form_section
-    FOR EACH ROW
-EXECUTE FUNCTION is_valid_transition_form_status();
 
 /*
 *************************************************************************
@@ -168,7 +142,6 @@ $$
     LANGUAGE plpgsql;
 
 
-
 CREATE FUNCTION is_current_user_teacher()
     RETURNS boolean
     STABLE
@@ -183,6 +156,33 @@ BEGIN
 END;
 $$
     LANGUAGE plpgsql;
+
+
+/*
+*************************************************************************
+                                TRIGGER
+*************************************************************************
+ */
+
+CREATE TRIGGER trigger_update_form_updated_at
+    BEFORE UPDATE ON form
+    FOR EACH ROW
+EXECUTE FUNCTION update_form_updated_at();
+
+CREATE TRIGGER transition_form_status
+    BEFORE UPDATE ON form
+    FOR EACH ROW
+EXECUTE FUNCTION is_valid_transition_form_status();
+
+CREATE TRIGGER valid_form_update_teacher
+    BEFORE UPDATE ON form
+    FOR EACH ROW
+EXECUTE FUNCTION update_teacher_form();
+
+CREATE TRIGGER transition_form_section_status
+    BEFORE UPDATE ON form_section
+    FOR EACH ROW
+EXECUTE FUNCTION is_valid_transition_form_status();
 
 /*
 *************************************************************************
@@ -226,7 +226,6 @@ CREATE POLICY only_owner_update_form_section
  */
 
 INSERT INTO form (
-    id,
     stage_id,
     student_id,
     teacher_id,
@@ -236,33 +235,32 @@ INSERT INTO form (
     created_at,
     completed_at
 ) VALUES
-      (1, 1, 2, 12, 17, 'CREATED',
+      (1, 2, 12, 17, 'CREATED',
        '{"objective":"Découverte du monde professionnel","company":"TechCorp","duration_weeks":4}',
        NOW() - INTERVAL '5 days',
        NULL),
 
-      (2, 2, 3, 13, 18, 'IN_PROGRESS',
+      (2, 3, 13, 18, 'IN_PROGRESS',
        '{"objective":"Stage développement web","company":"Digital Marketing Pro","duration_weeks":6}',
        NOW() - INTERVAL '15 days',
        NULL),
 
-      (3, 3, 4, 14, 19, 'COMPLETED',
+      (3, 4, 14, 19, 'COMPLETED',
        '{"objective":"Stage data analysis","company":"DataSolutions","duration_weeks":8}',
        NOW() - INTERVAL '40 days',
        NOW() - INTERVAL '7 days'),
 
-      (4, 4, 5, 15, 20, 'IN_PROGRESS',
+      (4, 5, 15, 20, 'IN_PROGRESS',
        '{"objective":"Stage marketing","company":"MarketPlus","duration_weeks":6}',
        NOW() - INTERVAL '20 days',
        NULL),
 
-      (5, 5, 6, 16, 21, 'CREATED',
+      (5, 6, 16, 21, 'CREATED',
        '{"objective":"Stage réseaux","company":"NetSecure","duration_weeks":5}',
        NOW() - INTERVAL '3 days',
        NULL);
 
 INSERT INTO form_section (
-    id,
     form_id,
     section_type,
     user_id,
@@ -271,32 +269,27 @@ INSERT INTO form_section (
     created_at,
     completed_at
 ) VALUES
--- Form 1 : section STUDENT
-(1, 1, 'STUDENT', 2, 'CREATED',
- '{"motivation":"Très motivé pour découvrir le milieu professionnel"}',
- NOW() - INTERVAL '4 days',
- NULL),
+      (1, 'STUDENT', 2, 'CREATED',
+       '{"motivation":"Très motivé pour découvrir le milieu professionnel"}',
+       NOW() - INTERVAL '4 days',
+       NULL),
 
--- Form 2 : section TEACHER
-(2, 2, 'TEACHER', 13, 'IN_PROGRESS',
- '{"evaluation":"Bon investissement","remarks":"Continue sur cette voie"}',
- NOW() - INTERVAL '13 days',
- NULL),
+      (2, 'TEACHER', 13, 'IN_PROGRESS',
+       '{"evaluation":"Bon investissement","remarks":"Continue sur cette voie"}',
+       NOW() - INTERVAL '13 days',
+       NULL),
 
--- Form 3 : section TUTOR
-(3, 3, 'TUTOR', 19, 'COMPLETED',
- '{"integration":"Excellente","autonomy":"Très bonne","skills":"Analyse de données"}',
- NOW() - INTERVAL '35 days',
- NOW() - INTERVAL '8 days'),
+      (3, 'TUTOR', 19, 'COMPLETED',
+       '{"integration":"Excellente","autonomy":"Très bonne","skills":"Analyse de données"}',
+       NOW() - INTERVAL '35 days',
+       NOW() - INTERVAL '8 days'),
 
--- Form 4 : section STUDENT
-(4, 4, 'STUDENT', 5, 'IN_PROGRESS',
- '{"feedback":"Stage intéressant","difficulties":"Gestion du temps"}',
- NOW() - INTERVAL '18 days',
- NULL),
+      (4, 'STUDENT', 5, 'IN_PROGRESS',
+       '{"feedback":"Stage intéressant","difficulties":"Gestion du temps"}',
+       NOW() - INTERVAL '18 days',
+       NULL),
 
--- Form 5 : section TEACHER
-(5, 5, 'TEACHER', 16, 'CREATED',
- '{"comment":"Formulaire en attente de complétion"}',
- NOW() - INTERVAL '2 days',
- NULL);
+      (5, 'TEACHER', 16, 'CREATED',
+       '{"comment":"Formulaire en attente de complétion"}',
+       NOW() - INTERVAL '2 days',
+       NULL);

@@ -3,10 +3,11 @@ package handlers
 import (
 	"encoding/json"
 	"form/internal/services"
-	"github.com/gorilla/mux"
 	"net/http"
 	"shared/models"
 	"strconv"
+
+	"github.com/gorilla/mux"
 )
 
 type FormHandler struct {
@@ -42,6 +43,20 @@ func (h FormHandler) UpdateForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	form, err := h.formService.UpdateForm(r.Context(), data, formId)
+	if err != nil {
+	}
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(form)
+	return
+}
+
+func (h FormHandler) CreateForm(w http.ResponseWriter, r *http.Request) {
+	var data models.Form
+	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
+		http.Error(w, `{"error": "JSON invalide"}`, http.StatusBadRequest)
+		return
+	}
+	form, err := h.formService.CreateForm(r.Context(), data)
 	if err != nil {
 	}
 	w.Header().Set("Content-Type", "application/json")

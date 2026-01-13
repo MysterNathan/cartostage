@@ -42,3 +42,4 @@
 /frontend/next-env.d.ts
 
 .idea/*
+/backend/services/form/.idea/

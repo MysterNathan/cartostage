@@ -19,9 +19,11 @@ func setupRoutes(
 	form := api.PathPrefix("/fiche-stage").Subrouter()
 	form.Use(authMiddleware.RequireAuth)
 
+	form.HandleFunc("", formHandler.CreateForm).Methods("POST")
 	form.HandleFunc("/{id:[0-9]+}", formHandler.Get).Methods("GET")
 	form.HandleFunc("/{id:[0-9]+}", formHandler.UpdateForm).Methods("PUT")
 	form.HandleFunc("/{id:[0-9]+}", corsPreflightHandler).Methods("OPTIONS")
+	form.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 
 	return r
 }
