@@ -36,16 +36,18 @@ func main() {
 
 	stageRepository := repositories.NewStageRepository(db)
 	filiereRepository := repositories.NewFiliereRepository(db)
+	formRepository := repositories.NewformRepository(db)
 
 	stageService := services.NewStageService(stageRepository)
+	formService := services.NewFormService(formRepository)
 
 	stageHandler := handlers.NewStageHandler(stageService)
 	filiereHandler := handlers.NewFiliereHandler(filiereRepository)
-
+	formHandler := handlers.NewFormHandler(formService)
 	authService := sharedServices.NewAuthService(jwtSecret)
 	authMiddleware := middleware.NewAuthMiddleware(authService)
 	// Setup des routes
-	r := setupRoutes(stageHandler, filiereHandler, authMiddleware)
+	r := setupRoutes(stageHandler, filiereHandler, formHandler, authMiddleware)
 
 	port := os.Getenv("PORT")
 	if port == "" {

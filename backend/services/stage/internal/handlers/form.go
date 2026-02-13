@@ -2,9 +2,9 @@ package handlers
 
 import (
 	"encoding/json"
-	"form/internal/services"
 	"net/http"
 	"shared/models"
+	"stage/internal/services"
 	"strconv"
 
 	"github.com/gorilla/mux"
@@ -14,7 +14,7 @@ type FormHandler struct {
 	formService *services.FormService
 }
 
-func NewformHandler(formService *services.FormService) *FormHandler {
+func NewFormHandler(formService *services.FormService) *FormHandler {
 	return &FormHandler{formService: formService}
 }
 
@@ -58,6 +58,7 @@ func (h FormHandler) CreateForm(w http.ResponseWriter, r *http.Request) {
 	}
 	form, err := h.formService.CreateForm(r.Context(), data)
 	if err != nil {
+		http.Error(w, `{"error": "Form creation failed"}`, http.StatusBadRequest)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(form)

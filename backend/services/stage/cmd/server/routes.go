@@ -12,6 +12,7 @@ import (
 func setupRoutes(
 	stageHandler *handlers.StageHandler,
 	filiereHandler *handlers.FiliereHandler,
+	formHandler *handlers.FormHandler,
 	authMiddleware *middleware.AuthMiddleware,
 ) *mux.Router {
 	r := mux.NewRouter()
@@ -33,6 +34,10 @@ func setupRoutes(
 	protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.UpdateStage).Methods("PUT")
 	protectedStages.HandleFunc("/{id:[0-9]+}", stageHandler.DeleteStage).Methods("DELETE")
 
+	protectedForm := stagesRouter.PathPrefix("/form").Subrouter()
+	protectedForm.Use(authMiddleware.RequireAuth)
+	protectedForm.HandleFunc("", formHandler.Get).Methods("GET")
+	
 	//// Routes filières public
 	filiereRouterPublic := api.PathPrefix("/filieres").Subrouter()
 	filiereRouterPublic.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")

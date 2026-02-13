@@ -3,6 +3,9 @@ package models
 import (
 	"database/sql/driver"
 	"encoding/json"
+	"errors"
+	"fmt"
+	"github.com/go-playground/validator/v10"
 	"time"
 )
 
@@ -30,6 +33,7 @@ type FormSection struct {
 	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at"`
 	CompletedAt *time.Time `json:"completed_at,omitempty" db:"completed_at"`
 }
+
 type Skill struct {
 	Name  string `json:"name" validate:"required,max=100" db:"-"`
 	Level int    `json:"level" validate:"omitempty,min=1,max=5" db:"-"`
@@ -60,6 +64,7 @@ type Task struct {
 	Summary string  `json:"summary" validate:"omitempty,max=250" db:"-"`
 	Skills  []Skill `json:"skills" validate:"omitempty,dive" db:"-"`
 }
+
 type FormSectionContentTutor struct {
 	TechnicalSkills int    `json:"technical_skills" validate:"required,min=1,max=5" db:"-"`
 	WorkQuality     int    `json:"work_quality" validate:"required,min=1,max=5" db:"-"`
@@ -77,10 +82,56 @@ const (
 	StatusCancelled  = "CANCELLED"
 )
 
-type JSONB map[string]interface{}
+func (fs *FormSection) GetContent() (interface{}, error) {
+	if fs.Content == nil {
+		return nil, fmt.Errorf("content is nil")
+	}
+
+	validate := validator.New()
+
+	switch fs.SectionType {
+	case "Student":
+		var content FormSectionContentStudent
+		if err := json.Unmarshal(*fs.Content, &content); err != nil {
+			return nil, fmt.Errorf("error parsing JSON student: %w", err)
+		}
+		if err := validate.Struct(content); err != nil {
+			return nil, fmt.Errorf("validation student failed: %w", err)
+		}
+		return content, nil
+
+	case "Teacher":
+		var content FormSectionContentTeacher
+		if err := json.Unmarshal(*fs.Content, &content); err != nil {
+			return nil, fmt.Errorf("error parsing JSON teacher: %w", err)
+		}
+		if err := validate.Struct(content); err != nil {
+			return nil, fmt.Errorf("validation teacher failed: %w", err)
+		}
+		return content, nil
+
+	case "Tutor":
+		var content FormSectionContentTutor
+		if err := json.Unmarshal(*fs.Content, &content); err != nil {
+			return nil, fmt.Errorf("error parsing JSON tutor: %w", err)
+		}
+		if err := validate.Struct(content); err != nil {
+			return nil, fmt.Errorf("validation tutor failed: %w", err)
+		}
+		return content, nil
+
+	default:
+		return nil, fmt.Errorf("unknown section type: %s", fs.SectionType)
+	}
+}
+
+type JSONB []byte
 
 func (j JSONB) Value() (driver.Value, error) {
-	return json.Marshal(j)
+	if j == nil || len(j) == 0 {
+		return nil, nil
+	}
+	return []byte(j), nil
 }
 
 func (j *JSONB) Scan(value interface{}) error {
@@ -88,9 +139,19 @@ func (j *JSONB) Scan(value interface{}) error {
 		*j = nil
 		return nil
 	}
+
 	bytes, ok := value.([]byte)
 	if !ok {
-		return nil
+		return errors.New("type assertion to []byte failed")
 	}
-	return json.Unmarshal(bytes, j)
+
+	*j = bytes
+	return nil
+}
+
+func (j JSONB) String() string {
+	if j == nil {
+		return "null"
+	}
+	return string(j)
 }
