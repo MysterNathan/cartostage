@@ -9,12 +9,14 @@ import (
 )
 
 type StageService struct {
-	stageRepo *repositories.StageRepository
+	stageRepo   *repositories.StageRepository
+	formService *FormService
 }
 
-func NewStageService(stageRepo *repositories.StageRepository) *StageService {
+func NewStageService(stageRepo *repositories.StageRepository, formService *FormService) *StageService {
 	return &StageService{
-		stageRepo: stageRepo,
+		stageRepo:   stageRepo,
+		formService: formService,
 	}
 }
 
@@ -42,7 +44,7 @@ func (s *StageService) UpdateStage(ctx context.Context, stageID int, updateReq m
 
 	// Sauvegarder en base
 	if err := s.stageRepo.UpdateStage(ctx, existingStage); err != nil {
-		return nil, fmt.Errorf("erreur lors de la mise à jour: %v", err)
+		return nil, fmt.Errorf("error while updating: %v", err)
 	}
 
 	return existingStage, nil
@@ -66,7 +68,22 @@ func (s *StageService) CreateStage(ctx context.Context, createReq models.CreateS
 	// Utiliser le repository pour sauvegarder
 	createdStage, err := s.stageRepo.CreateStage(ctx, stage)
 	if err != nil {
-		return nil, fmt.Errorf("erreur lors de la création du stage: %v", err)
+		return nil, fmt.Errorf("error when trying to create stage: %v", err)
+	}
+
+	formData := models.FormCreationData{
+		StageID:   createdStage.ID,
+		StudentID: createReq.StudentID,
+		TeacherID: createReq.TeacherID,
+		TutorID:   createReq.TutorID,
+	}
+	if s.formService == nil {
+		return nil, fmt.Errorf("formService is nil")
+	}
+	err = s.formService.CreateForm(ctx, formData)
+
+	if err != nil {
+		return nil, fmt.Errorf("error when trying to create formular stage: %v", err)
 	}
 
 	return createdStage, nil
@@ -82,7 +99,7 @@ func (s *StageService) DeleteStage(ctx context.Context, id int) error {
 	// Supprimer le stage
 	err = s.stageRepo.DeleteStage(ctx, id)
 	if err != nil {
-		return fmt.Errorf("erreur lors de la suppression du stage: %v", err)
+		return fmt.Errorf("error when trying to delete stage: %v", err)
 	}
 
 	return nil

@@ -9,6 +9,13 @@ import (
 	"time"
 )
 
+type FormCreationData struct {
+	StageID   int `json:"stage_id"`
+	StudentID int `json:"student_id"`
+	TeacherID *int `json:"teacher_id"`
+	TutorID   *int `json:"tutor_id"`
+}
+
 type Form struct {
 	ID          int        `json:"id" db:"id"`
 	StageID     int        `json:"stage_id" db:"stage_id"`
@@ -33,6 +40,13 @@ type FormSection struct {
 	UpdatedAt   time.Time  `json:"updated_at" db:"updated_at"`
 	CompletedAt *time.Time `json:"completed_at,omitempty" db:"completed_at"`
 }
+
+type FormFormSection struct {
+	Form        *Form        `json:"form"`
+	FormSection *FormSection `json:"form_section"`
+	FormSectionContent *JSONB `json:"form_section_content"`
+}
+
 
 type Skill struct {
 	Name  string `json:"name" validate:"required,max=100" db:"-"`
@@ -127,6 +141,24 @@ func (fs *FormSection) GetContent() (interface{}, error) {
 
 type JSONB []byte
 
+func (j JSONB) MarshalJSON() ([]byte, error) {
+	if len(j) == 0 {
+		return []byte("null"), nil
+	}
+	return j, nil
+}
+
+func (j *JSONB) UnmarshalJSON(data []byte) error {
+	if string(data) == "null" {
+		*j = nil
+		return nil
+	}
+	if !json.Valid(data) {
+		return errors.New("JSON invalide pour le champ JSONB")
+	}
+	*j = data
+	return nil
+}
 func (j JSONB) Value() (driver.Value, error) {
 	if j == nil || len(j) == 0 {
 		return nil, nil
@@ -140,14 +172,19 @@ func (j *JSONB) Scan(value interface{}) error {
 		return nil
 	}
 
-	bytes, ok := value.([]byte)
-	if !ok {
-		return errors.New("type assertion to []byte failed")
+	switch v := value.(type) {
+	case []byte:
+		*j = make([]byte, len(v))
+		copy(*j, v)
+		return nil
+	case string:
+		*j = []byte(v)
+		return nil
+	default:
+		return fmt.Errorf("unsuported type for JSONB: %T", value)
 	}
-
-	*j = bytes
-	return nil
 }
+
 
 func (j JSONB) String() string {
 	if j == nil {

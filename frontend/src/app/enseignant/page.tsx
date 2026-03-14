@@ -10,6 +10,10 @@ import TutorsList from '@/components/misc/TutorsList'
 import TutorModal from '@/components/enterprise/TutorModal'
 import StudentsList from '@/components/misc/StudentsList'
 import {Student, Tutors} from "@/types/user";
+import FormSectionsList from "@/components/form/FormSectionList";
+import FormSectionModal from "@/components/form/FormSectionModal";
+import {FormResponse, FormSection} from "@/types/form";
+import {getForm} from "@/lib/api/stageApi";
 
 export default function MyEnterprisePage() {
     const router = useRouter()
@@ -21,6 +25,8 @@ export default function MyEnterprisePage() {
     const [editingTutor, setEditingTutor] = useState<Tutor | null>(null)
     const [isTutorModalOpen, setIsTutorModalOpen] = useState(false)
     const [isTutorNew, setIsTutorNew] = useState(false)
+    const [formLoading, setFormLoading] = useState(false)
+    const [formResponse, setFormResponse] = useState<FormResponse | null>(null)
 
     useEffect(() => {
         if (!authApi.isAuthenticated()) {
@@ -52,7 +58,19 @@ export default function MyEnterprisePage() {
         authApi.logout()
         router.push('/login')
     }
-    
+
+    const handleOpenForm = async () => {
+        setFormLoading(true)
+        try {
+            const data = await getForm()
+            console.log("datas:",data)
+            setFormResponse(data)
+        } catch (error) {
+            console.error("Erreur lors du chargement du formulaire", error)
+        }
+        setFormLoading(false)
+    }
+
 
     if (loading) {
         return (
@@ -68,14 +86,30 @@ export default function MyEnterprisePage() {
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Contenu principal */}
+            <button
+                onClick={handleOpenForm}
+                disabled={formLoading}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            >
+                {formLoading ? "Chargement..." : "Mon formulaire"}
+            </button>
+
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <TutorsList
-                    initialTutors={tutors}
-                    loading={false}
-                />
+                <TutorsList initialTutors={tutors} loading={false} />
             </div>
 
-            {/* Modal */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <StudentsList students={students} />
+            </div>
+
+            {formResponse && (
+                <FormSectionModal
+                    formResponse={formResponse}
+                    onClose={() => setFormResponse(null)}
+                />
+            )}
+
+
             {isTutorModalOpen && (
                 <TutorModal
                     tutor={editingTutor}

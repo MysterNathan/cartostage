@@ -37,7 +37,8 @@ func setupRoutes(
 	protectedForm := stagesRouter.PathPrefix("/form").Subrouter()
 	protectedForm.Use(authMiddleware.RequireAuth)
 	protectedForm.HandleFunc("", formHandler.Get).Methods("GET")
-	
+	protectedForm.HandleFunc("/{id:[0-9]+}", formHandler.UpdateForm).Methods("PUT")
+
 	//// Routes filières public
 	filiereRouterPublic := api.PathPrefix("/filieres").Subrouter()
 	filiereRouterPublic.HandleFunc("", filiereHandler.GetFilieres).Methods("GET")
@@ -51,6 +52,7 @@ func setupRoutes(
 
 	// Gestion OPTIONS pour toutes les routes
 	stagesRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
+	protectedForm.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 	filieresRouter.HandleFunc("", corsPreflightHandler).Methods("OPTIONS")
 	stagesRouter.HandleFunc("/public", corsPreflightHandler).Methods("OPTIONS")
 	//stagesRouter.HandleFunc("/filters", corsPreflightHandler).Methods("OPTIONS")

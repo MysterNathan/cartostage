@@ -4,10 +4,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/jmoiron/sqlx"
 	"log"
 	sharedContext "shared/context"
 	"shared/models"
+
+	"github.com/jmoiron/sqlx"
 )
 
 type StageRepository struct {
@@ -118,17 +119,30 @@ func (r *StageRepository) GetStages(ctx context.Context) ([]models.Stage, error)
 	if claims == nil {
 		return nil, fmt.Errorf("aucun claims trouvé dans le contexte")
 	}
+
 	userID := claims.UserID
-	query := `
-        SELECT s.id, s.stage_offer_id, s.student_id, s.teacher_id, s.tutor_id, 
-               s.establishment_id, s.content_id, s.status, s.start_date, s.end_date, 
-               s.created_at, s.updated_at
-        FROM stages s
-        JOIN users u ON s.student_id = u.id
-		WHERE s.student_id = $1
-    `
+
+	var condition string
+	switch claims.Role {
+	case models.RoleStudent:
+		condition = "s.student_id = $1"
+	case models.RoleTeacher:
+		condition = "s.teacher_id = $1"
+	case models.RoleTutor:
+		condition = "s.tutor_id = $1"
+	default:
+		return nil, fmt.Errorf("rôle non autorisé")
+	}
+
+	query := fmt.Sprintf(`
+    SELECT s.id, s.stage_offer_id, s.student_id, s.teacher_id, 
+           s.tutor_id, s.establishment_id, s.content_id, s.status, 
+           s.start_date, s.end_date, s.created_at, s.updated_at
+    FROM stages s
+    JOIN users u ON s.student_id = u.id
+    WHERE %s`, condition)
+
 	rows, err := r.db.Query(query, userID)
-	log.Println(rows)
 
 	if err != nil {
 		return nil, fmt.Errorf("erreur lors de la récupération des stages: %v", err)

@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"shared/models"
 	"stage/internal/services"
@@ -21,10 +22,19 @@ func NewFormHandler(formService *services.FormService) *FormHandler {
 func (h FormHandler) Get(w http.ResponseWriter, r *http.Request) {
 	form, err := h.formService.Get(r.Context())
 	if err != nil {
+		http.Error(w, `{"error": "`+err.Error()+`"}`, http.StatusInternalServerError)
+		return
 	}
+	if form == nil {
+		http.Error(w, `{"error": "not found"}`, http.StatusNotFound)
+		return
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(form)
-	return
+	if err := json.NewEncoder(w).Encode(form); err != nil {
+		http.Error(w, `{"error": "encoding failed"}`, http.StatusInternalServerError)
+		return
+	}
 }
 
 func (h FormHandler) UpdateForm(w http.ResponseWriter, r *http.Request) {
@@ -42,23 +52,9 @@ func (h FormHandler) UpdateForm(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error": "JSON invalide"}`, http.StatusBadRequest)
 		return
 	}
+	fmt.Printf("data content:", data.Content, "data status:", data.Status, "\n")
 	form, err := h.formService.UpdateForm(r.Context(), data, formId)
 	if err != nil {
-	}
-	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(form)
-	return
-}
-
-func (h FormHandler) CreateForm(w http.ResponseWriter, r *http.Request) {
-	var data models.Form
-	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
-		http.Error(w, `{"error": "JSON invalide"}`, http.StatusBadRequest)
-		return
-	}
-	form, err := h.formService.CreateForm(r.Context(), data)
-	if err != nil {
-		http.Error(w, `{"error": "Form creation failed"}`, http.StatusBadRequest)
 	}
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(form)

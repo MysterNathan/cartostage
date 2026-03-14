@@ -10,19 +10,13 @@ CREATE TYPE user_type AS ENUM ('TEACHER', 'STUDENT', 'TUTOR');
 CREATE TABLE IF NOT EXISTS form (
                                     id SERIAL PRIMARY KEY NOT NULL,
                                     stage_id INTEGER NOT NULL REFERENCES stages(id) ON DELETE CASCADE,
-                                    student_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-                                    teacher_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
-                                    tutor_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
                                     status VARCHAR(50) NOT NULL DEFAULT 'CREATED',
                                     content JSONB,
                                     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
                                     updated_at TIMESTAMP NOT NULL DEFAULT NOW(),
                                     completed_at TIMESTAMP,
 
-                                    CONSTRAINT fk_stage FOREIGN KEY (stage_id) REFERENCES stages(id),
-                                    CONSTRAINT fk_student FOREIGN KEY (student_id) REFERENCES users(id),
-                                    CONSTRAINT fk_teacher FOREIGN KEY (teacher_id) REFERENCES users(id),
-                                    CONSTRAINT fk_tutor FOREIGN KEY (tutor_id) REFERENCES users(id)
+                                    CONSTRAINT fk_stage FOREIGN KEY (stage_id) REFERENCES stages(id)
 );
 
 CREATE TABLE IF NOT EXISTS form_section (
@@ -46,7 +40,6 @@ CREATE TABLE IF NOT EXISTS form_section (
  */
 -- Index pour optimiser les requêtes fréquentes
 CREATE INDEX idx_form_stage_id ON form(stage_id);
-CREATE INDEX idx_form_student_id ON form(student_id);
 CREATE INDEX idx_form_status ON form(status);
 CREATE INDEX idx_form_created_at ON form(created_at);
 CREATE INDEX idx_form_content ON form USING GIN (content);
@@ -105,7 +98,7 @@ CREATE FUNCTION update_teacher_form()
     RETURNS TRIGGER
 AS $$
 BEGIN
-    IF OLD.stage_id != NEW.stage_id OR OLD.student_id != NEW.student_id OR OLD.teacher_id != NEW.teacher_id OR OLD.tutor_id != NEW.tutor_id THEN
+    IF OLD.stage_id != NEW.stage_id  THEN
         RAISE EXCEPTION
             'Forbiden operation, cannot modify forms users id';
     ELSIF OLD.created_at != new.created_at THEN
@@ -194,16 +187,15 @@ CREATE POLICY only_teacher_update_form
     ON form
     FOR UPDATE
     USING (
-    teacher_id = current_setting('app.user_id')::int
+    EXISTS (
+        SELECT 1 FROM stages s
+        WHERE s.id = form.stage_id
+          AND s.teacher_id = current_setting('app.user_id')::int
+    )
         AND is_current_user_teacher()
     )
     WITH CHECK (
-    teacher_id = current_setting('app.user_id')::int
-        AND id = form.id
-        AND stage_id = form.stage_id
-        AND student_id = form.student_id
-        AND tutor_id = form.tutor_id
-        AND created_at = form.created_at
+    stage_id = (SELECT stage_id FROM form WHERE id = form.id)
     );
 
 CREATE POLICY only_owner_update_form_section
@@ -227,35 +219,32 @@ CREATE POLICY only_owner_update_form_section
 
 INSERT INTO form (
     stage_id,
-    student_id,
-    teacher_id,
-    tutor_id,
     status,
     content,
     created_at,
     completed_at
 ) VALUES
-      (1, 2, 12, 17, 'CREATED',
+      (1,  'CREATED',
        '{"objective":"Découverte du monde professionnel","company":"TechCorp","duration_weeks":4}',
        NOW() - INTERVAL '5 days',
        NULL),
 
-      (2, 3, 13, 18, 'IN_PROGRESS',
+      (2, 'IN_PROGRESS',
        '{"objective":"Stage développement web","company":"Digital Marketing Pro","duration_weeks":6}',
        NOW() - INTERVAL '15 days',
        NULL),
 
-      (3, 4, 14, 19, 'COMPLETED',
+      (3 , 'COMPLETED',
        '{"objective":"Stage data analysis","company":"DataSolutions","duration_weeks":8}',
        NOW() - INTERVAL '40 days',
        NOW() - INTERVAL '7 days'),
 
-      (4, 5, 15, 20, 'IN_PROGRESS',
+      (4, 'IN_PROGRESS',
        '{"objective":"Stage marketing","company":"MarketPlus","duration_weeks":6}',
        NOW() - INTERVAL '20 days',
        NULL),
 
-      (5, 6, 16, 21, 'CREATED',
+      (5, 'CREATED',
        '{"objective":"Stage réseaux","company":"NetSecure","duration_weeks":5}',
        NOW() - INTERVAL '3 days',
        NULL);

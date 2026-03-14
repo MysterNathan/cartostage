@@ -36,10 +36,10 @@ func main() {
 
 	stageRepository := repositories.NewStageRepository(db)
 	filiereRepository := repositories.NewFiliereRepository(db)
-	formRepository := repositories.NewformRepository(db)
+	formRepository := repositories.NewFormRepository(db)
 
-	stageService := services.NewStageService(stageRepository)
 	formService := services.NewFormService(formRepository)
+	stageService := services.NewStageService(stageRepository, formService)
 
 	stageHandler := handlers.NewStageHandler(stageService)
 	filiereHandler := handlers.NewFiliereHandler(filiereRepository)
