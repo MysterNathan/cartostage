@@ -10,8 +10,8 @@ import (
 )
 
 type FormCreationData struct {
-	StageID   int `json:"stage_id"`
-	StudentID int `json:"student_id"`
+	StageID   int  `json:"stage_id"`
+	StudentID int  `json:"student_id"`
 	TeacherID *int `json:"teacher_id"`
 	TutorID   *int `json:"tutor_id"`
 }
@@ -42,11 +42,10 @@ type FormSection struct {
 }
 
 type FormFormSection struct {
-	Form        *Form        `json:"form"`
-	FormSection *FormSection `json:"form_section"`
-	FormSectionContent *JSONB `json:"form_section_content"`
+	Form               *Form         `json:"form"`
+	FormSections       []FormSection `json:"form_section"`
+	FormSectionContent *JSONB        `json:"form_section_content"`
 }
-
 
 type Skill struct {
 	Name  string `json:"name" validate:"required,max=100" db:"-"`
@@ -184,7 +183,6 @@ func (j *JSONB) Scan(value interface{}) error {
 		return fmt.Errorf("unsuported type for JSONB: %T", value)
 	}
 }
-
 
 func (j JSONB) String() string {
 	if j == nil {

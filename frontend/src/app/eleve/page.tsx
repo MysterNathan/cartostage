@@ -9,10 +9,13 @@ import { useRouter } from "next/navigation"
 import FormSectionModal from "@/components/form/FormSectionModal"
 import {FormResponse} from "@/types/form";
 import FormsList from "@/components/form/FormList";
+import {getForm} from "@/lib/api/stageApi";
 
 
 export default function StudentPage() {
     const [formResponse, setFormResponse] = useState<FormResponse | null>(null)
+    const [formLoading, setFormLoading] = useState(false)
+
     const router = useRouter()
 
 
@@ -27,6 +30,17 @@ export default function StudentPage() {
         }
     }, [router])
 
+    const handleOpenForm = async () => {
+        setFormLoading(true)
+        try {
+            const data = await getForm()
+            console.log("datas:",data)
+            setFormResponse(data)
+        } catch (error) {
+            console.error("Erreur lors du chargement du formulaire", error)
+        }
+        setFormLoading(false)
+    }
     return (
         <>
             <div className="min-h-screen bg-gray-50">
@@ -51,7 +65,13 @@ export default function StudentPage() {
                                 onClose={() => setFormResponse(null)}
                             />
                         )}
-
+                            <button
+                                onClick={handleOpenForm}
+                                disabled={formLoading}
+                                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                            >
+                                {formLoading ? "Chargement..." : "Mon formulaire"}
+                            </button>
                         </div>
                     </div>
 

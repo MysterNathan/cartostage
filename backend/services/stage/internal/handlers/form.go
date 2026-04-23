@@ -6,9 +6,6 @@ import (
 	"net/http"
 	"shared/models"
 	"stage/internal/services"
-	"strconv"
-
-	"github.com/gorilla/mux"
 )
 
 type FormHandler struct {
@@ -38,25 +35,34 @@ func (h FormHandler) Get(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h FormHandler) UpdateForm(w http.ResponseWriter, r *http.Request) {
-	id := mux.Vars(r)["id"]
-	if id == "" {
-		http.Error(w, `{"error": "ID manquant"}`, http.StatusBadRequest)
-		return
-	}
-	formId, err := strconv.Atoi(id)
-	if err != nil {
-		http.Error(w, `{"error": "ID manquant"}`, http.StatusBadRequest)
-	}
-	var data models.Form
+	var data models.FormFormSection
 	if err := json.NewDecoder(r.Body).Decode(&data); err != nil {
 		http.Error(w, `{"error": "JSON invalide"}`, http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("data content:", data.Content, "data status:", data.Status, "\n")
-	form, err := h.formService.UpdateForm(r.Context(), data, formId)
-	if err != nil {
+	fmt.Printf("data content:", data.Form.Content, "data status:", data.Form.Status, "\n")
+	if data.Form == nil {
+		http.Error(w, `{"error": "form field missing"}`, http.StatusBadRequest)
 	}
+	updatedForm, err := h.formService.UpdateForm(r.Context(), data.Form)
+	if err != nil {
+		http.Error(w, `{"error": "`+err.Error()+`"}`, http.StatusInternalServerError)
+		return
+	}
+	var updatedFormSections []models.FormSection
+	if len(data.FormSections) > 0 {
+		updatedFormSections, err = h.formService.UpdateFormSection(r.Context(), data.FormSections)
+		if err != nil {
+			http.Error(w, `{"error": "`+err.Error()+`"}`, http.StatusInternalServerError)
+			return
+		}
+	}
+
+	response := models.FormFormSection{
+		Form:         updatedForm,
+		FormSections: updatedFormSections,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(form)
-	return
+	json.NewEncoder(w).Encode(response)
 }

@@ -16,20 +16,37 @@ func NewFormService(repository *repositories.FormRepository) *FormService {
 	return &FormService{formRepository: repository}
 }
 
-func (s FormService) Get(ctx context.Context) (*models.FormFormSection, error) {
+func (s FormService) Get(ctx context.Context) ([]*models.FormFormSection, error) {
 	claims := sharedContext.GetClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, fmt.Errorf("no claims found in context")
 	}
-	return s.formRepository.Get(ctx, claims.UserID)
+	return s.formRepository.Get(ctx, claims.UserID, claims.Role)
 }
 
-func (s FormService) UpdateForm(ctx context.Context, data models.Form, formId int) ([]models.Form, error) {
+func (s FormService) UpdateForm(ctx context.Context, data *models.Form) (*models.Form, error) {
 	claims := sharedContext.GetClaimsFromContext(ctx)
 	if claims == nil {
 		return nil, fmt.Errorf("no claims found in context")
 	}
-	return s.formRepository.UpdateForm(ctx, data, claims.UserID, formId)
+	return s.formRepository.UpdateForm(ctx, data, claims.UserID)
+}
+
+func (s FormService) UpdateFormSection(ctx context.Context, data []models.FormSection) ([]models.FormSection, error) {
+	claims := sharedContext.GetClaimsFromContext(ctx)
+	var userFormSection *models.FormSection
+	for i := range data {
+		if data[i].UserID == claims.UserID {
+			userFormSection = &data[i]
+		}
+	}
+	if claims == nil {
+		return nil, fmt.Errorf("no claims found in context")
+	}
+	if userFormSection.UserID != claims.UserID {
+		return nil, fmt.Errorf("no user's form section found")
+	}
+	return s.formRepository.UpdateFormSection(ctx, userFormSection, claims.UserID)
 }
 
 func (s FormService) CreateForm(ctx context.Context, data models.FormCreationData) error {

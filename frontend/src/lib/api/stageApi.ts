@@ -1,7 +1,7 @@
 // lib/stageApi.ts
 import { Stage, StagesData } from "@/types/stage";
 import { authApi } from "@/lib/api/authApi";
-import {FormResponse, FormResponses, FormSection} from "@/types/form";
+import {Form, FormResponse, FormResponses, FormSection} from "@/types/form";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 const API_URL_PUBLIC = `${API_BASE_URL}/api/stages/public`;
@@ -73,10 +73,19 @@ export async function deleteStage(id: number): Promise<{ success: boolean; messa
     return await response.json()
 }
 
-export async function getForms(): Promise<FormResponses> {
+export async function getForm(): Promise<FormResponses> {
     const response = await fetch(`${API_URL}/form`, {
         method: 'GET',
         headers: getAuthHeaders(),
+    })
+    return await response.json()
+}
+
+export async function updateForm(data: Form): Promise<FormResponses>{
+    const response = await fetch(`${API_URL}/form`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(data),
     })
     return await response.json()
 }

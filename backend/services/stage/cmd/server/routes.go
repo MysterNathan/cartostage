@@ -37,7 +37,7 @@ func setupRoutes(
 	protectedForm := stagesRouter.PathPrefix("/form").Subrouter()
 	protectedForm.Use(authMiddleware.RequireAuth)
 	protectedForm.HandleFunc("", formHandler.Get).Methods("GET")
-	protectedForm.HandleFunc("/{id:[0-9]+}", formHandler.UpdateForm).Methods("PUT")
+	protectedForm.HandleFunc("", formHandler.UpdateForm).Methods("PUT")
 
 	//// Routes filières public
 	filiereRouterPublic := api.PathPrefix("/filieres").Subrouter()
