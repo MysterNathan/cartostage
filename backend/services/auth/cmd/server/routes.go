@@ -15,6 +15,7 @@ func setupRoutes(authHandler *handlers.AuthHandler) *mux.Router {
 	// UNE SEULE ROUTE : LOGIN
 	api.HandleFunc("/login", authHandler.Login).Methods("POST")
 	api.HandleFunc("/login", corsPreflightHandler).Methods("OPTIONS")
+	api.HandleFunc("/health", authHandler.OK).Methods("GET")
 
 	return r
 }
@@ -28,7 +29,7 @@ func corsMiddleware(next http.Handler) http.Handler {
 			"http://127.0.0.1:3000",
 			"http://localhost",
 			"http://127.0.0.1",
-			"crissime.freeboxos.fr",
+			"mysternathan.freeboxos.fr",
 		}
 
 		originAllowed := false

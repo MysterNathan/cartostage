@@ -2,8 +2,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import type {FormResponse, FormResponses} from '@/types/form'
-import { getForms } from '@/lib/api/stageApi'
+import type {FormResponse} from '@/types/form'
 
 interface FormsListProps {
     initialForms?: FormResponses

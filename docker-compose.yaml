@@ -20,6 +20,7 @@ services:
     build:
       context: ./backend
       dockerfile: services/auth/Dockerfile
+    image: cs-auth
     container_name: stages-auth
     restart: unless-stopped
     environment:
@@ -42,6 +43,7 @@ services:
     build:
       context: ./backend
       dockerfile: services/stage/Dockerfile
+    image: cs-stage
     container_name: stages-map
     restart: unless-stopped
     environment:
@@ -64,6 +66,7 @@ services:
     build:
       context: ./backend
       dockerfile: services/enterprise/Dockerfile
+    image: cs-enterprise
     container_name: stages-enterprise
     restart: unless-stopped
     environment:
@@ -85,6 +88,7 @@ services:
     build:
       context: ./backend
       dockerfile: services/student/Dockerfile
+    image: cs-student
     container_name: stages-student
     restart: unless-stopped
     environment:
@@ -106,6 +110,7 @@ services:
     build:
       context: ./backend
       dockerfile: services/teacher/Dockerfile
+    image: cs-teacher
     container_name: stages-teacher
     restart: unless-stopped
     environment:
@@ -130,15 +135,13 @@ services:
       dockerfile: Dockerfile
       target: runner
       args:
-        - NEXT_PUBLIC_API_URL=http://localhost
+        - NEXT_PUBLIC_API_URL=https://mysternathan.freeboxos.fr/cartostage
+    image: cs-front
     container_name: stages-frontend
     restart: unless-stopped
     environment:
       NODE_ENV: production
       NEXT_TELEMETRY_DISABLED: 1
-      NEXT_PUBLIC_API_URL: http://localhost
-    expose:
-      - "443"
     depends_on:
       - auth-service
       - stage-service
@@ -164,7 +167,7 @@ services:
       - auth-service
       - stage-service
       - enterprise-service
-      - frontend
+      #- frontend
     networks:
       - stages-network
 

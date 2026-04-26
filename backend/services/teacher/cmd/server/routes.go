@@ -53,12 +53,11 @@ func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		origin := r.Header.Get("Origin")
 		allowedOrigins := map[string]bool{
-			"http://localhost:3000":         true,
-			"http://127.0.0.1:3000":         true,
-			"http://localhost":              true,
-			"http://127.0.0.1":              true,
-			"http://crissime.freeboxos.fr":  true,
-			"https://crissime.freeboxos.fr": true,
+			"http://localhost:3000":            true,
+			"http://127.0.0.1:3000":            true,
+			"http://localhost":                 true,
+			"http://127.0.0.1":                 true,
+			"http://mysternathan.freeboxos.fr": true,
 		}
 
 		// Vérifier si l'origin est autorisée

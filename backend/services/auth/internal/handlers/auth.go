@@ -16,6 +16,12 @@ func NewAuthHandler(authService *services.AuthService) *AuthHandler {
 	}
 }
 
+func (h *AuthHandler) OK(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	return
+}
+
 // Login - SIMPLE et DIRECT
 func (h *AuthHandler) Login(w http.ResponseWriter, r *http.Request) {
 	var req services.LoginRequest

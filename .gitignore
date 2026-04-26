@@ -43,3 +43,5 @@
 
 .idea/*
 /backend/services/form/.idea/
+
+./docker-push.sh
