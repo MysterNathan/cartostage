@@ -31,14 +31,16 @@ jobs:
 
       - name: Build and push with Kaniko
         run: |
-          mkdir -p /kaniko
+          mkdir -p $GITHUB_WORKSPACE/.kaniko
           /tools/kaniko \
-            --context=dir://$GITHUB_WORKSPACE/frontend \
-            --dockerfile=$GITHUB_WORKSPACE/frontend/Dockerfile \
-            --destination=${{ env.REGISTRY }}/frontend:${{ github.sha }} \
-            --destination=${{ env.REGISTRY }}/frontend:latest \
-            --insecure \
-            --skip-tls-verify
+          --context=dir://$GITHUB_WORKSPACE/frontend \
+          --dockerfile=$GITHUB_WORKSPACE/frontend/Dockerfile \
+          --destination=${{ env.REGISTRY }}/frontend:${{ github.sha }} \
+          --destination=${{ env.REGISTRY }}/frontend:latest \
+          --insecure \
+          --skip-tls-verify \
+          --cache-dir=$GITHUB_WORKSPACE/.kaniko
+
 
 
       - name: Deploy frontend
