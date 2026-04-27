@@ -22,6 +22,12 @@ jobs:
           echo "REPOSITORY=${{ github.repository }}"
           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
           cat ${{ github.workspace }}/frontend/Dockerfile
+      
+      - name: Check kaniko
+        run: |
+          ls -la /tools/
+          ls -la /kaniko/ 2>/dev/null || echo "no /kaniko dir"
+          whoami
 
       - name: Build and push with Kaniko
         run: |
