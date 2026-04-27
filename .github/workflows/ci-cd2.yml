@@ -14,37 +14,15 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-
       - name: Build and push with Kaniko
         run: |
-          kubectl run kaniko-frontend-${{ github.run_id }} \
-            --image=gcr.io/kaniko-project/executor:latest \
-            --restart=Never \
-            --namespace=github-runners \
-            --overrides='{
-              "spec": {
-                "serviceAccountName": "github-runner-sa",
-                "containers": [{
-                  "name": "kaniko",
-                  "image": "gcr.io/kaniko-project/executor:latest",
-                  "args": [
-                    "--context=git://github.com/${{ github.repository }}#refs/heads/${{ github.ref_name }}",
-                    "--context-sub-path=frontend",
-                    "--dockerfile=Dockerfile",
-                    "--destination=${{ env.REGISTRY }}/frontend:${{ github.sha }}",
-                    "--destination=${{ env.REGISTRY }}/frontend:latest",
-                    "--insecure",
-                    "--skip-tls-verify"
-                  ]
-                }]
-              }
-            }' \
-            --wait \
-            --timeout=300s
-
-      - name: Cleanup kaniko pod
-        if: always()
-        run: kubectl delete pod kaniko-frontend-${{ github.run_id }} -n github-runners --ignore-not-found
+          /kaniko/executor \
+            --context=${{ github.workspace }}/frontend \
+            --dockerfile=${{ github.workspace }}/frontend/Dockerfile \
+            --destination=${{ env.REGISTRY }}/frontend:${{ github.sha }} \
+            --destination=${{ env.REGISTRY }}/frontend:latest \
+            --insecure \
+            --skip-tls-verify
 
       - name: Deploy frontend
         if: github.ref == 'refs/heads/main'
