@@ -31,6 +31,7 @@ jobs:
 
       - name: Build and push with Kaniko
         run: |
+          mkdir -p /kaniko
           /tools/kaniko \
             --context=dir://$GITHUB_WORKSPACE/frontend \
             --dockerfile=$GITHUB_WORKSPACE/frontend/Dockerfile \
@@ -38,6 +39,7 @@ jobs:
             --destination=${{ env.REGISTRY }}/frontend:latest \
             --insecure \
             --skip-tls-verify
+
 
       - name: Deploy frontend
         if: github.ref == 'refs/heads/main'
