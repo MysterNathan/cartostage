@@ -34,8 +34,8 @@ jobs:
         run: |
           mkdir -p $GITHUB_WORKSPACE/.kaniko
           /tools/kaniko \
-          --context=dir://$GITHUB_WORKSPACE/frontend \
-          --dockerfile=$GITHUB_WORKSPACE/frontend/Dockerfile \
+          --context=dir:/kaniko/frontend \
+          --dockerfile=/kaniko/frontend/Dockerfile \
           --destination=${{ env.REGISTRY }}/frontend:${{ github.sha }} \
           --destination=${{ env.REGISTRY }}/frontend:latest \
           --insecure \
