@@ -28,12 +28,12 @@ jobs:
           ls -la /tools/
           cat ./frontend/Dockerfile
           ls -la /kaniko/ 2>/dev/null || echo "no /kaniko dir"
+          pwd
           whoami
 
 
       - name: Build and push with Kaniko
         run: |
-          mkdir -p $GITHUB_WORKSPACE/.kaniko
           /tools/kaniko \
           --context=dir:./frontend \
           --dockerfile=./frontend/Dockerfile \
