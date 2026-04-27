@@ -14,6 +14,15 @@ jobs:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
+      - name: Debug vars
+        run: |
+          echo "REGISTRY=${{ env.REGISTRY }}"
+          echo "SHA=${{ github.sha }}"
+          echo "WORKSPACE=${{ github.workspace }}"
+          echo "REPOSITORY=${{ github.repository }}"
+          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
+          ls ${{ github.workspace }}
+
       - name: Build and push with Kaniko
         run: |
           /tools/kaniko \
