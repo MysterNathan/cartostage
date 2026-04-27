@@ -10,9 +10,6 @@ env:
   REGISTRY: 192.168.1.193:30345
 
 jobs:
-  # =====================
-  # Détection des changes
-  # =====================
   detect-changes:
     runs-on: self-hosted
     outputs:
@@ -30,12 +27,7 @@ jobs:
           else
             echo "frontend=false" >> $GITHUB_OUTPUT
           fi
-          
 
-
-  # =====================
-  # Build Frontend
-  # =====================
   build-frontend:
     runs-on: self-hosted
     needs: detect-changes
@@ -43,27 +35,40 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set image tag
-        id: tag
-        run: echo "tag=${{ env.REGISTRY }}/frontend:${{ github.sha }}" >> $GITHUB_OUTPUT
-
-      - name: Build Docker image
+      - name: Build and push with Kaniko
         run: |
-          docker build \
-            -t ${{ steps.tag.outputs.tag }} \
-            -t ${{ env.REGISTRY }}/frontend:latest \
-            ./frontend
+          kubectl run kaniko-frontend-${{ github.run_id }} \
+            --image=gcr.io/kaniko-project/executor:latest \
+            --restart=Never \
+            --namespace=github-runners \
+            --overrides='{
+              "spec": {
+                "serviceAccountName": "github-runner-sa",
+                "containers": [{
+                  "name": "kaniko",
+                  "image": "gcr.io/kaniko-project/executor:latest",
+                  "args": [
+                    "--context=git://github.com/${{ github.repository }}#refs/heads/${{ github.ref_name }}",
+                    "--context-sub-path=frontend",
+                    "--dockerfile=Dockerfile",
+                    "--destination=${{ env.REGISTRY }}/frontend:${{ github.sha }}",
+                    "--destination=${{ env.REGISTRY }}/frontend:latest",
+                    "--insecure",
+                    "--skip-tls-verify"
+                  ]
+                }]
+              }
+            }' \
+            --wait \
+            --timeout=300s
 
-      - name: Push Docker image
-        run: |
-          docker push ${{ steps.tag.outputs.tag }}
-          docker push ${{ env.REGISTRY }}/frontend:latest
+      - name: Cleanup kaniko pod
+        if: always()
+        run: kubectl delete pod kaniko-frontend-${{ github.run_id }} -n github-runners --ignore-not-found
 
       - name: Deploy frontend
         if: github.ref == 'refs/heads/main'
         run: |
           kubectl set image deployment/frontend \
-            frontend=${{ steps.tag.outputs.tag }} \
-            --record
+            frontend=${{ env.REGISTRY }}/frontend:${{ github.sha }}
           kubectl rollout status deployment/frontend --timeout=120s
-
