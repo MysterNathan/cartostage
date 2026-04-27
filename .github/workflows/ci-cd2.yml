@@ -16,7 +16,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build and push with Kaniko
         run: |
-          /kaniko/executor \
+          /tools/kaniko \
             --context=${{ github.workspace }}/frontend \
             --dockerfile=${{ github.workspace }}/frontend/Dockerfile \
             --destination=${{ env.REGISTRY }}/frontend:${{ github.sha }} \
