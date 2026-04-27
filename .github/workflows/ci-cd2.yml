@@ -26,8 +26,8 @@ jobs:
       - name: Check kaniko
         run: |
           ls -la /tools/
-          ls -la ./kaniko/frontend
-          ls -la /kaniko/frontend
+          ls -la ./kaniko/frontend/
+          ls -la /kaniko/frontend/
           ls -la /kaniko/ 2>/dev/null || echo "no /kaniko dir"
           whoami
       - name: Build and push with Kaniko
