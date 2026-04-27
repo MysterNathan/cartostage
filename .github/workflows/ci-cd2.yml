@@ -25,7 +25,7 @@ jobs:
       
       - name: Check kaniko
         run: |
-          ls -la /tools/
+          ls -la /tools/kaniko
           cat ./frontend/Dockerfile
           ls -la /kaniko/ 2>/dev/null || echo "no /kaniko dir"
           pwd
