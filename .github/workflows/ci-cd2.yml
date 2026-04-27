@@ -35,8 +35,8 @@ jobs:
       - name: Build and push with Kaniko
         run: |
           /tools/kaniko \
-          --context=dir:./frontend \
-          --dockerfile=./frontend/Dockerfile \
+          --context=dir:/runner/_work/cartostagenc/cartostagenc/frontend \
+          --dockerfile=/runner/_work/cartostagenc/cartostagenc/frontend/Dockerfile \
           --destination=${{ env.REGISTRY }}/frontend:${{ github.sha }} \
           --destination=${{ env.REGISTRY }}/frontend:latest \
           --insecure \
