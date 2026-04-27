@@ -23,20 +23,13 @@ jobs:
           echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
           cat ${{ github.workspace }}/frontend/Dockerfile
       
-      - name: Check kaniko
-        run: |
-          ls -la ./
-          ls -la /
-          ls -la /tools/
-          ls -la /kaniko/frontend/
-          ls -la /kaniko/ 2>/dev/null || echo "no /kaniko dir"
-          whoami
+
       - name: Build and push with Kaniko
         run: |
           mkdir -p $GITHUB_WORKSPACE/.kaniko
           /tools/kaniko \
-          --context=dir:/kaniko/frontend \
-          --dockerfile=/kaniko/frontend/Dockerfile \
+          --context=dir:./frontend \
+          --dockerfile=./frontend/Dockerfile \
           --destination=${{ env.REGISTRY }}/frontend:${{ github.sha }} \
           --destination=${{ env.REGISTRY }}/frontend:latest \
           --insecure \
