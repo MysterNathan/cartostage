@@ -26,8 +26,8 @@ jobs:
       - name: Build and push with Kaniko
         run: |
           /tools/kaniko \
-            --context=${{ github.workspace }}/frontend \
-            --dockerfile=${{ github.workspace }}/frontend/Dockerfile \
+            --context=dir://$GITHUB_WORKSPACE/frontend \
+            --dockerfile=$GITHUB_WORKSPACE/frontend/Dockerfile \
             --destination=${{ env.REGISTRY }}/frontend:${{ github.sha }} \
             --destination=${{ env.REGISTRY }}/frontend:latest \
             --insecure \
