@@ -26,6 +26,8 @@ jobs:
       - name: Check kaniko
         run: |
           ls -la /tools/
+          ls -la ./
+          ls -la ./kaniko/
           ls -la /kaniko/ 2>/dev/null || echo "no /kaniko dir"
           whoami
 
