@@ -17,6 +17,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Login to Docker Registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.REGISTRY_USER }}" --password-stdin
+
       - name: Set image tag
         id: tag
         run: echo "tag=${{ env.REGISTRY }}/frontend:${{ github.sha }}" >> $GITHUB_OUTPUT
