@@ -3,51 +3,40 @@ name: CI/CD Pipeline
 on:
   push:
     branches: [main, develop, tmp]
-  pull_request:
-    branches: [main]
 
 env:
-  REGISTRY: 192.168.1.193:30345
+  REGISTRY: mysternathan.freeboxos.fr
 
 jobs:
+
+  # =====================
+  # Build Frontend
+  # =====================
   build-frontend:
     runs-on: self-hosted
     steps:
       - uses: actions/checkout@v4
-      - name: Debug vars
+
+      - name: Set image tag
+        id: tag
+        run: echo "tag=${{ env.REGISTRY }}/frontend:${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Build Docker image
         run: |
-          echo "REGISTRY=${{ env.REGISTRY }}"
-          echo "SHA=${{ github.sha }}"
-          echo "WORKSPACE=${{ github.workspace }}"
-          echo "REPOSITORY=${{ github.repository }}"
-          echo "GITHUB_WORKSPACE=$GITHUB_WORKSPACE"
-          cat ${{ github.workspace }}/frontend/Dockerfile
-      
-      - name: Check kaniko
+          docker build \
+            -t ${{ steps.tag.outputs.tag }} \
+            -t ${{ env.REGISTRY }}/frontend:latest \
+            ./frontend
+
+      - name: Push Docker image
         run: |
-          ls -la /tools/kaniko
-          cat ./frontend/Dockerfile
-          ls -la /kaniko/ 2>/dev/null || echo "no /kaniko dir"
-          pwd
-          whoami
-
-
-      - name: Build and push with Kaniko
-        run: |
-          /tools/kaniko \
-          --context=dir:/runner/_work/cartostagenc/cartostagenc/frontend \
-          --dockerfile=/runner/_work/cartostagenc/cartostagenc/frontend/Dockerfile \
-          --destination=${{ env.REGISTRY }}/frontend:${{ github.sha }} \
-          --destination=${{ env.REGISTRY }}/frontend:latest \
-          --insecure \
-          --skip-tls-verify \
-          --cache-dir=$GITHUB_WORKSPACE/.kaniko
-
-
+          docker push ${{ steps.tag.outputs.tag }}
+          docker push ${{ env.REGISTRY }}/frontend:latest
 
       - name: Deploy frontend
         if: github.ref == 'refs/heads/main'
         run: |
           kubectl set image deployment/frontend \
-            frontend=${{ env.REGISTRY }}/frontend:${{ github.sha }}
+            frontend=${{ steps.tag.outputs.tag }} \
+            --record
           kubectl rollout status deployment/frontend --timeout=120s
