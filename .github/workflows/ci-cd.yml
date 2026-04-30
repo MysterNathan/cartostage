@@ -121,7 +121,8 @@ jobs:
           docker build \
             -t ${{ steps.tag.outputs.tag }} \
             -t ${{ env.REGISTRY }}/${{ matrix.service }}:latest \
-            ./backend/services/${{ matrix.service }}
+            -f ./backend/services/${{ matrix.service }}/Dockerfile \
+            ./backend
 
       - name: Push Docker image
         run: |
