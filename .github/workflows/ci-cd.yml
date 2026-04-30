@@ -102,7 +102,8 @@ jobs:
     #if: needs.detect-changes.outputs.services == 'true' && needs.detect-changes.outputs.changed-services != '[]'
     strategy:
       matrix:
-        service: ${{ fromJson(needs.detect-changes.outputs.changed-services) }}
+        service: [auth-service, stage-service, enterprise-service, student-service, teacher-service]
+        #service: ${{ fromJson(needs.detect-changes.outputs.changed-services) }}
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
