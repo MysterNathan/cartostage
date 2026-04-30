@@ -98,7 +98,8 @@ jobs:
   build-services:
     runs-on: self-hosted
     needs: detect-changes
-    if: needs.detect-changes.outputs.services == 'true' && needs.detect-changes.outputs.changed-services != '[]'
+    if: 'true'
+    #if: needs.detect-changes.outputs.services == 'true' && needs.detect-changes.outputs.changed-services != '[]'
     strategy:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.changed-services) }}
