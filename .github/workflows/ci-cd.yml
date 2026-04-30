@@ -61,7 +61,7 @@ jobs:
   build-frontend:
     runs-on: self-hosted
     needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true'
+    if: 'true'
     steps:
       - uses: actions/checkout@v4
 
