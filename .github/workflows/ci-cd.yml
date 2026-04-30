@@ -75,6 +75,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
+            --build-arg NEXT_PUBLIC_API_URL=${{ secrets.NEXT_PUBLIC_API_URL }} \
             -t ${{ steps.tag.outputs.tag }} \
             -t ${{ env.REGISTRY }}/frontend:latest \
             ./frontend
