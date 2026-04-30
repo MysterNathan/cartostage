@@ -18,11 +18,11 @@ export async function getEnterpriseStats(): Promise<EnterpriseStats> {
 }
 
 export async function getStudentsUser(): Promise<Student[]> {
-    return fetchApi<Student[]>('/api/student/users')
+    return fetchApi<Student[]>('/api/student-service/users')
 }
 
 export async function getTeacherUsers(): Promise<Teacher[]> {
-    return fetchApi<Teacher[]>('/api/teacher/users')
+    return fetchApi<Teacher[]>('/api/teacher-service/users')
 }
 
 export async function getTutorUser(): Promise<Tutor[]> {

@@ -1,4 +1,4 @@
-// components/enterprise/MyEnterpriseStats.tsx
+// components/enterprise-service/MyEnterpriseStats.tsx
 interface MyEnterpriseStatsProps {
     totalStages: number
     activeTutors: number

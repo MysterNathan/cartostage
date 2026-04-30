@@ -1,4 +1,4 @@
-// components/enterprise/StudentsList.tsx
+// components/enterprise-service/StudentsList.tsx
 'use client'
 
 import { useState } from 'react'

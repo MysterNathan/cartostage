@@ -147,7 +147,7 @@ return (
                   </svg>
                   Gérer les filières
                 </button>
-                {/* Bouton pour ajouter un nouveau stage */}
+                {/* Bouton pour ajouter un nouveau stage-service */}
                 <button
                     onClick={addNewStage}
                     className="flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"

@@ -148,7 +148,7 @@ export default function StageMap({ stages, selectedStage, onStageClick }: StageM
       }
     }
 
-    // Ouvrir popup et centrer sur le stage sélectionné
+    // Ouvrir popup et centrer sur le stage-service sélectionné
     if (selectedStage && markersRef.current[selectedStage.id]) {
       markersRef.current[selectedStage.id].openPopup()
       mapRef.current.setView([selectedStage.stage_offer.lat, selectedStage.stage_offer.lng],

@@ -11,11 +11,11 @@ export async function getTutorById(id: number): Promise<Tutor> {
 }
 
 export async function getTeacher(): Promise<Tutor[]> {
-    return fetchApi<Tutor[]>('/api/teacher/users')
+    return fetchApi<Tutor[]>('/api/teacher-service/users')
 }
 
 export async function getStudents(): Promise<Tutor[]> {
-    return fetchApi<Tutor[]>('/api/student/users')
+    return fetchApi<Tutor[]>('/api/student-service/users')
 }
 
 export async function addTutor(

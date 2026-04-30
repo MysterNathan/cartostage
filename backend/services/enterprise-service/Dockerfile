@@ -1,5 +1,5 @@
 # Build stage-service
-FROM golang:1.25-alpine AS builder
+FROM mysternathan.freeboxos.fr/golang:1.25-alpine AS builder
 
 RUN apk add --no-cache git
 
@@ -23,7 +23,7 @@ RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main ./cmd/server
 
 # Final stage-service
-FROM alpine:latest
+FROM mysternathan.freeboxos.fr/alpine:latest
 
 RUN apk --no-cache add ca-certificates
 

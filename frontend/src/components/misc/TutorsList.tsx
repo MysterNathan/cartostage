@@ -1,4 +1,4 @@
-// components/enterprise/TutorsList.tsx
+// components/enterprise-service/TutorsList.tsx
 'use client'
 
 import { useState, useEffect } from 'react'

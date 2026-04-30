@@ -1,5 +1,5 @@
-# Multi-stage build pour optimiser la taille de l'image
-FROM node:18-alpine AS base
+# Multi-stage-service build pour optimiser la taille de l'image
+FROM mysternathan.freeboxos.fr/node:18-alpine AS base
 
 # Installer les dépendances uniquement quand nécessaire
 FROM base AS deps

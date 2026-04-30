@@ -2,7 +2,7 @@
 import { Stage } from '@/types/stage';
 
 /**
- * Nettoie et valide les données d'un stage
+ * Nettoie et valide les données d'un stage-service
  */
 export const sanitizeStage = (stage: Partial<Stage>): Partial<Stage> => {
     return {
@@ -36,11 +36,11 @@ export const calculateAvailablePlaces = (total: number, filled: number): number 
 };
 
 /**
- * Valide les données d'un stage
+ * Valide les données d'un stage-service
  */
 export const validateStage = (stage: Partial<Stage>): string | null => {
     if (!stage.entreprise?.trim()) {
-        return 'Le nom de l\'enterprise est requis';
+        return 'Le nom de l\'enterprise-service est requis';
     }
 
     if (!stage.poste?.trim()) {

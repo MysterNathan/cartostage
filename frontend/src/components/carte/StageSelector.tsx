@@ -48,7 +48,7 @@ export default function StageSelector({
         {isCollapsed && (
           <div className="flex flex-col items-center mt-4 space-y-2">
 
-            {/* Indicateur stage sélectionné */}
+            {/* Indicateur stage-service sélectionné */}
             {selectedStage && (
               <div 
                 className="w-3 h-3 bg-blue-500 rounded-full"
