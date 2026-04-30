@@ -7,7 +7,7 @@ on:
     branches: [main]
 
 env:
-  REGISTRY: 192.168.1.193:30345
+  REGISTRY: mysternathan.freeboxos.fr
 
 jobs:
   # =====================
@@ -48,7 +48,6 @@ jobs:
             | sort -u \
             | jq -R -s -c 'split("\n") | map(select(length > 0))')
 
-          # Si shared a changé, rebuild tous les services
           if git diff --name-only HEAD~1 HEAD | grep -q "^backend/shared/"; then
             ALL=$(ls backend/services/ | jq -R -s -c 'split("\n") | map(select(length > 0))')
             echo "services=$ALL" >> $GITHUB_OUTPUT
@@ -65,6 +64,9 @@ jobs:
     if: needs.detect-changes.outputs.frontend == 'true'
     steps:
       - uses: actions/checkout@v4
+
+      - name: Login to Docker Registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.REGISTRY_USER }}" --password-stdin
 
       - name: Set image tag
         id: tag
@@ -103,6 +105,9 @@ jobs:
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
+
+      - name: Login to Docker Registry
+        run: echo "${{ secrets.REGISTRY_PASSWORD }}" | docker login ${{ env.REGISTRY }} -u "${{ secrets.REGISTRY_USER }}" --password-stdin
 
       - name: Set image tag
         id: tag
