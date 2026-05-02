@@ -3,7 +3,6 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   output: 'standalone',
   basePath: '/cartostage',
-  assetPrefix: '/cartostage',
   images: {
     domains: [
       'tile.openstreetmap.org',

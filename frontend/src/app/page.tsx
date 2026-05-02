@@ -1,9 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { authApi } from '@/lib/api/authApi'
-import Image from 'next/image'
 
 export default function HomePage() {
     const router = useRouter();
@@ -28,11 +25,10 @@ export default function HomePage() {
                         {/* Espace Enseignant */}
                         <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col transition-transform duration-300 hover:scale-105 cursor-pointer">
                             <div className="relative h-64 bg-gray-200">
-                                <Image
-                                    src="/carte/array.png"
+                                <img
+                                    src="/cartostage/carte/teacher.png"
                                     alt="Espace Enseignant"
-                                    fill
-                                    className="object-cover"
+                                    className="object-cover w-full h-full"
                                 />
                             </div>
                             <div className="p-6 flex-grow flex flex-col">
@@ -54,11 +50,10 @@ export default function HomePage() {
                         {/* Espace Élève */}
                         <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col transition-transform duration-300 hover:scale-105 cursor-pointer">
                             <div className="relative h-64 bg-gray-200">
-                                <Image
-                                    src="/carte/map.png"
+                                <img
+                                    src="/cartostage/carte/student.png"
                                     alt="Espace Élève"
-                                    fill
-                                    className="object-cover"
+                                    className="object-cover w-full h-full"
                                 />
                             </div>
                             <div className="p-6 flex-grow flex flex-col">
@@ -80,7 +75,11 @@ export default function HomePage() {
                         {/* Espace Tuteur */}
                         <div className="bg-white rounded-lg shadow-lg overflow-hidden flex flex-col transition-transform duration-300 hover:scale-105 cursor-pointer">
                             <div className="relative h-64 bg-gray-200 flex items-center justify-center">
-                                <span className="text-gray-400 text-lg">Image à venir</span>
+                                <img
+                                    src="/cartostage/carte/tutor.png"
+                                    alt="Espace Tuteur"
+                                    className="object-cover w-full h-full"
+                                />
                             </div>
                             <div className="p-6 flex-grow flex flex-col">
                                 <h3 className="text-2xl font-semibold text-gray-900 mb-2">
