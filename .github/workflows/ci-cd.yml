@@ -10,9 +10,6 @@ env:
   REGISTRY: mysternathan.freeboxos.fr
 
 jobs:
-  # =====================
-  # Détection des changes
-  # =====================
   detect-changes:
     runs-on: self-hosted
     outputs:
@@ -61,7 +58,7 @@ jobs:
   build-frontend:
     runs-on: self-hosted
     needs: detect-changes
-    if: 'true'
+    if: needs.detect-changes.outputs.frontend == 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -99,12 +96,12 @@ jobs:
   build-services:
     runs-on: self-hosted
     needs: detect-changes
-    if: 'true'
-    #if: needs.detect-changes.outputs.services == 'true' && needs.detect-changes.outputs.changed-services != '[]'
+    if: |
+      needs.detect-changes.outputs.services == 'true' &&
+      needs.detect-changes.outputs.changed-services != '[]'
     strategy:
       matrix:
-        service: [auth-service, stage-service, enterprise-service, student-service, teacher-service]
-        #service: ${{ fromJson(needs.detect-changes.outputs.changed-services) }}
+        service: ${{ fromJson(needs.detect-changes.outputs.changed-services) }}
       fail-fast: false
     steps:
       - uses: actions/checkout@v4
