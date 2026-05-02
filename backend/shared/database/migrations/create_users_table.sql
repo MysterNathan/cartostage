@@ -7,7 +7,7 @@ CREATE TABLE users (
                        last_name VARCHAR(100) NOT NULL,
                        email VARCHAR(320) UNIQUE NOT NULL CHECK (email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'),
                        password_hash VARCHAR(255) NOT NULL,
-                       role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'tutor', 'eleve', 'teacher')),
+                       role VARCHAR(20) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'tutor', 'student', 'teacher')),
                        phone VARCHAR(20),
                        establishment_id INTEGER REFERENCES establishments(id) ON DELETE SET NULL,
                        is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -51,7 +51,7 @@ INSERT INTO users (
           'Bernard',
           'lucas.bernard@eleve.edu',
           '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
-          'eleve',
+          'student',
           '+33 6 11 22 33 44',
           NULL
       ),
@@ -61,7 +61,7 @@ INSERT INTO users (
           'Petit',
           'emma.petit@eleve.edu',
           '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
-          'eleve',
+          'student',
           '+33 6 22 33 44 55',
           NULL
       ),
@@ -71,7 +71,7 @@ INSERT INTO users (
           'Dubois',
           'theo.dubois@eleve.edu',
           '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
-          'eleve',
+          'student',
           '+33 6 33 44 55 66',
           NULL
       ),
@@ -81,7 +81,7 @@ INSERT INTO users (
           'Moreau',
           'lea.moreau@eleve.edu',
           '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
-          'eleve',
+          'student',
           '+33 6 44 55 66 77',
           NULL
       ),
@@ -91,7 +91,7 @@ INSERT INTO users (
           'Simon',
           'hugo.simon@eleve.edu',
           '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
-          'eleve',
+          'student',
           '+33 6 55 66 77 88',
           NULL
       ),
@@ -101,7 +101,7 @@ INSERT INTO users (
           'Laurent',
           'chloe.laurent@eleve.edu',
           '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
-          'eleve',
+          'student',
           '+33 6 66 77 88 99',
           NULL
       ),
@@ -111,7 +111,7 @@ INSERT INTO users (
           'Lefevre',
           'arthur.lefevre@eleve.edu',
           '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
-          'eleve',
+          'student',
           '+33 6 77 88 99 00',
           NULL
       ),
@@ -121,7 +121,7 @@ INSERT INTO users (
           'Roux',
           'camille.roux@eleve.edu',
           '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
-          'eleve',
+          'student',
           '+33 6 88 99 00 11',
           NULL
       ),
@@ -131,7 +131,7 @@ INSERT INTO users (
           'Fournier',
           'louis.fournier@eleve.edu',
           '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
-          'eleve',
+          'student',
           '+33 6 99 00 11 22',
           NULL
       ),
@@ -141,7 +141,7 @@ INSERT INTO users (
           'Girard',
           'alice.girard@eleve.edu',
           '$2y$10$1o9YjGNkF.RjDxbu0uAkKub/WR61BcyCupHgtX904FcPSpPk60Cei',
-          'eleve',
+          'student',
           '+33 6 00 11 22 33',
           NULL
       ),

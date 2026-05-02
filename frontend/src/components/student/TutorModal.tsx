@@ -1,4 +1,4 @@
-// components/enterprise/TutorModal.tsx
+// components/enterprise-service/TutorModal.tsx
 import { useState, useEffect } from 'react'
 import type { Tutor } from '@/types/tutor'
 

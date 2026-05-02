@@ -1,5 +1,5 @@
-# Multi-stage build pour optimiser la taille de l'image
-FROM node:18-alpine AS base
+# Multi-stage-service build pour optimiser la taille de l'image
+FROM mysternathan.freeboxos.fr/node:18-alpine AS base
 
 # Installer les dépendances uniquement quand nécessaire
 FROM base AS deps
@@ -64,12 +64,9 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
 USER nextjs
+EXPOSE 3000
 
-# Exposer le port 80
-EXPOSE 80
-
-ENV PORT 80
+ENV PORT 3000
 ENV HOSTNAME "0.0.0.0"
 
-# Démarrer l'application
 CMD ["node", "server.js"]

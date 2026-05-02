@@ -1,5 +1,5 @@
 
-// components/enterprise/TeachersList.tsx
+// components/enterprise-service/TeachersList.tsx
 'use client'
 
 import { useState, useEffect } from 'react'

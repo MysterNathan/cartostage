@@ -27,7 +27,7 @@ export const handleApiError = (error: unknown): string => {
             return 'Problème de connexion. Vérifiez votre connexion internet.';
         }
 
-        // Conflits (ex: stage déjà existant)
+        // Conflits (ex: stage-service déjà existant)
         if (error.message.includes('409') || error.message.includes('Conflict')) {
             return 'Conflit détecté. Cette donnée existe peut-être déjà.';
         }

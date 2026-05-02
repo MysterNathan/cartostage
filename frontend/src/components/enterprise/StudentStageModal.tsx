@@ -1,4 +1,4 @@
-// components/enterprise/StudentStageModal.tsx
+// components/enterprise-service/StudentStageModal.tsx
 'use client'
 
 import { formatStudentDisplayName } from '@/lib/enterpriseUtils'

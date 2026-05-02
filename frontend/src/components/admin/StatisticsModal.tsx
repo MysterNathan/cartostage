@@ -462,7 +462,7 @@ export default function StatisticsModal({ stages, isOpen, onClose }: StatisticsM
                       borderColor="border-purple-200"
                   />
 
-                  {/* Par période de stage */}
+                  {/* Par période de stage-service */}
                   <StatsSection
                       title="Périodes de stage"
                       data={stats.parcoursY.byPeriod}

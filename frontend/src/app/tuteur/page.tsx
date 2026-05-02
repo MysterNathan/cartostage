@@ -1,27 +1,32 @@
-// app/enterprise/page.tsx
+// app/enterprise-service/page.tsx
 'use client'
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { authApi } from '@/lib/api/authApi'
-import { getEnterpriseStats } from '@/lib/api/enterpriseApi'
+import {getEnterpriseStats, getStudentsUser} from '@/lib/api/enterpriseApi'
 import type { EnterpriseStats } from '@/types/enterprise'
-import type { Tutor } from '@/types/tutor'
+import type { Tutor, Student } from '@/types/tutor'
 import EnterpriseStats from '@/components/enterprise/EnterpriseStats'
 import TutorsList from '@/components/misc/TutorsList'
 import TutorModal from '@/components/enterprise/TutorModal'
 import StudentsList from '@/components/misc/StudentsList'
+import {getForm} from "@/lib/api/stageApi";
+import {FormResponse} from "@/types/form";
+import FormSectionModal from "@/components/form/FormSectionModal";
 
 export default function MyEnterprisePage() {
     const router = useRouter()
     const [stats, setStats] = useState<EnterpriseStats | null>(null)
     const [tutors, setTutors] = useState<Tutor[]>([])
+    const [students, setStudents] = useState<Student[]>([])
     const [loading, setLoading] = useState(true)
+    const [formLoading, setFormLoading] = useState(false)
 
-    // États pour les modals
     const [editingTutor, setEditingTutor] = useState<Tutor | null>(null)
     const [isTutorModalOpen, setIsTutorModalOpen] = useState(false)
     const [isTutorNew, setIsTutorNew] = useState(false)
+    const [formResponse, setFormResponse] = useState<FormResponse | null>(null)
 
     useEffect(() => {
         if (!authApi.isAuthenticated()) {
@@ -35,11 +40,25 @@ export default function MyEnterprisePage() {
         loadData()
     }, [router])
 
+    const handleOpenForm = async () => {
+        setFormLoading(true)
+        try {
+            const data = await getForm()
+            console.log("datas:",data)
+            setFormResponse(data)
+        } catch (error) {
+            console.error("Erreur lors du chargement du formulaire", error)
+        }
+        setFormLoading(false)
+    }
+
     const loadData = async () => {
         try {
             setLoading(true)
             const enterpriseStats = await getEnterpriseStats()
             setStats(enterpriseStats)
+            const studentsUsers = await getStudentsUser()
+            setStudents(studentsUsers)
         } catch (error) {
             console.error('Erreur lors du chargement des données:', error)
         } finally {
@@ -77,6 +96,15 @@ export default function MyEnterprisePage() {
     return (
         <div className="min-h-screen bg-gray-100">
             {/* Contenu principal */}
+            <div>
+                <button
+                    onClick={handleOpenForm}
+                    disabled={formLoading}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+                >
+                    {formLoading ? "Chargement..." : "Mon formulaire"}
+                </button>
+            </div>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <EnterpriseStats
                     activeTutors={stats.tutors}
@@ -104,8 +132,17 @@ export default function MyEnterprisePage() {
 
             {/* Section élèves */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <StudentsList />
+                <StudentsList
+                    students={students}
+                />
             </div>
+
+            {formResponse && (
+                <FormSectionModal
+                    formResponse={formResponse}
+                    onClose={() => setFormResponse(null)}
+                />
+            )}
         </div>
     )
 }

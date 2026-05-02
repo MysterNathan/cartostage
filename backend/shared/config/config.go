@@ -2,10 +2,9 @@ package config
 
 import (
 	"fmt"
-	"os"
-
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"os"
 )
 
 type Config struct {
@@ -14,6 +13,7 @@ type Config struct {
 	DBUser     string
 	DBPassword string
 	DBName     string
+	SSLMode    string
 }
 
 func LoadConfig() *Config {
@@ -23,14 +23,15 @@ func LoadConfig() *Config {
 		DBUser:     getEnv("POSTGRES_USER", "stages_user"),
 		DBPassword: getEnv("POSTGRES_PASSWORD", "stages_password"),
 		DBName:     getEnv("POSTGRES_DB", "postgres"),
+		SSLMode:    getEnv("POSTGRES_SSL_MODE", "disable"),
 	}
 }
 
 // Connexion à la base de données
 func ConnectDB(cfg *Config) (*sqlx.DB, error) {
 	dsn := fmt.Sprintf(
-		"host=%s port=%s user=%s password=%s dbname=%s sslmode=disable",
-		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName,
+		"host=%s port=%s user=%s password=%s dbname=%s sslmode=%s",
+		cfg.DBHost, cfg.DBPort, cfg.DBUser, cfg.DBPassword, cfg.DBName, cfg.SSLMode,
 	)
 	db, err := sqlx.Connect("postgres", dsn)
 	if err != nil {

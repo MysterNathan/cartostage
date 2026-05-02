@@ -9,7 +9,7 @@ const (
 	RoleAdmin   UserRole = "admin"
 	RoleTeacher UserRole = "teacher"
 	RoleTutor   UserRole = "tutor"
-	RoleStudent UserRole = "eleve"
+	RoleStudent UserRole = "student"
 )
 
 func (r UserRole) IsValid() bool {
