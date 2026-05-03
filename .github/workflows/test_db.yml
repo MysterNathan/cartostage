@@ -1,7 +1,10 @@
 name: Tests
 
 on:
-  workflow_dispatch:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
 
 jobs:
   test:
@@ -46,5 +49,14 @@ jobs:
           TEST_DB_PASSWORD: test
           TEST_DB_NAME: testdb
         run: |
+          go install gotest.tools/gotestsum@latest
           cd backend/services/auth-service
-          go test ./internal/repositories/...
+          gotestsum --junitfile=report.xml ./...
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report
+          path: backend/services/auth-service/report.xml
+

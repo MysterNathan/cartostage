@@ -64,4 +64,4 @@ INSERT INTO establishments (
           'https://www.digital-marketing-pro.com',
           'Agence de marketing digital offrant des services de SEO, publicité en ligne et stratégie digitale.',
           'https://www.digital-marketing-pro.com/assets/logo.svg'
-      );
+      );update_updated_at_column

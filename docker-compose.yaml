@@ -19,7 +19,7 @@ services:
   auth-service:
     build:
       context: ./backend
-      dockerfile: services/auth/Dockerfile
+      dockerfile: services/auth-service/Dockerfile
     image: cs-auth
     container_name: stages-auth
     restart: unless-stopped
@@ -42,7 +42,7 @@ services:
   stage-service:
     build:
       context: ./backend
-      dockerfile: services/stage/Dockerfile
+      dockerfile: services/stage-service/Dockerfile
     image: cs-stage
     container_name: stages-map
     restart: unless-stopped
@@ -65,7 +65,7 @@ services:
   enterprise-service:
     build:
       context: ./backend
-      dockerfile: services/enterprise/Dockerfile
+      dockerfile: services/enterprise-service/Dockerfile
     image: cs-enterprise
     container_name: stages-enterprise
     restart: unless-stopped
@@ -87,7 +87,7 @@ services:
   student-service:
     build:
       context: ./backend
-      dockerfile: services/student/Dockerfile
+      dockerfile: services/student-service/Dockerfile
     image: cs-student
     container_name: stages-student
     restart: unless-stopped
@@ -109,7 +109,7 @@ services:
   teacher-service:
     build:
       context: ./backend
-      dockerfile: services/teacher/Dockerfile
+      dockerfile: services/teacher-service/Dockerfile
     image: cs-teacher
     container_name: stages-teacher
     restart: unless-stopped
