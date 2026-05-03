@@ -1,35 +1,50 @@
-# .github/workflows/test-db.yml
-name: Test DB Connection
+name: Tests
 
 on:
-  workflow_dispatch: # Déclenchement manuel pour le test
+  workflow_dispatch:
 
 jobs:
-  test-db:
+  test:
     runs-on: self-hosted
+    container:
+      image: golang:1.25
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
 
     steps:
-      - name: Start postgres
-        run: |
-          docker run -d \
-            --name postgres-test \
-            -e POSTGRES_DB=testdb \
-            -e POSTGRES_USER=test \
-            -e POSTGRES_PASSWORD=test \
-            -p 5433:5432 \
-            postgres:15
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install psql client
+        run: apt-get update && apt-get install -y postgresql-client
 
       - name: Wait for postgres
         run: |
-          until docker exec postgres-test pg_isready -U test; do
-            echo "Waiting..."
+          until pg_isready -h postgres -U test; do
             sleep 1
           done
 
-      - name: Test connection
+      - name: Run migrations
+        env:
+          PGPASSWORD: test
         run: |
-          docker exec postgres-test psql -U test -d testdb -c "SELECT version();"
+          psql -h postgres -U test -d testdb < ./backend/shared/database/init-filieres.sql
+          psql -h postgres -U test -d testdb < ./backend/shared/database/migrations/create_establishment.sql
+          psql -h postgres -U test -d testdb < ./backend/shared/database/migrations/create_users_table.sql
 
-      - name: Cleanup
-        if: always()
-        run: docker rm -f postgres-test
+      - name: Run tests
+        env:
+          TEST_DB_HOST: postgres
+          TEST_DB_PORT: 5432
+          TEST_DB_USER: test
+          TEST_DB_PASSWORD: test
+          TEST_DB_NAME: testdb
+        run: |
+          cd backend/services/auth-service
+          go test ./internal/repositories/...

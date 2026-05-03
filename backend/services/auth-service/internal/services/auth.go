@@ -10,11 +10,11 @@ import (
 )
 
 type AuthService struct {
-	authRepo   *repositories.AuthRepository
+	authRepo   repositories.AuthRepositoryInterface
 	jwtService *services.JWTService
 }
 
-func NewAuthService(authRepo *repositories.AuthRepository, jwtService *services.JWTService) *AuthService {
+func NewAuthService(authRepo repositories.AuthRepositoryInterface, jwtService *services.JWTService) *AuthService {
 	return &AuthService{
 		authRepo:   authRepo,
 		jwtService: jwtService,
