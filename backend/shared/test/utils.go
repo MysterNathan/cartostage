@@ -1,9 +1,18 @@
 package test
 
 import (
+	"bytes"
+	"context"
+	"encoding/json"
 	"fmt"
+	"github.com/gorilla/mux"
 	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	sharedContext "shared/context"
+	"shared/models"
 	"testing"
 )
 
@@ -36,4 +45,28 @@ func getEnvOrDefault(key, defaultValue string) string {
 		return value
 	}
 	return defaultValue
+}
+
+func MakeRequest(t *testing.T, method, url string, body any) *http.Request {
+	t.Helper()
+	if body == nil {
+		return httptest.NewRequest(method, url, nil)
+	}
+	jsonBody, err := json.Marshal(body)
+	if err != nil {
+		t.Fatalf("Impossible de sérialiser le body : %v", err)
+	}
+	return httptest.NewRequest(method, url, bytes.NewBuffer(jsonBody))
+}
+
+func RequestWithVars(r *http.Request, vars map[string]string) *http.Request {
+	return mux.SetURLVars(r, vars)
+}
+
+func CtxWithClaims(role models.UserRole, userID int) context.Context {
+	claims := &models.CustomClaims{
+		Role:   role,
+		UserID: userID,
+	}
+	return sharedContext.SetClaimsInContext(context.Background(), claims)
 }
