@@ -9,10 +9,10 @@ import (
 )
 
 type FormHandler struct {
-	formService *services.FormService
+	formService services.FormServiceInterface
 }
 
-func NewFormHandler(formService *services.FormService) *FormHandler {
+func NewFormHandler(formService services.FormServiceInterface) *FormHandler {
 	return &FormHandler{formService: formService}
 }
 
@@ -40,7 +40,7 @@ func (h FormHandler) UpdateForm(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, `{"error": "JSON invalide"}`, http.StatusBadRequest)
 		return
 	}
-	fmt.Printf("data content:", data.Form.Content, "data status:", data.Form.Status, "\n")
+	fmt.Printf("data content: %v data status: %v\n", data.Form.Content, data.Form.Status)
 	if data.Form == nil {
 		http.Error(w, `{"error": "form field missing"}`, http.StatusBadRequest)
 	}

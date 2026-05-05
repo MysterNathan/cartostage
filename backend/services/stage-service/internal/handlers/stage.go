@@ -12,10 +12,10 @@ import (
 )
 
 type StageHandler struct {
-	stageService *services.StageService
+	stageService services.StageServiceInterface
 }
 
-func NewStageHandler(stageService *services.StageService) *StageHandler {
+func NewStageHandler(stageService services.StageServiceInterface) *StageHandler {
 	return &StageHandler{stageService: stageService}
 }
 
