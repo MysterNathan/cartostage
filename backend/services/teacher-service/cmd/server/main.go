@@ -21,7 +21,7 @@ func main() {
 	// Initialiser la base de données
 	db, err := config.ConnectDB(cfg)
 	if err != nil {
-		log.Fatalf("Erreur connexion DB: %v", err)
+		log.Fatalf("Erreur connexion DB : %v", err)
 	}
 	defer db.Close()
 
