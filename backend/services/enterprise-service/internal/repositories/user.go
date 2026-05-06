@@ -10,19 +10,11 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type UserRepository interface {
-	GetAll(ctx context.Context, filter models.UserFilter) ([]models.User, error)
-	GetByID(ctx context.Context, id int) (*models.User, error)
-	Create(ctx context.Context, user *models.User) error
-	Update(ctx context.Context, user *models.User) error
-	Delete(ctx context.Context, id int) error
-}
-
 type userRepository struct {
 	db *sqlx.DB
 }
 
-func NewUserRepository(db *sqlx.DB) UserRepository {
+func NewUserRepository(db *sqlx.DB) UserRepositoryInterface {
 	return &userRepository{db: db}
 }
 
