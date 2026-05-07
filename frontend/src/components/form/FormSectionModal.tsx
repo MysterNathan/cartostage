@@ -18,6 +18,8 @@ export default function FormSectionModal({ formResponse, onClose }: FormSectionM
     const [isEditing, setIsEditing] = useState(false)
     const [isSaving, setIsSaving] = useState(false)
     const [editedData, setEditedData] = useState<FormResponse>(formResponse)
+    const [isFullscreen, setIsFullscreen] = useState(false);
+
 
     if (formResponse.error) {
         return (
@@ -58,80 +60,103 @@ export default function FormSectionModal({ formResponse, onClose }: FormSectionM
     }
 
     return (
-        <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-lg shadow-xl border border-gray-200 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+        <div className={`fixed inset-0 bg-white/30 backdrop-blur-sm flex z-50 ${
+            isFullscreen ? 'items-start p-0' : 'items-center justify-center p-4'
+        }`}>
+            <div className={`bg-white shadow-xl border border-gray-200 w-full overflow-y-auto transition-all duration-200 ${
+                isFullscreen ? 'max-w-full h-full rounded-none' : 'max-w-4xl max-h-[90vh] rounded-lg'
+            }`}>
 
-                {editedData.map(({ form, form_section }) => (
-                    <div key={form.id}>
-                        {/* Header */}
-                        <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center">
-                            <div className="flex items-center gap-3">
-                                <h3 className="text-lg font-medium text-gray-900">
-                                    Fiche de stage n°{form.id}
-                                </h3>
-                                {isEditing && (
-                                    <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
-                                        Mode édition
-                                    </span>
-                                )}
-                            </div>
-                            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                {/* Header — HORS de la boucle */}
+                <div className="px-6 py-4 border-b border-gray-200 flex justify-between items-center sticky top-0 bg-white z-10">
+                    <div className="flex items-center gap-3">
+                        <h3 className="text-lg font-medium text-gray-900">
+                            Fiches de stage
+                        </h3>
+                        {isEditing && (
+                            <span className="text-xs font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                Mode édition
+            </span>
+                        )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => setIsFullscreen(!isFullscreen)} className="text-gray-400 hover:text-gray-600">
+                            {isFullscreen ? (
                                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 9L4 4m0 0h5m-5 0v5M15 9l5-5m0 0h-5m5 0v5M9 15l-5 5m0 0h5m-5 0v-5M15 15l5 5m0 0h-5m5 0v-5" />
                                 </svg>
-                            </button>
-                        </div>
+                            ) : (
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5M20 8V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5M20 16v4m0 0h-4m4 0l-5-5" />
+                                </svg>
+                            )}
+                        </button>
+                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
 
-                        {/* Contenu : lecture ou édition */}
-                        {isEditing ? (
-                            <>
-                                <FormInfoEdit
-                                    form={form}
-                                    onChange={(updatedForm) =>
-                                        setEditedData(prev =>
-                                            prev.map(item =>
-                                                item.form.id === form.id
-                                                    ? { ...item, form: updatedForm }
-                                                    : item
-                                            )
-                                        )
-                                    }
-                                />
-                                {form_section.map((section) => (
-                                    <FormSectionInfoEdit
-                                        key={section.id}
-                                        formSection={section}
-                                        onChange={(updatedSection) =>
+
+                {/* Contenu — boucle sur les fiches */}
+                <div className="bg-gray-200 p-4 space-y-4">
+                    {editedData.map(({ form, form_section }) => (
+                        <div key={form.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                            <h4 className="text-sm font-semibold text-gray-700 mb-4">
+                                Fiche n°{form.id}
+                            </h4>
+
+                            {isEditing ? (
+                                <>
+                                    <FormInfoEdit
+                                        form={form}
+                                        onChange={(updatedForm) =>
                                             setEditedData(prev =>
                                                 prev.map(item =>
                                                     item.form.id === form.id
-                                                        ? {
-                                                            ...item,
-                                                            form_section: item.form_section.map(s =>
-                                                                s.id === section.id ? updatedSection : s
-                                                            )
-                                                        }
+                                                        ? { ...item, form: updatedForm }
                                                         : item
                                                 )
                                             )
                                         }
                                     />
-                                ))}
-                            </>
-                        ) : (
-                            <>
-                                <FormInfo form={form} />
-                                {form_section.map((section) => (
-                                    <FormSectionInfo key={section.id} formSection={section} />
-                                ))}
-                            </>
-                        )}
-                    </div>
-                ))}
+                                    {form_section.map((section) => (
+                                        <FormSectionInfoEdit
+                                            key={section.id}
+                                            formSection={section}
+                                            onChange={(updatedSection) =>
+                                                setEditedData(prev =>
+                                                    prev.map(item =>
+                                                        item.form.id === form.id
+                                                            ? {
+                                                                ...item,
+                                                                form_section: item.form_section.map(s =>
+                                                                    s.id === section.id ? updatedSection : s
+                                                                )
+                                                            }
+                                                            : item
+                                                    )
+                                                )
+                                            }
+                                        />
+                                    ))}
+                                </>
+                            ) : (
+                                <>
+                                    <FormInfo form={form} />
+                                    {form_section.map((section) => (
+                                        <FormSectionInfo key={section.id} formSection={section} />
+                                    ))}
+                                </>
+                            )}
+                        </div>
+                    ))}
+                </div>
 
-                {/* Footer */}
-                <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between">
-                    {/* Bouton Modifier (visible en mode lecture) */}
+                {/* Footer — HORS de la boucle */}
+                <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-between sticky bottom-0">
                     {!isEditing ? (
                         <button
                             onClick={() => setIsEditing(true)}

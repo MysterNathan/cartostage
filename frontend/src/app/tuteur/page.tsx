@@ -95,30 +95,56 @@ export default function MyEnterprisePage() {
 
     return (
         <div className="min-h-screen bg-gray-100">
-            {/* Contenu principal */}
-            <div>
-                <button
-                    onClick={handleOpenForm}
-                    disabled={formLoading}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-                >
-                    {formLoading ? "Chargement..." : "Mon formulaire"}
-                </button>
+            {/* Header de page */}
+            <div className="bg-white border-b border-gray-200 shadow-sm">
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+                    <div>
+                        <h1 className="text-xl font-semibold text-gray-900">Espace Entreprise</h1>
+                        <p className="text-sm text-gray-500">Gérez vos tuteurs et vos élèves</p>
+                    </div>
+                    <button
+                        onClick={handleOpenForm}
+                        disabled={formLoading}
+                        className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 shadow-sm transition-colors"
+                    >
+                        {formLoading ? (
+                            <>
+                                <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/>
+                                </svg>
+                                Chargement...
+                            </>
+                        ) : (
+                            <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                                </svg>
+                                Mes fiches de stage
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
+
+            {/* Contenu principal */}
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <EnterpriseStats
                     activeTutors={stats.tutors}
                     totalStages={stats.stages}
                     totalStudents={stats.students}
                 />
-
                 <TutorsList
                     tutors={tutors}
                     loading={false}
                 />
             </div>
 
-            {/* Modal */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                <StudentsList students={students} />
+            </div>
+
+            {/* Modals */}
             {isTutorModalOpen && (
                 <TutorModal
                     tutor={editingTutor}
@@ -129,14 +155,6 @@ export default function MyEnterprisePage() {
                     isNew={isTutorNew}
                 />
             )}
-
-            {/* Section élèves */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <StudentsList
-                    students={students}
-                />
-            </div>
-
             {formResponse && (
                 <FormSectionModal
                     formResponse={formResponse}
@@ -145,4 +163,5 @@ export default function MyEnterprisePage() {
             )}
         </div>
     )
+
 }
