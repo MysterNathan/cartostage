@@ -25,7 +25,7 @@ func (r *StageRepository) GetStagesPublic() ([]models.StageWithDetails, error) {
             s.id, s.stage_offer_id, s.student_id, s.teacher_id, s.tutor_id,
             s.establishment_id, s.content_id, s.status, s.start_date, s.end_date, 
             s.created_at, s.updated_at,
-            so.id, so.position, so.address, so.lat, so.lng, so.enterprise-service, 
+            so.id, so.position, so.address, so.lat, so.lng, so.enterprise, 
             so.sector, so.capacity_total, so.capacity_filled, so.period, 
             so.course, so.job_family, so.scolar_level, so.created_at, so.updated_at
         FROM stages s

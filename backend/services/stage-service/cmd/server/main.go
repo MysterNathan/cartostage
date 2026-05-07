@@ -30,7 +30,7 @@ func main() {
 	// Connexion à la DB
 	db, err := config.ConnectDB(cfg)
 	if err != nil {
-		log.Fatalf("Erreur connexion DB: %v", err)
+		log.Fatalf("Erreur connexion DB : %v", err)
 	}
 	defer db.Close()
 

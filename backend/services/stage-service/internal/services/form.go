@@ -9,10 +9,10 @@ import (
 )
 
 type FormService struct {
-	formRepository *repositories.FormRepository
+	formRepository repositories.FormRepositoryInterface
 }
 
-func NewFormService(repository *repositories.FormRepository) *FormService {
+func NewFormService(repository repositories.FormRepositoryInterface) *FormService {
 	return &FormService{formRepository: repository}
 }
 
@@ -34,18 +34,21 @@ func (s FormService) UpdateForm(ctx context.Context, data *models.Form) (*models
 
 func (s FormService) UpdateFormSection(ctx context.Context, data []models.FormSection) ([]models.FormSection, error) {
 	claims := sharedContext.GetClaimsFromContext(ctx)
+	if claims == nil {
+		return nil, fmt.Errorf("no claims found in context")
+	}
+
 	var userFormSection *models.FormSection
 	for i := range data {
 		if data[i].UserID == claims.UserID {
 			userFormSection = &data[i]
 		}
 	}
-	if claims == nil {
-		return nil, fmt.Errorf("no claims found in context")
-	}
-	if userFormSection.UserID != claims.UserID {
+
+	if userFormSection == nil {
 		return nil, fmt.Errorf("no user's form section found")
 	}
+
 	return s.formRepository.UpdateFormSection(ctx, userFormSection, claims.UserID)
 }
 

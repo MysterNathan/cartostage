@@ -9,11 +9,11 @@ import (
 )
 
 type StageService struct {
-	stageRepo   *repositories.StageRepository
+	stageRepo   repositories.StageRepositoryInterface
 	formService *FormService
 }
 
-func NewStageService(stageRepo *repositories.StageRepository, formService *FormService) *StageService {
+func NewStageService(stageRepo repositories.StageRepositoryInterface, formService *FormService) *StageService {
 	return &StageService{
 		stageRepo:   stageRepo,
 		formService: formService,

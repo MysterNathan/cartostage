@@ -2,14 +2,19 @@ name: CI/CD Pipeline
 
 on:
   push:
-    branches: [main, develop, tmp]
+    branches: [main, develop]
   pull_request:
     branches: [main]
 
 env:
   REGISTRY: mysternathan.freeboxos.fr
+  # Services dont l'échec des tests unitaires bloque le pipeline
+  BLOCKING_SERVICES: '["auth-service"]'
 
 jobs:
+  # =====================
+  # Detect Changes
+  # =====================
   detect-changes:
     runs-on: self-hosted
     outputs:
@@ -53,12 +58,168 @@ jobs:
           fi
 
   # =====================
+  # Unit Tests
+  # =====================
+  unit-tests:
+    runs-on: self-hosted
+    needs: detect-changes
+    if: |
+      needs.detect-changes.outputs.services == 'true' &&
+      needs.detect-changes.outputs.changed-services != '[]'
+    strategy:
+      matrix:
+        service: ${{ fromJson(needs.detect-changes.outputs.changed-services) }}
+      fail-fast: false
+    continue-on-error: true
+    container:
+      image: golang:1.25
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: testdb
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install psql client
+        run: apt-get update && apt-get install -y postgresql-client
+
+      - name: Wait for postgres
+        run: |
+          until pg_isready -h postgres -U test; do
+            sleep 1
+          done
+
+      - name: Run migrations
+        env:
+          PGPASSWORD: test
+        run: |
+          psql -h postgres -U test -d testdb < ./backend/shared/database/init-filieres.sql
+          psql -h postgres -U test -d testdb < ./backend/shared/database/migrations/create_establishment.sql
+          psql -h postgres -U test -d testdb < ./backend/shared/database/migrations/create_users_table.sql
+          psql -h postgres -U test -d testdb < ./backend/shared/database/migrations/create_table_offers.sql
+          psql -h postgres -U test -d testdb < ./backend/shared/database/migrations/create_stages_table.sql
+          psql -h postgres -U test -d testdb < ./backend/shared/database/migrations/init_fiche_stage.up.sql
+          psql -h postgres -U test -d testdb < ./backend/shared/database/init-filieres.sql
+
+      - name: Run unit tests
+        id: tests
+        env:
+          TEST_DB_HOST: postgres
+          TEST_DB_PORT: 5432
+          TEST_DB_USER: test
+          TEST_DB_PASSWORD: test
+          TEST_DB_NAME: testdb
+        run: |
+          go install gotest.tools/gotestsum@latest
+          cd backend/services/${{ matrix.service }}
+          gotestsum --junitfile=report.xml ./... 2>&1
+          echo "exit_code=$?" >> $GITHUB_OUTPUT
+
+      - name: Upload test report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: test-report-${{ matrix.service }}
+          path: backend/services/${{ matrix.service }}/report.xml
+
+  # =====================
+  # Test Summary
+  # =====================
+  test-summary:
+    runs-on: self-hosted
+    needs: [detect-changes, unit-tests]
+    if: always() && needs.detect-changes.outputs.services == 'true'
+    outputs:
+      blocking-failed: ${{ steps.check.outputs.blocking-failed }}
+    steps:
+      - name: Download all test reports
+        uses: actions/download-artifact@v4
+        with:
+          pattern: test-report-*
+          path: test-reports/
+        continue-on-error: true
+
+      - name: Display test summary
+        run: |
+          echo "========================================="
+          echo "           UNIT TEST SUMMARY             "
+          echo "========================================="
+
+          if [ -d "test-reports" ]; then
+            for report_dir in test-reports/*/; do
+              service=$(basename "$report_dir" | sed 's/test-report-//')
+              report="$report_dir/report.xml"
+
+              if [ -f "$report" ]; then
+                total=$(grep -oP 'tests="\K[0-9]+' "$report" | head -1 || echo "?")
+                failures=$(grep -oP 'failures="\K[0-9]+' "$report" | head -1 || echo "?")
+                errors=$(grep -oP 'errors="\K[0-9]+' "$report" | head -1 || echo "?")
+
+                if [ "$failures" = "0" ] && [ "$errors" = "0" ]; then
+                  status="✅ PASS"
+                else
+                  status="❌ FAIL"
+                fi
+
+                echo "$status | $service | tests: $total | failures: $failures | errors: $errors"
+              else
+                echo "⚠️  NO REPORT | $service"
+              fi
+            done
+          else
+            echo "No test reports found"
+          fi
+          echo "========================================="
+
+      - name: Check blocking services
+        id: check
+        run: |
+          BLOCKING='${{ env.BLOCKING_SERVICES }}'
+          FAILED=false
+
+          for service in $(echo "$BLOCKING" | jq -r '.[]'); do
+            report="test-reports/test-report-${service}/report.xml"
+
+            if [ -f "$report" ]; then
+              failures=$(grep -oP 'failures="\K[0-9]+' "$report" | head -1 || echo "0")
+              errors=$(grep -oP 'errors="\K[0-9]+' "$report" | head -1 || echo "0")
+
+              if [ "$failures" != "0" ] || [ "$errors" != "0" ]; then
+                echo "🚨 Blocking service FAILED: $service"
+                FAILED=true
+              fi
+            elif echo '${{ needs.detect-changes.outputs.changed-services }}' | jq -e --arg s "$service" 'index($s) != null' > /dev/null 2>&1; then
+              echo "🚨 Blocking service has no report (crashed?): $service"
+              FAILED=true
+            fi
+          done
+
+          echo "blocking-failed=$FAILED" >> $GITHUB_OUTPUT
+
+      - name: Fail if blocking service failed
+        if: steps.check.outputs.blocking-failed == 'true'
+        run: |
+          echo "Pipeline blocked: a blocking service has failing unit tests."
+          exit 1
+
+  # =====================
   # Build Frontend
   # =====================
   build-frontend:
     runs-on: self-hosted
-    needs: detect-changes
-    if: needs.detect-changes.outputs.frontend == 'true'
+    needs: [detect-changes, test-summary]
+    if: |
+      always() &&
+      needs.detect-changes.outputs.frontend == 'true' &&
+      needs.test-summary.outputs.blocking-failed != 'true'
     steps:
       - uses: actions/checkout@v4
 
@@ -95,10 +256,12 @@ jobs:
   # =====================
   build-services:
     runs-on: self-hosted
-    needs: detect-changes
+    needs: [detect-changes, test-summary]
     if: |
+      always() &&
       needs.detect-changes.outputs.services == 'true' &&
-      needs.detect-changes.outputs.changed-services != '[]'
+      needs.detect-changes.outputs.changed-services != '[]' &&
+      needs.test-summary.outputs.blocking-failed != 'true'
     strategy:
       matrix:
         service: ${{ fromJson(needs.detect-changes.outputs.changed-services) }}
